@@ -21,12 +21,17 @@ int cm_superindex(int row, int col) {
 	return 2 * (SUN_N * row + col);
 }
 
-void so_eq_zero(double* const result) {
+void so_ti_eq_re(double* result, double d) {
+	for (int i = 0; i < SO_elems; ++i)
+		result[i] *= d;
+}
+
+void so_eq_zero(double* result) {
 	for (int i = 0; i < SO_elems; ++i)
 		result[i] = 0.0;
 }
 
-void so_eq_id(double* const result) {
+void so_eq_id(double* result) {
 	so_eq_zero(result);
 	for (int a = 0; a < SUN_N; ++a) {
 		for (int b = 0; b < SUN_N; ++b) {
@@ -35,12 +40,17 @@ void so_eq_id(double* const result) {
 	}
 }
 
-void so_eq_so(double* const result, const double* const T) {
+void so_eq_so(double* result, const double* T) {
 	for (int i = 0; i < SO_elems; ++i)
 		result[i] = T[i];
 }
 
-void so_eq_so_ti_so(double* const result, const double* const T1, const double* const T2) {
+void so_pl_eq_so(double* result, const double* T) {
+	for (int i = 0; i < SO_elems; ++i)
+		result[i] += T[i];
+}
+
+void so_eq_so_ti_so(double* result, const double* T1, const double* T2) {
 	for (int a = 0; a < SUN_N; ++a) {
 		for (int b = 0; b < SUN_N; ++b) {
 			for (int c = 0; c < SUN_N; ++c) {
@@ -64,20 +74,10 @@ void so_eq_so_ti_so(double* const result, const double* const T1, const double* 
 	}
 }
 
-void so_pl_eq_so(double* const result, const double* const T) {
-	for (int i = 0; i < SO_elems; ++i)
-		result[i] += T[i];
-}
-
-void so_ti_eq_re(double* const result, double d) {
-	for (int i = 0; i < SO_elems; ++i)
-		result[i] *= d;
-}
-
 /**
  * compute the sublattice operator from the "two link" operators T0 at r = 0 and TR at r = R = spatial Wilson loop size
  */
-void so_eq_cm_x_cm(double* const result, const double* const T0, const double* const TR) {
+void so_eq_cm_x_cm(double* result, const double* T0, const double* TR) {
 	double T0_dag[SUN_elems];
 	cm_eq_cm_dag(T0_dag, T0);
 	for (int a = 0; a < SUN_N; ++a) {
