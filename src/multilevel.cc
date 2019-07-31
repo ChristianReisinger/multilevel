@@ -6,11 +6,13 @@
 
 #include <linear_algebra.hh>
 #include <geometry.hh>
-#include <geometry2.hh>
 #include <fields.hh>
 #include <io.hh>
 
+#include <geometry2.hh>
 #include <global_defs.hh>
+#include <LinkPath.hh>
+
 #include <sublattice_algebra.hh>
 
 //compute [ [T(0)T(1)] [T(2)T'(3)] ] [ [T''(4)T(5)] [T(6)T(7)] ]
@@ -19,44 +21,6 @@
 const int T = 20, L = 20;
 
 const std::string config_prefix = "/scratch/mesonqcd/reisinger/gauge_fields/su2_b2.74_L20T20/confs/useable_confs/conf";
-
-class LinkPath {
-
-	double path[SUN_elems];
-
-	LinkPath(double* gauge_field, const std::array<int, 4>& n) :
-			gauge_field(gauge_field), n(n) {
-		cm_eq_id(path);
-	}
-
-	LinkPath& operator()(int mu, bool pos) {
-		double U[SUN_elems];
-		cm_eq_cm(U, path);
-		if (pos) {
-			cm_eq_cm_ti_cm(path, U, gauge_field + ggi_n(n[0], n[1], n[2], n[3], 4, mu, T, L));
-			n[mu]++;
-		} else {
-			n[mu]--;
-			cm_eq_cm_ti_cm_dag(path, U, gauge_field + ggi_n(n[0], n[1], n[2], n[3], 4, mu, T, L));
-		}
-		return *this;
-	}
-
-	LinkPath& move(int mu, int dist) {
-		n[mu] += dist;
-		return *this;
-	}
-
-	LinkPath& reset(const std::array<int, 4>& new_n) {
-		n = new_n;
-		cm_eq_id(path);
-		return *this;
-	}
-
-private:
-	double* gauge_field;
-	std::array<int, 4> n;
-};
 
 std::string config_filename(const std::vector<int>& tag) {
 	std::ostringstream filename_oss;
@@ -78,7 +42,7 @@ void sublattice_operator(const std::vector<int>& conf_tag, int t_sub, const std:
 	read_gauge_field(sub_gauge_field, config_filename(conf_tag).c_str(), T, L);
 
 	double T0[SUN_elems], TR[SUN_elems];
-	LinkPath p(sub_gauge_field, n);
+	LinkPath p(sub_gauge_field, T, L, n);
 	cm_eq_cm(T0, p.move(0, t_sub)(0, true)(0, true).path);
 	cm_eq_cm(TR, p.reset(n).move(0, t_sub).move(dir, rsep)(0, true)(0, true).path);
 
@@ -110,57 +74,35 @@ void sublattice_operator(const std::vector<int>& conf_tag, int t_sub, const std:
 	so_eq_cm_x_cm(ret, T0, TR);
 }
 
-const int thickness_lv0 = 4;
-const int updates_lv1 = 50;
-const int thickness_lv1 = 2;
-const int updates_lv2 = 20;
-
+const std::vector<int> level_config_num { 1, 50, 20 };
 void multilevel(const std::vector<int>& conf_tag, int WL_T, int level, int t_offset, const std::array<int, 4>& n, int dir,
-		int rsep,
-		double* const ret) {
-	if (level = 0) {
-		so_eq_id(ret);
+		int rsep, double* const ret) {
 
-		for (int t_sub = 0; t_sub < WL_T; t_sub += thickness_lv0) {
-			double subavg[SUN_elems], U[SUN_elems];
-			multilevel(conf_tag, WL_T, 1, t_sub, n, dir, rsep, subavg);
-			so_eq_so_ti_so(U, ret, subavg);
-			so_eq_so(ret, U);
-		}
-	} else if (level = 1) {
-		so_eq_zero(ret);
+	const std::vector<int> level_thickness { WL_T, 4, 2 };
 
-		for (int i_lv1 = 1; i_lv1 <= updates_lv1; ++i_lv1) {
-			std::vector<int> curr_tag(conf_tag);
-			curr_tag.push_back(i_lv1);
+	so_eq_zero(ret);
+	for (int conf = 1; conf <= level_config_num[level]; ++conf) {
+		std::vector<int> curr_tag(conf_tag);
+		if (level != 0)
+			curr_tag.push_back(conf);
 
-			double curr_so[SO_elems];
+		double curr_so[SO_elems];
+
+		if (level < 2) {
 			so_eq_id(curr_so);
-
-			for (int t_sub = 0; t_sub < thickness_lv0; t_sub += thickness_lv1) {
+			for (int t_sub = 0; t_sub < level_thickness[level]; t_sub += level_thickness[level + 1]) {
 				double subavg[SO_elems], U[SO_elems];
-				multilevel(curr_tag, WL_T, 2, t_offset + t_sub, n, dir, rsep, subavg);
-
+				multilevel(curr_tag, WL_T, level + 1, t_offset + t_sub, n, dir, rsep, subavg);
 				so_eq_so_ti_so(U, curr_so, subavg);
 				so_eq_so(curr_so, U);
 			}
-
-			so_pl_eq_so(ret, curr_so);
+		} else {
+			sublattice_operator(curr_tag, t_offset, n, rsep, dir, curr_so);
 		}
-		so_ti_eq_re(ret, 1.0 / updates_lv1);
-	} else if (level = 2) {
-		so_eq_zero(ret);
 
-		for (int i_lv2 = 1; i_lv2 <= updates_lv2; ++i_lv2) {
-			std::vector<int> curr_tag(conf_tag);
-			curr_tag.push_back(i_lv2);
-
-			double subop[SO_elems];
-			sublattice_operator(curr_tag, t_offset, n, rsep, dir, subop);
-			so_pl_eq_so(ret, subop);
-		}
-		so_ti_eq_re(ret, 1.0 / updates_lv2);
+		so_pl_eq_so(ret, curr_so);
 	}
+	so_ti_eq_re(ret, 1.0 / level_config_num[level]);
 }
 
 /**
@@ -215,6 +157,10 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
+	double* gauge_field;
+	Gauge_Field_Alloc(&gauge_field, T, L);
+	read_gauge_field(gauge_field, config_filename( { config_lv0_id }).c_str(), T, L);
+
 	complex WL_avg;
 	co_eq_zero(&WL_avg);
 
@@ -227,7 +173,7 @@ int main(int argc, char **argv) {
 
 						double SO[SO_elems];
 						multilevel( { config_lv0_id }, WL_T, 0, 0, n, i, WL_r, SO);
-						LinkPath S0(n), ST(n);
+						LinkPath S0(gauge_field, T, L, n), ST(gauge_field, T, L, n);
 						ST.move(0, WL_T);
 						for (int r = 0; r < WL_r; ++r) {
 							S0(i, true);
