@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -141,6 +142,7 @@ complex complete_Wilson_loop(const double* SO, const double* S0, const double* S
 }
 
 int main(int argc, char **argv) {
+	using namespace std;
 	int WL_r = 5, WL_T = 8;
 
 	if (argc != 2) {
@@ -188,5 +190,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	std::cout << WL_avg.re / (3 * T / 2.0 * L * L * L);
+	co_di_eq_re(&WL_avg, 3.0 * T / 2.0 * L * L * L);
+
+	cout << scientific << setprecision(11) << showpos << WL_avg.re << " " << WL_avg.im << "\n";
 }
