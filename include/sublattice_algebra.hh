@@ -58,8 +58,8 @@ void so_eq_so_ti_so(double* result, const double* T1, const double* T2) {
 					double* result_elem_ptr = result + so_superindex(a, b, c, d);
 					for (int i = 0; i < SUN_N; ++i) {
 						for (int j = 0; j < SUN_N; ++j) {
-							double* T1_elem_ptr = T1 + so_superindex(a, i, c, j);
-							double* T2_elem_ptr = T2 + so_superindex(i, b, j, d);
+							const double* T1_elem_ptr = T1 + so_superindex(a, i, c, j);
+							const double* T2_elem_ptr = T2 + so_superindex(i, b, j, d);
 							complex T1_elem { *T1_elem_ptr, *(T1_elem_ptr + 1) };
 							complex T2_elem { *T2_elem_ptr, *(T2_elem_ptr + 1) };
 							complex result_elem;
@@ -85,8 +85,8 @@ void so_eq_cm_x_cm(double* result, const double* T0, const double* TR) {
 			for (int c = 0; c < SUN_N; ++c) {
 				for (int d = 0; d < SUN_N; ++d) {
 					double* result_elem_ptr = result + so_superindex(a, b, c, d);
-					double* T0_elem_ptr = T0_dag + cm_superindex(b, a);
-					double* TR_elem_ptr = TR + cm_superindex(c, d);
+					const double* T0_elem_ptr = T0_dag + cm_superindex(b, a);
+					const double* TR_elem_ptr = TR + cm_superindex(c, d);
 					complex T0_elem { *T0_elem_ptr, *(T0_elem_ptr + 1) };
 					complex TR_elem { *TR_elem_ptr, *(TR_elem_ptr + 1) };
 					complex result_elem;

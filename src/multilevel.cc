@@ -34,8 +34,7 @@ std::string config_filename(const std::vector<int>& tag) {
  * n : starting lattice site of the full operator
  * t_sub : initial time of the timeslice on which to compute the sublattice operator
  */
-void sublattice_operator(const std::vector<int>& conf_tag, int t_sub, const std::array<int, 4>& n, int rsep, int dir,
-		double* ret) {
+void sublattice_operator(const std::vector<int>& conf_tag, int t_sub, const std::array<int, 4>& n, int rsep, int dir, double* ret) {
 
 	double* sub_gauge_field;
 	Gauge_Field_Alloc(&sub_gauge_field, T, L);
@@ -75,8 +74,9 @@ void sublattice_operator(const std::vector<int>& conf_tag, int t_sub, const std:
 }
 
 const std::vector<int> level_config_num { 1, 50, 20 };
-void multilevel(const std::vector<int>& conf_tag, int WL_T, int level, int t_offset, const std::array<int, 4>& n, int dir,
-		int rsep, double* const ret) {
+void multilevel(const std::vector<int>& conf_tag, int WL_T, int level,
+		int t_offset, const std::array<int, 4>& n, int dir, int rsep,
+		double* const ret) {
 
 	const std::vector<int> level_thickness { WL_T, 4, 2 };
 
@@ -109,7 +109,7 @@ void multilevel(const std::vector<int>& conf_tag, int WL_T, int level, int t_off
  * compute the Wilson loop from the sublattice operator SO and spatial Wilson lines
  * S0 at t = 0, and ST at t = T = temporal Wilson loop size
  */
-complex complete_Wilson_loop(const double* const SO, const double* const S0, const double* const ST) {
+complex complete_Wilson_loop(const double* SO, const double* S0, const double* ST) {
 	double S0_ti_T[SUN_elems];
 	cm_eq_zero(S0_ti_T);
 
@@ -117,9 +117,9 @@ complex complete_Wilson_loop(const double* const SO, const double* const S0, con
 		for (int b = 0; b < SUN_N; ++b) {
 			for (int i = 0; i < SUN_N; ++i) {
 				for (int j = 0; j < SUN_N; ++j) {
-					double* S0_elem_ptr = S0 + cm_superindex(i, j);
+					const double* S0_elem_ptr = S0 + cm_superindex(i, j);
 					complex S0_elem { *S0_elem_ptr, *(S0_elem_ptr) };
-					double* T_elem_ptr = SO + so_superindex(i, a, j, b);
+					const double* T_elem_ptr = SO + so_superindex(i, a, j, b);
 					complex T_elem { *T_elem_ptr, *(T_elem_ptr) };
 
 					double* S0_ti_T_elem_ptr = S0_ti_T + cm_superindex(a, b);
@@ -180,7 +180,8 @@ int main(int argc, char **argv) {
 							ST(i, true);
 						}
 
-						co_pl_eq_co(&WL_avg, &complete_Wilson_loop(SO, S0.path, ST.path));
+						complex curr_WL = complete_Wilson_loop(SO, S0.path, ST.path);
+						co_pl_eq_co(&WL_avg, &curr_WL);
 					}
 				}
 			}
