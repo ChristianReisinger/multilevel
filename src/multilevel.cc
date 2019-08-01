@@ -14,14 +14,16 @@
 #include <global_defs.hh>
 #include <LinkPath.hh>
 
+#include <helper_functions.hh>
+
 #include <sublattice_algebra.hh>
 
 //compute [ [T(0)T(1)] [T(2)T'(3)] ] [ [T''(4)T(5)] [T(6)T(7)] ]
 //with T' T'' such that E_z is inserted at t=4 as a clover
 
-const int T = 20, L = 20;
-
-const std::string config_prefix = "/scratch/mesonqcd/reisinger/gauge_fields/su2_b2.74_L20T20/confs/useable_confs/conf";
+int T, L;
+std::string config_prefix;
+std::vector<int> level_config_num { 1 };
 
 std::string config_filename(const std::vector<int>& tag) {
 	std::ostringstream filename_oss;
@@ -73,8 +75,6 @@ void sublattice_operator(const std::vector<int>& conf_tag, int t_sub, const std:
 
 	so_eq_cm_x_cm(ret, T0, TR);
 }
-
-const std::vector<int> level_config_num { 1, 50, 20 };
 void multilevel(const std::vector<int>& conf_tag, int WL_T, int level,
 		int t_offset, const std::array<int, 4>& n, int dir, int rsep,
 		double* const ret) {
@@ -145,19 +145,32 @@ int main(int argc, char **argv) {
 	using namespace std;
 	int WL_r = 5, WL_T = 8;
 
-	if (argc != 2) {
-		std::cerr << "Usage: " << argv[0] << " <config_lv0_id>\n";
+	if (argc != 6) {
+		cerr << "Usage: " << argv[0] << " <T> <L> <level_config_num> <config_prefix> <config_id>\n";
 		return 0;
 	}
 
 	int config_lv0_id;
+
+	stringstream arg_ss;
+	arg_ss << argv[1] << " " << argv[2] << " " << argv[5];
+	arg_ss >> T >> L >> config_lv0_id;
+
 	std::stringstream config_id_ss;
-	config_id_ss << argv[1];
-	config_id_ss >> config_lv0_id;
-	if (config_id_ss.fail()) {
-		std::cerr << "Error: could not read <config_lv0_id>\n";
+	if (arg_ss.fail()) {
+		cerr << "Error: failed to read one or more of <T> <L> <config_id>\n";
 		return 0;
 	}
+
+	vector<int> lv1_lv2_config_num = parse_unsigned_int_list(argv[3]);
+	if(lv1_lv2_config_num.size() != 2) {
+		cerr << "Error: invalid number of levels, 2 required\n";
+		return 0;
+	}
+	level_config_num.push_back(lv1_lv2_config_num[0]);
+	level_config_num.push_back(lv1_lv2_config_num[1]);
+
+	config_prefix = argv[4];
 
 	double* gauge_field;
 	Gauge_Field_Alloc(&gauge_field, T, L);
