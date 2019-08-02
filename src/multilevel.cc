@@ -30,7 +30,7 @@ bool insert_E = false;
 std::string config_filename(const std::vector<int>& tag) {
 	std::ostringstream filename_oss;
 	filename_oss << config_prefix;
-	for (int i = 0; i < level_config_num.size(); ++i)
+	for (int i = 0; i < tag.size(); ++i)
 		filename_oss << "." << std::setfill('0') << std::setw(log10(level_config_num.at(i)) + 1) << tag.at(i);
 	return filename_oss.str();
 }
@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
 	int WL_r = 5, WL_T = 8;
 
 	if (argc != 6) {
-		cerr << "Usage: " << argv[0] << " <T> <L> <level_config_num> <config_prefix> <config_id>\n";
+		cerr << "Usage: " << argv[0] << "[-E | --Ez] <T> <L> <level_config_num> <config_prefix> <config_id>\n";
 		return 0;
 	}
 
