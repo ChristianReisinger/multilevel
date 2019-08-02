@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <array>
+#include <getopt.h>
 
 #include <linear_algebra.hh>
 #include <geometry.hh>
@@ -24,6 +25,7 @@
 int T, L;
 std::string config_prefix;
 std::vector<int> level_config_num { 1 };
+bool insert_E = false;
 
 std::string config_filename(const std::vector<int>& tag) {
 	std::ostringstream filename_oss;
@@ -48,29 +50,31 @@ void sublattice_operator(const std::vector<int>& conf_tag, int t_sub, const std:
 	cm_eq_cm(T0, p.move(0, t_sub)(0, true)(0, true).path);
 	cm_eq_cm(TR, p.reset(n).move(0, t_sub).move(dir, rsep)(0, true)(0, true).path);
 
-	double clov[SUN_elems], clov_dag[SUN_elems], U[SUN_elems];
-	if (t_sub == 2) {
-		cm_eq_cm(clov, p.reset(n).move(0, t_sub + 2).move(dir, rsep)(dir, true)(0, false)(dir, false)(0, true).path);
-		cm_pl_eq_cm(clov, p.reset(n).move(0, t_sub + 2).move(dir, rsep)(0, false)(dir, false)(0, true)(dir, true).path);
+	if (insert_E) {
+		double clov[SUN_elems], clov_dag[SUN_elems], U[SUN_elems];
+		if (t_sub == 2) {
+			cm_eq_cm(clov, p.reset(n).move(0, t_sub + 2).move(dir, rsep)(dir, true)(0, false)(dir, false)(0, true).path);
+			cm_pl_eq_cm(clov, p.reset(n).move(0, t_sub + 2).move(dir, rsep)(0, false)(dir, false)(0, true)(dir, true).path);
 
-		cm_eq_cm_dag(clov_dag, clov);
-		cm_ti_eq_re(clov_dag, -1);
-		cm_pl_eq_cm(clov, clov_dag);
-		cm_ti_eq_re(clov, 0.5);
+			cm_eq_cm_dag(clov_dag, clov);
+			cm_ti_eq_re(clov_dag, -1);
+			cm_pl_eq_cm(clov, clov_dag);
+			cm_ti_eq_re(clov, 0.5);
 
-		cm_eq_cm_ti_cm(U, TR, clov);
-		cm_eq_cm(TR, U);
-	} else if (t_sub == 4) {
-		cm_eq_cm(clov, p.reset(n).move(0, t_sub).move(dir, rsep)(0, true)(dir, true)(0, false)(dir, false).path);
-		cm_pl_eq_cm(clov, p.reset(n).move(0, t_sub).move(dir, rsep)(dir, false)(0, true)(dir, true)(0, false).path);
+			cm_eq_cm_ti_cm(U, TR, clov);
+			cm_eq_cm(TR, U);
+		} else if (t_sub == 4) {
+			cm_eq_cm(clov, p.reset(n).move(0, t_sub).move(dir, rsep)(0, true)(dir, true)(0, false)(dir, false).path);
+			cm_pl_eq_cm(clov, p.reset(n).move(0, t_sub).move(dir, rsep)(dir, false)(0, true)(dir, true)(0, false).path);
 
-		cm_eq_cm_dag(clov_dag, clov);
-		cm_ti_eq_re(clov_dag, -1);
-		cm_pl_eq_cm(clov, clov_dag);
-		cm_ti_eq_re(clov, 0.5);
+			cm_eq_cm_dag(clov_dag, clov);
+			cm_ti_eq_re(clov_dag, -1);
+			cm_pl_eq_cm(clov, clov_dag);
+			cm_ti_eq_re(clov, 0.5);
 
-		cm_eq_cm_ti_cm(U, clov, TR);
-		cm_eq_cm(TR, U);
+			cm_eq_cm_ti_cm(U, clov, TR);
+			cm_eq_cm(TR, U);
+		}
 	}
 
 	so_eq_cm_x_cm(ret, T0, TR);
@@ -141,6 +145,23 @@ complex complete_Wilson_loop(const double* SO, const double* S0, const double* S
 	return WL;
 }
 
+void handle_GNU_options(int argc, char**& argv) {
+	static struct option long_opts[] = {
+			{ "Ez", no_argument, 0, 'E' },
+			{ 0, 0, 0, 0 }
+	};
+
+	int opt = -1, long_opts_i = 0;
+	while ((opt = getopt_long(argc, argv, "E", long_opts, &long_opts_i)) != -1) {
+		switch (opt) {
+			case 'E':
+				insert_E = true;
+			break;
+		}
+	}
+	argv = argv + optind - 1;
+}
+
 int main(int argc, char **argv) {
 	using namespace std;
 	int WL_r = 5, WL_T = 8;
@@ -163,7 +184,7 @@ int main(int argc, char **argv) {
 	}
 
 	vector<int> lv1_lv2_config_num = parse_unsigned_int_list(argv[3]);
-	if(lv1_lv2_config_num.size() != 2) {
+	if (lv1_lv2_config_num.size() != 2) {
 		cerr << "Error: invalid number of levels, 2 required\n";
 		return 0;
 	}
