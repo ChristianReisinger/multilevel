@@ -24,14 +24,14 @@
 
 int T, L;
 std::string config_prefix;
-std::vector<int> level_config_num { 1 };
+std::vector<int> level_config_num;
 bool insert_E = false;
 
 std::string config_filename(const std::vector<int>& tag) {
 	std::ostringstream filename_oss;
 	filename_oss << config_prefix;
-	for (int i : tag)
-		filename_oss << "." << i;
+	for (int i = 0; i < level_config_num.size(); ++i)
+		filename_oss << "." << std::setfill('0') << std::setw(log10(level_config_num.at(i)) + 1) << tag.at(i);
 	return filename_oss.str();
 }
 
@@ -183,13 +183,11 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
-	vector<int> lv1_lv2_config_num = parse_unsigned_int_list(argv[3]);
-	if (lv1_lv2_config_num.size() != 2) {
-		cerr << "Error: invalid number of levels, 2 required\n";
+	level_config_num = parse_unsigned_int_list(argv[3]);
+	if (level_config_num.size() != 3) {
+		cerr << "Error: invalid number of levels, 3 required\n";
 		return 0;
 	}
-	level_config_num.push_back(lv1_lv2_config_num[0]);
-	level_config_num.push_back(lv1_lv2_config_num[1]);
 
 	config_prefix = argv[4];
 
