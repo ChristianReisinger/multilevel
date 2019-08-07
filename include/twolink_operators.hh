@@ -14,17 +14,17 @@ extern int L;
 #ifndef INCLUDE_TWOLINK_OPERATORS_HH_
 #define INCLUDE_TWOLINK_OPERATORS_HH_
 
-void compute_T_ti_T(double* T, double* sub_gauge_field, int t, int x, int y, int z, int dir, int rsep) {
+void compute_T_ti_T(double* result, double* sub_gauge_field, int t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
 
 	LinkPath TR(sub_gauge_field, T, L, { t, x, y, z });
 	TR.move(dir, rsep)(0, true)(0, true);
 
-	so_eq_cm_x_cm(T, T0.path, TR.path);
+	so_eq_cm_x_cm(result, T0.path, TR.path);
 }
 
-void compute_T_ti_Tclov_lower_half(double* T, double* sub_gauge_field, int t, int x, int y, int z, int dir, int rsep) {
+void compute_T_ti_Tclov_lower_half(double* result, double* sub_gauge_field, int t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
 
@@ -48,10 +48,10 @@ void compute_T_ti_Tclov_lower_half(double* T, double* sub_gauge_field, int t, in
 
 	cm_eq_cm_ti_cm(U, TR.path, clov);
 
-	so_eq_cm_x_cm(T, T0.path, U);
+	so_eq_cm_x_cm(result, T0.path, U);
 }
 
-void compute_Tclov_upper_half_ti_T(double* T, double* sub_gauge_field, int t, int x, int y, int z, int dir, int rsep) {
+void compute_Tclov_upper_half_ti_T(double* result, double* sub_gauge_field, int t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
 
@@ -75,7 +75,7 @@ void compute_Tclov_upper_half_ti_T(double* T, double* sub_gauge_field, int t, in
 
 	cm_eq_cm_ti_cm(U, clov, TR.path);
 
-	so_eq_cm_x_cm(T, T0.path, U);
+	so_eq_cm_x_cm(result, T0.path, U);
 }
 
 #endif /* INCLUDE_TWOLINK_OPERATORS_HH_ */
