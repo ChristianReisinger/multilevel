@@ -207,7 +207,6 @@ int main(int argc, char **argv) {
 
 	double** T_field;
 	T_field_alloc_zero(*T_field, 3, timeslice_num, L);
-
 	multilevel( { config_lv0_id }, level_thickness, 0, WL_R, T_field);
 
 	complex WL_avg;
@@ -231,6 +230,7 @@ int main(int argc, char **argv) {
 			}
 		}
 	}
+	delete[] *T_field;
 	co_di_eq_re(&WL_avg, 3.0 * L * L * L * timeslice_num);
 
 	cout << scientific << setprecision(11) << showpos << WL_avg.re << " " << WL_avg.im << "\n";
