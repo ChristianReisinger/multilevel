@@ -8,8 +8,8 @@
 #include <LinkPath.hh>
 #include <sublattice_algebra.hh>
 
-extern const int T;
-extern const int L;
+extern int T;
+extern int L;
 
 #ifndef INCLUDE_TWOLINK_OPERATORS_HH_
 #define INCLUDE_TWOLINK_OPERATORS_HH_
