@@ -5,6 +5,7 @@
 #include <vector>
 #include <array>
 #include <getopt.h>
+#include <fstream>
 
 #include <linear_algebra.hh>
 #include <geometry.hh>
@@ -173,8 +174,8 @@ int main(int argc, char **argv) {
 	using namespace std;
 	int WL_R = 5, WL_T = 8;
 
-	if (argc != 6) {
-		cerr << "Usage: " << argv[0] << " [-E | --Ez] <T> <L> <level_config_num> <config_prefix> <config_id>\n";
+	if (argc != 7) {
+		cerr << "Usage: " << argv[0] << " <T> <L> <level_config_num> <config_prefix> <config_id> <outfile>\n";
 		return 0;
 	}
 
@@ -198,9 +199,11 @@ int main(int argc, char **argv) {
 
 	config_prefix = argv[4];
 
-	double* gauge_field;
-	Gauge_Field_Alloc(&gauge_field, T, L);
-	read_gauge_field(gauge_field, config_filename( { config_lv0_id }).c_str(), T, L);
+	std::ofstream out_ofs(argv[6]);
+	if(out_ofs.fail()) {
+		cerr << "Error: could not open output file '" << argv[6] << "'";
+		return 0;
+	}
 
 	const std::vector<int> level_thickness { T, 4, 2 };
 	const int timeslice_num = level_thickness[0] / level_thickness[1];
@@ -208,6 +211,10 @@ int main(int argc, char **argv) {
 	double* T_field[1];
 	T_field_alloc_zero(*T_field, 3, timeslice_num, L);
 	multilevel( { config_lv0_id }, level_thickness, 0, WL_R, T_field);
+
+	double* gauge_field;
+	Gauge_Field_Alloc(&gauge_field, T, L);
+	read_gauge_field(gauge_field, config_filename( { config_lv0_id }).c_str(), T, L);
 
 	complex WL_avg;
 	co_eq_zero(&WL_avg);
@@ -233,5 +240,5 @@ int main(int argc, char **argv) {
 	delete[] *T_field;
 	co_di_eq_re(&WL_avg, 3.0 * L * L * L * timeslice_num);
 
-	cout << scientific << setprecision(11) << showpos << WL_avg.re << " " << WL_avg.im << "\n";
+	out_ofs << scientific << setprecision(11) << showpos << WL_avg.re << " " << WL_avg.im << "\n";
 }
