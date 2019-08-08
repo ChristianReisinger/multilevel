@@ -49,7 +49,7 @@ void T_field_di_eq_re(double* T_field, double re, int n, int T, int L, int times
 		T_field[i] /= re;
 }
 
-void obtain_sublattice_gauge_field(double* sub_gauge_field, const std::vector<int>& tag, int T, int L) {
+void obtain_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag, int T, int L) {
 	Gauge_Field_Alloc(&sub_gauge_field, T, L);
 	read_gauge_field(sub_gauge_field, config_filename(tag).c_str(), T, L);
 }
