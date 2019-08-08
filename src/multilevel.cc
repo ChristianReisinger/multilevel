@@ -119,7 +119,7 @@ void multilevel(const std::vector<int>& conf_tag, const std::vector<int>& level_
 			T_field_di_eq_re(T_fields[i], level_config_num[level], 3, T, L, level_thickness[level]);
 
 	} else if (level == 2) {
-		for (int conf = 0; conf < level_config_num[level]; ++conf) {
+		for (int conf = 1; conf <= level_config_num[level]; ++conf) {
 			std::vector<int> curr_tag(conf_tag);
 			curr_tag.push_back(conf);
 
@@ -205,7 +205,7 @@ int main(int argc, char **argv) {
 	const std::vector<int> level_thickness { T, 4, 2 };
 	const int timeslice_num = level_thickness[0] / level_thickness[1];
 
-	double** T_field;
+	double* T_field[1];
 	T_field_alloc_zero(*T_field, 3, timeslice_num, L);
 	multilevel( { config_lv0_id }, level_thickness, 0, WL_R, T_field);
 
