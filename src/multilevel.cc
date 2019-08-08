@@ -40,7 +40,7 @@ unsigned long int T_field_index(int t, int x, int y, int z, int n, int i, int T,
 	return (n * get_index(t / timeslice_thickness, x, y, z, T / timeslice_thickness, L) + i) * SO_elems;
 }
 
-void T_field_alloc_zero(double* T_field, int n, int timeslice_num, int L) {
+void T_field_alloc_zero(double*& T_field, int n, int timeslice_num, int L) {
 	T_field = new double[n * SO_elems * L * L * L * timeslice_num]();
 }
 
