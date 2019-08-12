@@ -134,9 +134,9 @@ void multilevel(const std::vector<int>& conf_tag, const std::vector<int>& level_
 							for (int i = 1; i < 4; ++i) {
 								int curr_index = T_field_index(t, x, y, z, 3, i - 1, T, L, level_thickness[level]);
 								double U[3][SO_elems];
-								compute_T_ti_T(U[0], sub_gauge_field, t, x, y, z, i, WL_R);
-								compute_T_ti_Tclov_lower_half(U[1], sub_gauge_field, t, x, y, z, i, WL_R);
-								compute_Tclov_upper_half_ti_T(U[2], sub_gauge_field, t, x, y, z, i, WL_R);
+								compute_T_ti_T(U[0], sub_gauge_field, T, L, t, x, y, z, i, WL_R);
+								compute_T_ti_Tclov_lower_half(U[1], sub_gauge_field, T, L, t, x, y, z, i, WL_R);
+								compute_Tclov_upper_half_ti_T(U[2], sub_gauge_field, T, L, t, x, y, z, i, WL_R);
 
 								for (int j = 0; j < 3; ++j)
 									so_pl_eq_so(T_fields[j] + curr_index, U[j]);
