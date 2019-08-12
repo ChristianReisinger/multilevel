@@ -25,6 +25,7 @@ public:
 	std::string config_filename(const std::vector<int>& tag);
 	void compute_sublattice_fields(const std::vector<int>& conf_tag, int level, double** T_fields);
 
+private:
 
 	void obtain_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag);
 
