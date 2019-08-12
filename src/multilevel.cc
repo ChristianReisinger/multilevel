@@ -19,6 +19,7 @@
 #include <helper_functions.hh>
 
 #include <sublattice_algebra.hh>
+#include <sublattice_fields.hh>
 #include <twolink_operators.hh>
 
 //compute [ [T(0)T(1)] [T(2)T'(3)] ] [ [T''(4)T(5)] [T(6)T(7)] ]
@@ -35,19 +36,6 @@ std::string config_filename(const std::vector<int>& tag) {
 	for (int i = 0; i < tag.size(); ++i)
 		filename_oss << "." << std::setfill('0') << std::setw(log10(level_config_num.at(i)) + 1) << tag.at(i);
 	return filename_oss.str();
-}
-
-unsigned long int T_field_index(int t, int x, int y, int z, int n, int i, int T, int L, int timeslice_thickness) {
-	return (n * get_index(t / timeslice_thickness, x, y, z, T / timeslice_thickness, L) + i) * SO_elems;
-}
-
-void T_field_alloc_zero(double*& T_field, int n, int timeslice_num, int L) {
-	T_field = new double[n * SO_elems * L * L * L * timeslice_num]();
-}
-
-void T_field_di_eq_re(double* T_field, double re, int n, int T, int L, int timeslice_thickness) {
-	for (int i = 0; i < n * SO_elems * L * L * L * T / timeslice_thickness; ++i)
-		T_field[i] /= re;
 }
 
 void obtain_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag, int T, int L) {
