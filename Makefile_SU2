@@ -8,7 +8,7 @@ BUILD_DIR=build/
 SRC_DIR=src/
 INCLUDE_DIR=include/
 
-OBJ_NAMES=sublattice_algebra twolink_operators
+OBJ_NAMES=sublattice_algebra twolink_operators MultilevelAnalyzer
 BIN_NAMES=multilevel
 
 OBJS=${OBJ_NAMES:%=${BUILD_DIR}/%.o}

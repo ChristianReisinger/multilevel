@@ -21,29 +21,15 @@
 #include <sublattice_algebra.hh>
 #include <sublattice_fields.hh>
 #include <twolink_operators.hh>
+#include <MultilevelAnalyzer.hh>
 
-//compute [ [T(0)T(1)] [T(2)T'(3)] ] [ [T''(4)T(5)] [T(6)T(7)] ]
-//with T' T'' such that E_z is inserted at t=4 as a clover
-
-int T, L;
-std::string config_prefix;
-std::vector<int> level_config_num;
+MultilevelAnalyzer* analyzer;
 bool insert_E = false;
 
-std::string config_filename(const std::vector<int>& tag) {
-	std::ostringstream filename_oss;
-	filename_oss << config_prefix;
-	for (int i = 0; i < tag.size(); ++i)
-		filename_oss << "." << std::setfill('0') << std::setw(log10(level_config_num.at(i)) + 1) << tag.at(i);
-	return filename_oss.str();
-}
-
-void obtain_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag, int T, int L) {
-	Gauge_Field_Alloc(&sub_gauge_field, T, L);
-	read_gauge_field(sub_gauge_field, config_filename(tag).c_str(), T, L);
-}
-
 void multilevel(const std::vector<int>& conf_tag, const std::vector<int>& level_thickness, int level, int WL_R, double** T_fields) {
+	int T = analyzer->T;
+	int L = analyzer->L;
+	const std::vector<int>& level_config_num = analyzer->level_config_num;
 	if (level == 0) {
 		double* level1_T_fields[2];
 		for (int i = 0; i < 2; ++i)
@@ -113,7 +99,7 @@ void multilevel(const std::vector<int>& conf_tag, const std::vector<int>& level_
 			curr_tag.push_back(conf);
 
 			double* sub_gauge_field;
-			obtain_sublattice_gauge_field(sub_gauge_field, curr_tag, level_thickness[0], L);
+			analyzer->obtain_sublattice_gauge_field(sub_gauge_field, curr_tag);
 
 			for (int t = 0; t < T; t += level_thickness[level]) {
 				for (int x = 0; x < L; ++x) {
@@ -167,7 +153,7 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
-	int config_lv0_id;
+	int T, L, config_lv0_id;
 
 	stringstream arg_ss;
 	arg_ss << argv[1] << " " << argv[2] << " " << argv[5];
@@ -179,30 +165,36 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
-	level_config_num = parse_unsigned_int_list(argv[3]);
+	vector<int> level_config_num = parse_unsigned_int_list(argv[3]);
 	if (level_config_num.size() != 3) {
 		cerr << "Error: invalid number of levels, 3 required\n";
 		return 0;
 	}
 
-	config_prefix = argv[4];
-
-	std::ofstream out_ofs(argv[6]);
-	if(out_ofs.fail()) {
+	ofstream out_ofs(argv[6]);
+	if (out_ofs.fail()) {
 		cerr << "Error: could not open output file '" << argv[6] << "'";
 		return 0;
 	}
 
-	const std::vector<int> level_thickness { T, 4, 2 };
+	const vector<int> level_thickness { T, 4, 2 };
 	const int timeslice_num = level_thickness[0] / level_thickness[1];
 
 	double* T_field[1];
 	T_field_alloc_zero(*T_field, 3, timeslice_num, L);
+
+	analyzer = new MultilevelAnalyzer(T, L, WL_R, level_thickness, argv[4], level_config_num,
+			{ compute_T_ti_T, compute_T_ti_Tclov_lower_half, compute_Tclov_upper_half_ti_T },
+			{
+					{ { 0, 1 } },
+					{ { 0, 1 }, { 2, 0 } },
+					{ { 0 }, { 1 }, { 2 } }
+			});
 	multilevel( { config_lv0_id }, level_thickness, 0, WL_R, T_field);
 
 	double* gauge_field;
 	Gauge_Field_Alloc(&gauge_field, T, L);
-	read_gauge_field(gauge_field, config_filename( { config_lv0_id }).c_str(), T, L);
+	read_gauge_field(gauge_field, analyzer->config_filename( { config_lv0_id }).c_str(), T, L);
 
 	complex WL_avg;
 	co_eq_zero(&WL_avg);
@@ -226,6 +218,7 @@ int main(int argc, char **argv) {
 		}
 	}
 	delete[] *T_field;
+	delete analyzer;
 	co_di_eq_re(&WL_avg, 3.0 * L * L * L * timeslice_num);
 
 	out_ofs << scientific << setprecision(11) << showpos << WL_avg.re << " " << WL_avg.im << "\n";
