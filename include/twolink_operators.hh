@@ -17,4 +17,7 @@ void compute_T_ti_Tclov_lower_half(double* result, const double* sub_gauge_field
 void compute_Tclov_upper_half_ti_T(double* result, const double* sub_gauge_field, int T, int L,
 		int t, int x, int y, int z, int dir, int rsep);
 
+void compute_Tplaq(double* result, const double* sub_gauge_field, int T, int L,
+		int t, int x, int y, int z, int dir, int rsep);
+
 #endif /* INCLUDE_TWOLINK_OPERATORS_HH_ */

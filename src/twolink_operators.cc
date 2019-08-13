@@ -76,3 +76,39 @@ void compute_Tclov_upper_half_ti_T(double* result, const double* sub_gauge_field
 
 	so_eq_cm_x_cm(result, T0.path, U);
 }
+
+void compute_Tplaq(double* result, const double* sub_gauge_field, int T, int L,
+		int t, int x, int y, int z, int dir, int rsep) {
+	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
+	T0(0, true)(0, true);
+
+	LinkPath TR(sub_gauge_field, T, L, { t, x, y, z });
+	TR.move(dir, rsep)(0, true);
+
+	double clov[SUN_elems];
+	LinkPath plaq(sub_gauge_field, T, L, { t + 1, x, y, z });
+
+	plaq.move(dir, rsep)(0, true)(dir, true)(0, false)(dir, false);
+	cm_eq_cm(clov, plaq.path);
+
+	plaq.reset( { t + 1, x, y, z }).move(dir, rsep)(dir, false)(0, true)(dir, true)(0, false);
+	cm_pl_eq_cm(clov, plaq.path);
+
+	plaq.reset( { t + 1, x, y, z }).move(dir, rsep)(0, false)(dir, false)(0, true)(dir, true);
+	cm_pl_eq_cm(clov, plaq.path);
+
+	plaq.reset( { t + 1, x, y, z }).move(dir, rsep)(dir, true)(0, false)(dir, false)(0, true);
+	cm_pl_eq_cm(clov, plaq.path);
+
+	double U[SUN_elems];
+	cm_eq_cm_dag(U, clov);
+	cm_ti_eq_re(U, -1.0);
+	cm_pl_eq_cm(clov, U);
+	cm_ti_eq_re(clov, 0.25);
+
+	cm_eq_cm_ti_cm(U, TR.path, clov);
+	TR.reset( { t + 1, x, y, z }).move(dir, rsep)(0, true);
+	cm_eq_cm_ti_cm(clov, U, TR.path);
+
+	so_eq_cm_x_cm(result, T0.path, clov);
+}

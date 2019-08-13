@@ -81,13 +81,29 @@ int main(int argc, char **argv) {
 	double* T_field[1];
 	T_field_alloc_zero(*T_field, 3, timeslice_num, L);
 
-	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[4], level_config_num,
-			{ compute_T_ti_T, compute_T_ti_Tclov_lower_half, compute_Tclov_upper_half_ti_T },
+	MultilevelAnalyzer
+	multilevel(T, L, WL_R, level_thickness, argv[4], level_config_num,
+			/*compute Ez(R,0.5T)
+			 { compute_T_ti_T, compute_T_ti_Tclov_lower_half, compute_Tclov_upper_half_ti_T },
+			 {
+			 { { 0, 1 } },
+			 { { 0, 1 }, { 2, 0 } },
+			 { { 0 }, { 1 }, { 2 } }
+			 */
+			/*compute WL
+			 { compute_T_ti_T },
+			 {
+			 { { 0, 0 } },
+			 { { 0, 0 } },
+			 { { 0 } }
+			 */
+			{ compute_T_ti_T, compute_Tplaq },
 			{
 					{ { 0, 1 } },
-					{ { 0, 1 }, { 2, 0 } },
-					{ { 0 }, { 1 }, { 2 } }
+					{ { 0, 1 }, { 0, 0 } },
+					{ { 0 }, { 1 } }
 			});
+
 	multilevel.compute_sublattice_fields( { config_lv0_id }, 0, T_field);
 
 	double* gauge_field;
