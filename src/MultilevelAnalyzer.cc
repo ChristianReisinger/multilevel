@@ -48,7 +48,7 @@ std::string MultilevelAnalyzer::config_filename(const std::vector<int>& tag) {
  *			function in lowest_level_functions.
  */
 void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_tag, int level, double** T_fields) {
-	const bool is_lowest = (level == field_compositions.size());
+	const bool is_lowest = (level == field_compositions.size() - 1);
 
 	const int config_num = (level == 0 ? 1 : level_config_num[level]);
 	const int timeslice_thickness = level_thickness[level + (level == 0 ? 1 : 0)];
@@ -76,13 +76,10 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 
 							for (int curr_field_index = 0; curr_field_index < field_compositions[level].size(); ++curr_field_index) {
 								double curr_operator[SO_elems];
-
 								so_eq_id(curr_operator);
 								int curr_t = t;
 
 								for (int lower_level_field_index : field_compositions[level][curr_field_index]) {
-									double Ttemp[SO_elems];
-
 									double* component_operator;
 									if (is_lowest) {
 										component_operator = new double[SO_elems];
@@ -92,11 +89,13 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 										component_operator = lower_level_fields[lower_level_field_index]
 												+ T_field_index(curr_t, x, y, z, 3, i, T, L, level_thickness[level + 1]);
 									}
+
+									double Ttemp[SO_elems];
 									so_eq_so_ti_so(Ttemp, curr_operator, component_operator);
 									if (is_lowest)
 										delete[] component_operator;
-
 									so_eq_so(curr_operator, Ttemp);
+
 									curr_t += level_thickness[level + 1];
 								}
 
