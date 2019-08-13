@@ -104,7 +104,7 @@ void compute_Tplaq(double* result, const double* sub_gauge_field, int T, int L,
 	cm_eq_cm_dag(U, clov);
 	cm_ti_eq_re(U, -1.0);
 	cm_pl_eq_cm(clov, U);
-	cm_ti_eq_re(clov, 0.25);
+	cm_ti_eq_re(clov, 0.125);
 
 	cm_eq_cm_ti_cm(U, TR.path, clov);
 	TR.reset( { t + 1, x, y, z }).move(dir, rsep)(0, true);
