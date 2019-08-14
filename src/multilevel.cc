@@ -7,36 +7,31 @@
 #include <getopt.h>
 #include <fstream>
 
-#include <linear_algebra.hh>
-#include <geometry.hh>
 #include <fields.hh>
 #include <io.hh>
+#include <heatbath.hh>	//indirect dependency artifact ..
 
 #include <geometry2.hh>
-#include <global_defs.hh>
 #include <LinkPath.hh>
 
 #include <helper_functions.hh>
 
+#include <linear_algebra.hh>
 #include <sublattice_algebra.hh>
 #include <sublattice_fields.hh>
 #include <twolink_operators.hh>
 #include <MultilevelAnalyzer.hh>
 
-bool insert_E = false;
-
 void handle_GNU_options(int argc, char**& argv) {
 	static struct option long_opts[] = {
-			{ "Ez", no_argument, 0, 'E' },
 			{ 0, 0, 0, 0 }
 	};
 
 	int opt = -1, long_opts_i = 0;
-	while ((opt = getopt_long(argc, argv, "E", long_opts, &long_opts_i)) != -1) {
+	while ((opt = getopt_long(argc, argv, "", long_opts, &long_opts_i)) != -1) {
 		switch (opt) {
-			case 'E':
-				insert_E = true;
-			break;
+			default:
+				break;
 		}
 	}
 	argv = argv + optind - 1;
@@ -81,8 +76,7 @@ int main(int argc, char **argv) {
 	double* T_field[1];
 	T_field_alloc_zero(*T_field, 3, timeslice_num, L);
 
-	MultilevelAnalyzer
-	multilevel(T, L, WL_R, level_thickness, argv[4], level_config_num,
+	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[4], level_config_num,
 			/*compute Ez(R,0.5T)
 			 { compute_T_ti_T, compute_T_ti_Tclov_lower_half, compute_Tclov_upper_half_ti_T },
 			 {

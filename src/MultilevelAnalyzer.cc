@@ -9,12 +9,18 @@
 #include <vector>
 #include <iomanip>
 #include <sstream>
+#include <iostream>
+#include <string>
 
 #include <fields.hh>
 #include <io.hh>
+#include <ranlux.hh>
+#include <heatbath.hh>
+
+#include <global_defs.hh>
+
 #include <sublattice_algebra.hh>
 #include <sublattice_fields.hh>
-#include <global_defs.hh>
 
 #include <MultilevelAnalyzer.hh>
 
@@ -24,29 +30,38 @@ MultilevelAnalyzer::MultilevelAnalyzer(
 		int T, int L, int WL_R, std::vector<int> level_thickness,
 		std::string config_prefix, std::vector<int> level_config_num,
 		std::vector<void (*)(double*, const double*, int, int, int, int, int, int, int, int)> lowest_level_functions,
-		std::vector<std::vector<std::vector<int> > > field_compositions) :
+		std::vector<std::vector<std::vector<int> > > field_compositions,
+		bool generate_configs, double beta, int seed, std::vector<int> level_updates) :
 		T(T), L(L), WL_R(WL_R), level_thickness(level_thickness),
 				config_prefix(config_prefix), level_config_num(level_config_num),
-				field_compositions(field_compositions), lowest_level_functions(lowest_level_functions) {
+				field_compositions(field_compositions), lowest_level_functions(lowest_level_functions),
+				generate_configs(generate_configs), beta(beta), seed(seed), level_updates(level_updates)
+{
+	if (generate_configs) {
+		InitializeRand(seed);
+		Gauge_Field_Alloc(&config_buf, T, L);
+		read_sublattice_gauge_field(config_buf, { 0 });
+	}
+}
+
+MultilevelAnalyzer::~MultilevelAnalyzer() {
+	if (generate_configs)
+		Gauge_Field_Free(&config_buf);
+}
+
+std::string MultilevelAnalyzer::tag_to_string(const std::vector<int>& tag) {
+	std::ostringstream tag_oss;
+	for (int i = 0; i < tag.size(); ++i)
+		tag_oss << "." << std::setfill('0') << std::setw(log10(level_config_num.at(i)) + 1) << tag.at(i);
+	return tag_oss.str();
 }
 
 std::string MultilevelAnalyzer::config_filename(const std::vector<int>& tag) {
 	std::ostringstream filename_oss;
-	filename_oss << config_prefix;
-	for (int i = 0; i < tag.size(); ++i)
-		filename_oss << "." << std::setfill('0') << std::setw(log10(level_config_num.at(i)) + 1) << tag.at(i);
+	filename_oss << config_prefix << tag_to_string(tag);
 	return filename_oss.str();
 }
 
-/**
- * @param field_compositions a vector V at index L in field_compositions describes compositions
- * 			of the fields F_i(L) at level L from those at level L+1.
- *			A vector W at index i in V contains indices j of the fields at level L+1.
- *			The field F_i(L) is obtained by multiplying fields F_j(L+1) for all j in the order
- *			they appear in W.
- *			At the lowest level (= field_compositions.size() - 1), j instead is an index of a
- *			function in lowest_level_functions.
- */
 void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_tag, int level, double** T_fields) {
 	const bool is_lowest = (level == field_compositions.size() - 1);
 
@@ -60,9 +75,16 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 			curr_tag.push_back(conf);
 
 		double* lower_level_fields[lower_level_field_num];
-		if (is_lowest)
-			obtain_sublattice_gauge_field(lower_level_fields[0], curr_tag);
-		else {
+		if (is_lowest) {
+			if (generate_configs) {
+				std::cerr << "Generating config " << tag_to_string(curr_tag) << " ... ";
+				generate_sublattice_gauge_field(lower_level_fields[0], curr_tag);
+			} else {
+				std::cerr << "Reading config " << tag_to_string(curr_tag) << " ... ";
+				read_sublattice_gauge_field(lower_level_fields[0], curr_tag);
+			}
+			std::cerr << "ok\n";
+		} else {
 			for (int i = 0; i < lower_level_field_num; ++i)
 				T_field_alloc_zero(lower_level_fields[i], 3, T / level_thickness[level + 1], L);
 			compute_sublattice_fields(curr_tag, level + 1, lower_level_fields);
@@ -120,7 +142,17 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 
 //private
 
-void MultilevelAnalyzer::obtain_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag) {
+void MultilevelAnalyzer::read_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag) {
 	Gauge_Field_Alloc(&sub_gauge_field, T, L);
 	read_gauge_field(sub_gauge_field, config_filename(tag).c_str(), T, L);
+}
+
+void MultilevelAnalyzer::generate_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag) {
+	std::vector<int> boundary_ts;
+	int level = tag.size() - 1;
+	if (level != 0)
+		for (int t = 0; t < T; t += level_thickness[level])
+			boundary_ts.push_back(t);
+	for (int i_upd = 0; i_upd < level_updates[level]; ++i_upd)
+		do_sweep(config_buf, T, L, beta, boundary_ts);
 }
