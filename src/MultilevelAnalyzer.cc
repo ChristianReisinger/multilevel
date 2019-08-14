@@ -40,7 +40,7 @@ MultilevelAnalyzer::MultilevelAnalyzer(
 	if (generate_configs) {
 		InitializeRand(seed);
 		Gauge_Field_Alloc(&config_buf, T, L);
-		read_sublattice_gauge_field(config_buf, { 0 });
+		read_sublattice_gauge_field(config_buf, { 1 });
 	}
 }
 
@@ -76,7 +76,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 
 		if (generate_configs) {
 			std::cerr << "Generating config " << tag_to_string(curr_tag) << " ... ";
-			generate_sublattice_gauge_field(config_buf, curr_tag);
+			update_sublattice_gauge_field(curr_tag);
 			std::cerr << "ok\n";
 		}
 
@@ -138,9 +138,10 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 			}
 		}
 		for (int i = 0; i < lower_level_field_num; ++i)
-			if (is_lowest)
-				Gauge_Field_Free(&lower_level_fields[i]);
-			else
+			if (is_lowest) {
+				if (!generate_configs)
+					Gauge_Field_Free(&lower_level_fields[i]);
+			} else
 				delete[] lower_level_fields[i];
 	}
 	for (int i = 0; i < field_compositions[level].size(); ++i)
@@ -154,12 +155,12 @@ void MultilevelAnalyzer::read_sublattice_gauge_field(double*& sub_gauge_field, c
 	read_gauge_field(sub_gauge_field, config_filename(tag).c_str(), T, L);
 }
 
-void MultilevelAnalyzer::generate_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag) {
+void MultilevelAnalyzer::update_sublattice_gauge_field(const std::vector<int>& tag) {
 	std::vector<int> boundary_ts;
 	int level = tag.size() - 1;
 	if (level != 0)
 		for (int t = 0; t < T; t += level_thickness[level])
 			boundary_ts.push_back(t);
-	for (int i_upd = 0; i_upd < level_updates[level]; ++i_upd)
+	for (int i_swp = 0; i_swp < level_updates[level]; ++i_swp)
 		do_sweep(config_buf, T, L, beta, boundary_ts);
 }

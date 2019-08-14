@@ -15,7 +15,7 @@ class MultilevelAnalyzer {
 public:
 	/**
 	 * @param generate_configs	if false, read existing configs with tags {i,j,..,k} for levels 0,1,.. and filenames ending in .i.j...k (with zero padding)
-	 * 							otherwise, generate configs successively during the algorithm, starting from a thermalized one with tag { 0 }
+	 * 							otherwise, generate configs successively during the algorithm, starting from a thermalized one with tag { 1 }
 	 *
 	 *
 	 * @param field_compositions a vector V at index L in field_compositions describes compositions
@@ -44,7 +44,7 @@ public:
 private:
 
 	void read_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag);
-	void generate_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag);
+	void update_sublattice_gauge_field(const std::vector<int>& tag);
 
 	const bool generate_configs;
 	const double beta;
