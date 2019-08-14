@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
 	multilevel.compute_sublattice_fields( { config_lv0_id }, 0, T_field);
 
 	double* gauge_field;
-	Gauge_Field_Alloc(&gauge_field, T, L);
+	Gauge_Field_Alloc_silent(&gauge_field, T, L);
 	read_gauge_field(gauge_field, multilevel.config_filename( { config_lv0_id }).c_str(), T, L);
 
 	complex WL_avg;
