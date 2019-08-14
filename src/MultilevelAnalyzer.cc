@@ -65,7 +65,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 	const bool is_lowest = (level == field_compositions.size() - 1);
 
 	const int config_num = (level == 0 ? 1 : level_config_num[level]);
-	const int timeslice_thickness = level_thickness[level + (level == 0 ? 1 : 0)];
+	const int timeslice_thickness = level_thickness[level == 0 ? 1 : level];
 	const int lower_level_field_num = (is_lowest ? 1 : field_compositions[level + 1].size());
 
 	for (int conf = 1; conf <= config_num; ++conf) {
