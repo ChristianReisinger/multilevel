@@ -74,19 +74,26 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 		if (level != 0)
 			curr_tag.push_back(conf);
 
+		if (generate_configs) {
+			std::cerr << "Generating config " << tag_to_string(curr_tag) << " ... ";
+			generate_sublattice_gauge_field(config_buf, curr_tag);
+			std::cerr << "ok\n";
+		}
+
 		double* lower_level_fields[lower_level_field_num];
 		if (is_lowest) {
-			if (generate_configs) {
-				std::cerr << "Generating config " << tag_to_string(curr_tag) << " ... ";
-				generate_sublattice_gauge_field(lower_level_fields[0], curr_tag);
-			} else {
+			if (generate_configs)
+				lower_level_fields[0] = config_buf;
+			else {
 				std::cerr << "Reading config " << tag_to_string(curr_tag) << " ... ";
 				read_sublattice_gauge_field(lower_level_fields[0], curr_tag);
+				std::cerr << "ok\n";
 			}
-			std::cerr << "ok\n";
 		} else {
+			std::cerr << "Allocating sublattice fields on config " << tag_to_string(curr_tag) << " ... ";
 			for (int i = 0; i < lower_level_field_num; ++i)
 				T_field_alloc_zero(lower_level_fields[i], 3, T / level_thickness[level + 1], L);
+			std::cerr << "ok\n";
 			compute_sublattice_fields(curr_tag, level + 1, lower_level_fields);
 		}
 
@@ -143,7 +150,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 //private
 
 void MultilevelAnalyzer::read_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag) {
-	Gauge_Field_Alloc(&sub_gauge_field, T, L);
+	Gauge_Field_Alloc_silent(&sub_gauge_field, T, L);
 	read_gauge_field(sub_gauge_field, config_filename(tag).c_str(), T, L);
 }
 
