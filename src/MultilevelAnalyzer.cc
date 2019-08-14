@@ -74,7 +74,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 		if (level != 0)
 			curr_tag.push_back(conf);
 
-		if (generate_configs) {
+		if (generate_configs && level != 0) {
 			std::cerr << "Generating config " << tag_to_string(curr_tag) << " ... ";
 			update_sublattice_gauge_field(curr_tag);
 			std::cerr << "ok\n";
