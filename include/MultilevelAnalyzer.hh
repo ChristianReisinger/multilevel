@@ -15,7 +15,7 @@ class MultilevelAnalyzer {
 public:
 	/**
 	 * @param generate_configs	if false, read existing configs with tags {i,j,..,k} for levels 0,1,.. and filenames ending in .i.j...k (with zero padding)
-	 * 							otherwise, generate configs successively during the algorithm, starting from a thermalized one with tag { 1 }
+	 * 							otherwise, generate configs successively during the algorithm, starting from a thermalized one
 	 *
 	 *
 	 * @param field_compositions a vector V at index L in field_compositions describes compositions
