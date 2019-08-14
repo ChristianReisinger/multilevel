@@ -43,7 +43,7 @@ public:
 
 private:
 
-	void read_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag);
+	void obtain_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag);
 	void update_sublattice_gauge_field(const std::vector<int>& tag);
 
 	const bool generate_configs;
