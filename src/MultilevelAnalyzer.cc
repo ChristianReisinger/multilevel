@@ -31,11 +31,11 @@ MultilevelAnalyzer::MultilevelAnalyzer(
 		std::string config_prefix, std::vector<int> level_config_num,
 		std::vector<void (*)(double*, const double*, int, int, int, int, int, int, int, int)> lowest_level_functions,
 		std::vector<std::vector<std::vector<int> > > field_compositions,
-		bool generate_configs, double beta, int seed, std::vector<int> level_updates) :
+		bool generate_configs, double beta, int seed, std::vector<int> level_updates, bool save) :
 		T(T), L(L), WL_R(WL_R), level_thickness(level_thickness),
 				config_prefix(config_prefix), level_config_num(level_config_num),
 				field_compositions(field_compositions), lowest_level_functions(lowest_level_functions),
-				generate_configs(generate_configs), beta(beta), seed(seed), level_updates(level_updates)
+				generate_configs(generate_configs), beta(beta), seed(seed), level_updates(level_updates), save(save)
 {
 	if (generate_configs) {
 		InitializeRand(seed);
@@ -76,8 +76,11 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 		if (generate_configs)
 			if (level == 0)
 				read_gauge_field(config_buf, config_filename(curr_tag).c_str(), T, L);
-			else
+			else {
 				update_sublattice_gauge_field(curr_tag);
+				if (save)
+					write_config(curr_tag);
+			}
 
 		double* lower_level_fields[lower_level_field_num];
 		if (is_lowest)
@@ -164,4 +167,12 @@ void MultilevelAnalyzer::update_sublattice_gauge_field(const std::vector<int>& t
 	for (int i_swp = 0; i_swp < level_updates[level]; ++i_swp)
 		do_sweep(config_buf, T, L, beta, boundary_ts);
 	std::cerr << "ok\n";
+}
+
+void MultilevelAnalyzer::write_config(const std::vector<int>& tag) {
+	std::ostringstream config_filename_oss;
+	config_filename_oss << config_prefix << ".multilevel" << tag_to_string(tag);
+	std::ostringstream header_oss;
+	header_oss << "generated during multilevel : " << beta << " " << T << " " << L << " " << seed;
+	write_gauge_field(config_buf, config_filename_oss.str().c_str(), T, L, header_oss.str().c_str());
 }
