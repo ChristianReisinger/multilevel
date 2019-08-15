@@ -10,7 +10,15 @@
 #include <sublattice_algebra.hh>
 #include <twolink_operators.hh>
 
-void compute_T_ti_T(double* result, const double* sub_gauge_field, int T, int L,
+/**
+ * function naming:
+ * 'x' computes the 'two-link' operator as direct product of the expression to its left with the one to its right
+ * 'U' is a single link in temporal direction, at R=0 on the left of 'x' and R=rsep on the right
+ * 'C' is the clover, 'low'/'upp' mean only the lower/upper half
+ * 'I' is the identity
+ */
+
+void UU_x_UU(double* result, const double* sub_gauge_field, int T, int L,
 		int t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
@@ -21,7 +29,7 @@ void compute_T_ti_T(double* result, const double* sub_gauge_field, int T, int L,
 	so_eq_cm_x_cm(result, T0.path, TR.path);
 }
 
-void compute_T_ti_Tclov_lower_half(double* result, const double* sub_gauge_field, int T, int L,
+void UU_x_UUClow(double* result, const double* sub_gauge_field, int T, int L,
 		int t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
@@ -49,7 +57,7 @@ void compute_T_ti_Tclov_lower_half(double* result, const double* sub_gauge_field
 	so_eq_cm_x_cm(result, T0.path, U);
 }
 
-void compute_Tclov_upper_half_ti_T(double* result, const double* sub_gauge_field, int T, int L,
+void UU_x_CuppUU(double* result, const double* sub_gauge_field, int T, int L,
 		int t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
@@ -77,7 +85,7 @@ void compute_Tclov_upper_half_ti_T(double* result, const double* sub_gauge_field
 	so_eq_cm_x_cm(result, T0.path, U);
 }
 
-void compute_Tplaq(double* result, const double* sub_gauge_field, int T, int L,
+void UU_x_UCU(double* result, const double* sub_gauge_field, int T, int L,
 		int t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
@@ -111,4 +119,22 @@ void compute_Tplaq(double* result, const double* sub_gauge_field, int T, int L,
 	cm_eq_cm_ti_cm(clov, U, TR.path);
 
 	so_eq_cm_x_cm(result, T0.path, clov);
+}
+
+void IU_x_IU(double* result, const double* sub_gauge_field, int T, int L,
+		int t, int x, int y, int z, int dir, int rsep) {
+	LinkPath T0(sub_gauge_field, T, L, { t + 1, x, y, z });
+	T0(0, true);
+	LinkPath TR(sub_gauge_field, T, L, { t + 1, x, y, z });
+	TR.move(dir, rsep)(0, true);
+	so_eq_cm_x_cm(result, T0.path, TR.path);
+}
+
+void UI_x_UI(double* result, const double* sub_gauge_field, int T, int L,
+		int t, int x, int y, int z, int dir, int rsep) {
+	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
+	T0(0, true);
+	LinkPath TR(sub_gauge_field, T, L, { t, x, y, z });
+	TR.move(dir, rsep)(0, true);
+	so_eq_cm_x_cm(result, T0.path, TR.path);
 }
