@@ -55,8 +55,6 @@ double memory_bytes_used(std::vector<std::vector<std::vector<int> > > field_comp
 
 int main(int argc, char **argv) {
 	using namespace std;
-	int WL_R = 8, WL_T = 8;
-	int T_offset = 1; // T_field computed with multilevel at site n corresponds to a temporal Wilson line direct product at site n + T_offset * unit_vec_t
 
 	if (argc < 7) {
 		cerr << "Usage: " << argv[0] << " [--mem | -m] <T> <L> <level_config_num> <config_prefix> <config_id> <outfile>\n";
@@ -82,6 +80,10 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
+//	********************************** Params **********************************
+
+	int WL_R = 1, WL_T = 3;
+	int T_offset = 0; // T_field computed with multilevel at site n corresponds to a temporal Wilson line direct product at site n + T_offset * unit_vec_t
 	const vector<int> level_thickness { T, 4, 2 };
 	const int timeslice_num = level_thickness[0] / level_thickness[1];
 
@@ -89,10 +91,18 @@ int main(int argc, char **argv) {
 	T_field_alloc_zero(*T_field, 3, timeslice_num, L);
 
 	vector<vector<vector<int> > > field_compositions = {
-			{ { 0, 1, 2 } },
-			{ { 0, 1 }, { 2, 1 }, { 3 } },
-			{ { 0 }, { 1 }, { 2 }, { 3 } }
+			{ { 0 } },
+			{ { 0, 1 } },
+			{ { 0 }, { 1 } }
 	};
+
+	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[4], level_config_num,
+			{ UU_x_UU, UI_x_UI },
+			field_compositions
+//			, true, 2.96, 4784, { 10, 10, 10 }, true
+			);
+
+//	****************************************************************************
 
 	if (show_mem) {
 		cout << "This computation uses " << memory_bytes_used(field_compositions, level_thickness, T, L) / 1000000.0 << " MB memory.\n";
@@ -107,8 +117,6 @@ int main(int argc, char **argv) {
 
 //	***************************************************************************************************************************************
 
-	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[4], level_config_num,
-			{ IU_x_IU, UU_x_UU, UU_x_UCU, UI_x_UI }, field_compositions);
 	multilevel.compute_sublattice_fields( { config_lv0_id }, 0, T_field);
 
 	double* gauge_field;
