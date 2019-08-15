@@ -58,10 +58,11 @@ int main(int argc, char **argv) {
 	int WL_R = 8, WL_T = 8;
 	int T_offset = 1; // T_field computed with multilevel at site n corresponds to a temporal Wilson line direct product at site n + T_offset * unit_vec_t
 
-	if (argc != 7) {
+	if (argc < 7) {
 		cerr << "Usage: " << argv[0] << " [--mem | -m] <T> <L> <level_config_num> <config_prefix> <config_id> <outfile>\n";
 		return 0;
 	}
+	handle_GNU_options(argc, argv);
 
 	int T, L, config_lv0_id;
 
@@ -81,12 +82,6 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
-	ofstream out_ofs(argv[6]);
-	if (out_ofs.fail()) {
-		cerr << "Error: could not open output file '" << argv[6] << "'";
-		return 0;
-	}
-
 	const vector<int> level_thickness { T, 4, 2 };
 	const int timeslice_num = level_thickness[0] / level_thickness[1];
 
@@ -101,6 +96,12 @@ int main(int argc, char **argv) {
 
 	if (show_mem) {
 		cout << "This computation uses " << memory_bytes_used(field_compositions, level_thickness, T, L) / 1000000.0 << " MB memory.\n";
+		return 0;
+	}
+
+	ofstream out_ofs(argv[6]);
+	if (out_ofs.fail()) {
+		cerr << "Error: could not open output file '" << argv[6] << "'";
 		return 0;
 	}
 
