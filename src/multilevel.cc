@@ -39,7 +39,8 @@ void handle_GNU_options(int argc, char**& argv) {
 
 int main(int argc, char **argv) {
 	using namespace std;
-	int WL_R = 5, WL_T = 8;
+	int WL_R = 8, WL_T = 8;
+	int T_offset = 1; // T_field computed with multilevel at site n corresponds to a temporal Wilson line direct product at site n + T_offset * unit_vec_t
 
 	if (argc != 7) {
 		cerr << "Usage: " << argv[0] << " <T> <L> <level_config_num> <config_prefix> <config_id> <outfile>\n";
@@ -52,7 +53,7 @@ int main(int argc, char **argv) {
 	arg_ss << argv[1] << " " << argv[2] << " " << argv[5];
 	arg_ss >> T >> L >> config_lv0_id;
 
-	std::stringstream config_id_ss;
+	stringstream config_id_ss;
 	if (arg_ss.fail()) {
 		cerr << "Error: failed to read one or more of <T> <L> <config_id>\n";
 		return 0;
@@ -76,28 +77,14 @@ int main(int argc, char **argv) {
 	double* T_field[1];
 	T_field_alloc_zero(*T_field, 3, timeslice_num, L);
 
-	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[4], level_config_num,
-			/*compute Ez(R,0.5T)
-			 { compute_T_ti_T, compute_T_ti_Tclov_lower_half, compute_Tclov_upper_half_ti_T },
-			 {
-			 { { 0, 1 } },
-			 { { 0, 1 }, { 2, 0 } },
-			 { { 0 }, { 1 }, { 2 } }
-			 */
-			/*compute WL
-			 { compute_T_ti_T },
-			 {
-			 { { 0, 0 } },
-			 { { 0, 0 } },
-			 { { 0 } }
-			 */
-			{ compute_T_ti_T, compute_Tplaq },
-			{
-					{ { 0, 1 } },
-					{ { 0, 1 }, { 0, 0 } },
-					{ { 0 }, { 1 } }
-			});
+	vector<vector<vector<int> > > field_compositions = {
+			{ { 0, 1, 2 } },
+			{ { 0, 1 }, { 2, 1 }, { 3 } },
+			{ { 0 }, { 1 }, { 2 }, { 3 } }
+	};
 
+	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[4], level_config_num,
+			{ IU_x_IU, UU_x_UU, UU_x_UCU, UI_x_UI }, field_compositions);
 	multilevel.compute_sublattice_fields( { config_lv0_id }, 0, T_field);
 
 	double* gauge_field;
@@ -111,7 +98,7 @@ int main(int argc, char **argv) {
 			for (int y = 0; y < L; ++y) {
 				for (int z = 0; z < L; ++z) {
 					for (int i = 1; i < 4; ++i) {
-						LinkPath S0(gauge_field, T, L, { t, x, y, z }), ST(gauge_field, T, L, { t + WL_T, x, y, z });
+						LinkPath S0(gauge_field, T, L, { t + T_offset, x, y, z }), ST(gauge_field, T, L, { t + T_offset + WL_T, x, y, z });
 						for (int r = 0; r < WL_R; ++r) {
 							S0(i, true);
 							ST(i, true);
