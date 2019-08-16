@@ -8,6 +8,9 @@
 #ifndef INCLUDE_TWOLINK_OPERATORS_HH_
 #define INCLUDE_TWOLINK_OPERATORS_HH_
 
+void U_x_U(double* result, const double* sub_gauge_field, int T, int L,
+		int t, int x, int y, int z, int dir, int rsep);
+
 void UU_x_UU(double* result, const double* sub_gauge_field, int T, int L,
 		int t, int x, int y, int z, int dir, int rsep);
 

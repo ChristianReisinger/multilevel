@@ -18,6 +18,17 @@
  * 'I' is the identity
  */
 
+void U_x_U(double* result, const double* sub_gauge_field, int T, int L,
+		int t, int x, int y, int z, int dir, int rsep) {
+	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
+	T0(0, true);
+
+	LinkPath TR(sub_gauge_field, T, L, { t, x, y, z });
+	TR.move(dir, rsep)(0, true);
+
+	so_eq_cm_x_cm(result, T0.path, TR.path);
+}
+
 void UU_x_UU(double* result, const double* sub_gauge_field, int T, int L,
 		int t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
