@@ -82,22 +82,18 @@ int main(int argc, char **argv) {
 
 //	********************************** Params **********************************
 
-	int WL_R = 1, WL_T = 3;
+	int WL_R = 1, WL_T = 2;
 	int T_offset = 0; // T_field computed with multilevel at site n corresponds to a temporal Wilson line direct product at site n + T_offset * unit_vec_t
 	const vector<int> level_thickness { T, 4, 2 };
-	const int timeslice_num = level_thickness[0] / level_thickness[1];
-
-	double* T_field[1];
-	T_field_alloc_zero(*T_field, 3, timeslice_num, L);
 
 	vector<vector<vector<int> > > field_compositions = {
-			{ { 0 } },
 			{ { 0, 1 } },
-			{ { 0 }, { 1 } }
+			{ { 0, 0 }, {1, 1} },
+			{ { 0, 1 } }
 	};
 
 	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[4], level_config_num,
-			{ UU_x_UU, UI_x_UI },
+			{ U_x_U, U_x_U },
 			field_compositions
 //			, true, 2.96, 4784, { 10, 10, 10 }, true
 			);
@@ -116,6 +112,10 @@ int main(int argc, char **argv) {
 	}
 
 //	***************************************************************************************************************************************
+
+	const int timeslice_num = level_thickness[0] / level_thickness[1];
+	double* T_field[1];
+	T_field_alloc_zero(*T_field, 3, timeslice_num, L);
 
 	multilevel.compute_sublattice_fields( { config_lv0_id }, 0, T_field);
 
