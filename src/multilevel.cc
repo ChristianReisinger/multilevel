@@ -24,17 +24,29 @@
 
 bool show_mem = false;
 
-void handle_GNU_options(int argc, char**& argv) {
+void handle_GNU_options(int argc, char**& argv, bool& generate, double& beta, int& seed) {
 	static struct option long_opts[] = {
 			{ "mem", no_argument, 0, 'm' },
+			{ "beta", required_argument, 0, 'b' },
+			{ "seed", required_argument, 0, 's' },
 			{ 0, 0, 0, 0 }
 	};
 
 	int opt = -1, long_opts_i = 0;
-	while ((opt = getopt_long(argc, argv, "m", long_opts, &long_opts_i)) != -1) {
+	while ((opt = getopt_long(argc, argv, "mb:s:", long_opts, &long_opts_i)) != -1) {
 		switch (opt) {
 			case 'm':
 				show_mem = true;
+			break;
+			case 'b':
+				generate = true;
+				std::istringstream beta_iss(optarg);
+				beta_iss >> beta;
+			break;
+			case 's':
+				generate = true;
+				std::istringstream seed_iss(optarg);
+				seed_iss >> seed;
 			break;
 		}
 	}
@@ -57,15 +69,31 @@ int main(int argc, char **argv) {
 	using namespace std;
 
 	if (argc < 7) {
-		cerr << "Usage: " << argv[0] << " [--mem | -m] <T> <L> <level_config_num> <config_prefix> <config_id> <outfile>\n";
+		cerr << "Usage: " << argv[0]
+				<< " [-m] [-b <beta> -s <seed>] <T> <L> <level_config_num> <level_thickness> <config_prefix> <config_id> <outfile>\n";
 		return 0;
 	}
-	handle_GNU_options(argc, argv);
 
-	int T, L, config_lv0_id;
+	bool generate = false;
+	int T, L, config_lv0_id, seed = 0;
+	double beta = 0.0;
+	vector<int> level_thickness;
+	level_thickness.push_back(T);
+
+	handle_GNU_options(argc, argv, generate, beta, seed);
+	if (generate) {
+		if (beta <= 0.0) {
+			cerr << "Error: invalid beta\n";
+			return 0;
+		}
+		if (seed <= 0) {
+			cerr << "Error: invalid seed\n";
+			return 0;
+		}
+	}
 
 	stringstream arg_ss;
-	arg_ss << argv[1] << " " << argv[2] << " " << argv[5];
+	arg_ss << argv[1] << " " << argv[2] << " " << argv[6];
 	arg_ss >> T >> L >> config_lv0_id;
 
 	stringstream config_id_ss;
@@ -75,28 +103,32 @@ int main(int argc, char **argv) {
 	}
 
 	vector<int> level_config_num = parse_unsigned_int_list(argv[3]);
-	if (level_config_num.size() != 3) {
-		cerr << "Error: invalid number of levels, 3 required\n";
+	if (level_config_num.size() < 2) {
+		cerr << "Error: less than 2 levels\n";
 		return 0;
 	}
 
+	vector<int> ds = parse_unsigned_int_list(argv[4]);
+	if (ds.empty()) {
+		cerr << "Error: no timeslice thickness specified\n";
+		return 0;
+	}
+	for (int d : ds)
+		level_thickness.push_back(d);
+
 //	********************************** Params **********************************
 
-	int WL_R = 1, WL_T = 2;
+	int WL_R = 10, WL_T = 8;
 	int T_offset = 0; // T_field computed with multilevel at site n corresponds to a temporal Wilson line direct product at site n + T_offset * unit_vec_t
-	const vector<int> level_thickness { T, 4, 2 };
 
 	vector<vector<vector<int> > > field_compositions = {
-			{ { 0, 1 } },
-			{ { 0, 0 }, {1, 1} },
-			{ { 0, 1 } }
+			{ { 0, 0 } },
+			{ { 0, 0 } }
 	};
 
-	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[4], level_config_num,
-			{ U_x_U, U_x_U },
-			field_compositions
-//			, true, 2.96, 4784, { 10, 10, 10 }, true
-			);
+	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[5], level_config_num,
+			{ UU_x_UU },
+			field_compositions, generate, beta, seed, { 10, 10 });
 
 //	****************************************************************************
 
@@ -105,9 +137,9 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
-	ofstream out_ofs(argv[6]);
+	ofstream out_ofs(argv[7]);
 	if (out_ofs.fail()) {
-		cerr << "Error: could not open output file '" << argv[6] << "'";
+		cerr << "Error: could not open output file '" << argv[7] << "'";
 		return 0;
 	}
 
