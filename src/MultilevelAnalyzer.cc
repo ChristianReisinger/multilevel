@@ -29,7 +29,7 @@
 MultilevelAnalyzer::MultilevelAnalyzer(
 		int T, int L, int WL_R, std::vector<int> level_thickness,
 		std::string config_prefix, std::vector<int> level_config_num,
-		std::vector<void (*)(double*, const double*, int, int, int, int, int, int, int, int)> lowest_level_functions,
+		std::vector<void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions,
 		std::vector<std::vector<std::vector<int> > > field_compositions,
 		bool generate_configs, double beta, int seed, std::vector<int> level_updates, bool save) :
 		T(T), L(L), WL_R(WL_R), level_thickness(level_thickness),
@@ -97,7 +97,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 			for (int x = 0; x < L; ++x) {
 				for (int y = 0; y < L; ++y) {
 					for (int z = 0; z < L; ++z) {
-						for (int i = 0; i < 3; ++i) {
+						for (int i = 1; i < 4; ++i) {
 
 							for (int curr_field_index = 0; curr_field_index < field_compositions[level].size(); ++curr_field_index) {
 								double curr_operator[SO_elems];
@@ -105,26 +105,29 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 								int curr_t = t;
 
 								for (int lower_level_field_index : field_compositions[level][curr_field_index]) {
-									double* component_operator;
+									double* operator_component;
 									if (is_lowest) {
-										component_operator = new double[SO_elems];
-										lowest_level_functions[curr_field_index](
-												component_operator, lower_level_fields[0], T, L, t, x, y, z, i + 1, WL_R);
+										operator_component = new double[SO_elems];
+										lowest_level_functions[lower_level_field_index](
+												operator_component, lower_level_fields[0], T, L, curr_t, x, y, z, i, WL_R);
 									} else {
-										component_operator = lower_level_fields[lower_level_field_index]
-												+ T_field_index(curr_t, x, y, z, 3, i, T, L, level_thickness[level + 1]);
+										operator_component = lower_level_fields[lower_level_field_index]
+												+ T_field_index(curr_t, x, y, z, 3, i - 1, T, L, level_thickness[level + 1]);
 									}
 
 									double Ttemp[SO_elems];
-									so_eq_so_ti_so(Ttemp, curr_operator, component_operator);
+
+									so_eq_so_ti_so(Ttemp, curr_operator, operator_component);
+
 									if (is_lowest)
-										delete[] component_operator;
+										delete[] operator_component;
 									so_eq_so(curr_operator, Ttemp);
 
-									curr_t += level_thickness[level + 1];
+									if (!is_lowest) //at lowest level, curr_t is incremented by the twolink_operators function
+										curr_t += level_thickness[level + 1];
 								}
 
-								so_pl_eq_so(T_fields[curr_field_index] + T_field_index(t, x, y, z, 3, i, T, L, timeslice_thickness),
+								so_pl_eq_so(T_fields[curr_field_index] + T_field_index(t, x, y, z, 3, i - 1, T, L, timeslice_thickness),
 										curr_operator);
 							}
 

@@ -9,6 +9,7 @@
 #include <linear_algebra.hh>
 #include <sublattice_algebra.hh>
 #include <twolink_operators.hh>
+#include <iostream>
 
 /**
  * function naming:
@@ -19,29 +20,31 @@
  */
 
 void U_x_U(double* result, const double* sub_gauge_field, int T, int L,
-		int t, int x, int y, int z, int dir, int rsep) {
+		int& t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true);
 
 	LinkPath TR(sub_gauge_field, T, L, { t, x, y, z });
 	TR.move(dir, rsep)(0, true);
 
+	t += 1;
 	so_eq_cm_x_cm(result, T0.path, TR.path);
 }
 
 void UU_x_UU(double* result, const double* sub_gauge_field, int T, int L,
-		int t, int x, int y, int z, int dir, int rsep) {
+		int& t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
 
 	LinkPath TR(sub_gauge_field, T, L, { t, x, y, z });
 	TR.move(dir, rsep)(0, true)(0, true);
 
+	t += 2;
 	so_eq_cm_x_cm(result, T0.path, TR.path);
 }
 
 void UU_x_UUClow(double* result, const double* sub_gauge_field, int T, int L,
-		int t, int x, int y, int z, int dir, int rsep) {
+		int& t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
 
@@ -65,11 +68,12 @@ void UU_x_UUClow(double* result, const double* sub_gauge_field, int T, int L,
 
 	cm_eq_cm_ti_cm(U, TR.path, clov);
 
+	t += 2;
 	so_eq_cm_x_cm(result, T0.path, U);
 }
 
 void UU_x_CuppUU(double* result, const double* sub_gauge_field, int T, int L,
-		int t, int x, int y, int z, int dir, int rsep) {
+		int& t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
 
@@ -93,11 +97,12 @@ void UU_x_CuppUU(double* result, const double* sub_gauge_field, int T, int L,
 
 	cm_eq_cm_ti_cm(U, clov, TR.path);
 
+	t += 2;
 	so_eq_cm_x_cm(result, T0.path, U);
 }
 
 void UU_x_UCU(double* result, const double* sub_gauge_field, int T, int L,
-		int t, int x, int y, int z, int dir, int rsep) {
+		int& t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
 
@@ -129,23 +134,28 @@ void UU_x_UCU(double* result, const double* sub_gauge_field, int T, int L,
 	TR.reset( { t + 1, x, y, z }).move(dir, rsep)(0, true);
 	cm_eq_cm_ti_cm(clov, U, TR.path);
 
+	t += 2;
 	so_eq_cm_x_cm(result, T0.path, clov);
 }
 
 void IU_x_IU(double* result, const double* sub_gauge_field, int T, int L,
-		int t, int x, int y, int z, int dir, int rsep) {
+		int& t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t + 1, x, y, z });
 	T0(0, true);
 	LinkPath TR(sub_gauge_field, T, L, { t + 1, x, y, z });
 	TR.move(dir, rsep)(0, true);
+
+	t += 2;
 	so_eq_cm_x_cm(result, T0.path, TR.path);
 }
 
 void UI_x_UI(double* result, const double* sub_gauge_field, int T, int L,
-		int t, int x, int y, int z, int dir, int rsep) {
+		int& t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true);
 	LinkPath TR(sub_gauge_field, T, L, { t, x, y, z });
 	TR.move(dir, rsep)(0, true);
+
+	t += 2;
 	so_eq_cm_x_cm(result, T0.path, TR.path);
 }

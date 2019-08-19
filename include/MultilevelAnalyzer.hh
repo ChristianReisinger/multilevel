@@ -31,7 +31,7 @@ public:
 			std::vector<int> level_thickness,
 			std::string config_prefix,
 			std::vector<int> level_config_num,
-			std::vector<void (*)(double*, const double*, int, int, int, int, int, int, int, int)> lowest_level_functions,
+			std::vector<void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions,
 			std::vector<std::vector<std::vector<int> > > field_compositions,
 			bool generate_configs = false, double beta = 0.0, int seed = 0, std::vector<int> level_updates = {}, bool save = false
 			);
@@ -59,7 +59,7 @@ private:
 	const std::string config_prefix;
 	const std::vector<int> level_config_num;
 	const std::vector<std::vector<std::vector<int> > > field_compositions;
-	const std::vector<void (*)(double*, const double*, int, int, int, int, int, int, int, int)> lowest_level_functions;
+	const std::vector<void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions;
 };
 
 #endif /* INCLUDE_MULTILEVELANALYZER_HH_ */
