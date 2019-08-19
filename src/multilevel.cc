@@ -53,16 +53,18 @@ void handle_GNU_options(int argc, char**& argv, bool& generate, double& beta, in
 	argv = argv + optind - 1;
 }
 
-double memory_bytes_used(std::vector<std::vector<std::vector<int> > > field_compositions, std::vector<int> level_thickness, int T,
-		int L) {
+double memory_bytes_used(std::vector<std::vector<std::vector<int> > > field_compositions, std::vector<int> level_thickness,
+		int T, int L) {
 	int levels = level_thickness.size();
 	if (levels < 2 || field_compositions.size() != levels)
 		return -1;
-	double bytes_per_field = T * L * L * L * 3 * SUN_N * SUN_N * SUN_N * SUN_N * 2 * 8;
+	double volume = T * L * L * L;
+	double bytes_per_field = volume * 3 * SO_elems * sizeof(double);
 	double operators_per_site = 0.0;
 	for (int level = 0; level < levels; ++level)
 		operators_per_site += (double) field_compositions[level].size() / (double) level_thickness[level == 0 ? 1 : level];
-	return operators_per_site * bytes_per_field;
+	double gauge_field_bytes = volume * 4 * SUN_elems * sizeof(double);
+	return operators_per_site * bytes_per_field + gauge_field_bytes;
 }
 
 int main(int argc, char **argv) {
@@ -122,12 +124,28 @@ int main(int argc, char **argv) {
 	int T_offset = 0; // T_field computed with multilevel at site n corresponds to a temporal Wilson line direct product at site n + T_offset * unit_vec_t
 
 	vector<vector<vector<int> > > field_compositions = {
-			{ { 0, 0 } },
-			{ { 0, 0 } }
+			/********** levels { 2 } **********/
+//			{ { 0, 2, 3 }, { 0, 2, 1 }, { 1, 2, 1 }, { 1, 2, 1, 3 }, { 0, 1, 2, 1, 3 }, { 0, 1, 2, 1, 2 }, { 1, 1, 2, 1, 1 } }, //T = 4, 5, 6, 7, 8, 9, 10
+			/********** levels { 4, 2 } **********/
+//			{ { 0, 1 }, { 0, 2 }, { 3, 2 }, { 3, 4 }, { 5, 6, 1 }, { 5, 6, 2 }, { 7, 6, 2 } },
+//			{ { 0, 2 }, { 3 }, { 1 }, { 1, 2 }, { 1, 3 }, { 0, 1 }, { 2, 1 }, { 1, 1 } },
+			/********** levels { 6, 2 } **********/
+//			{ { 0 }, { 1 }, { 2 }, { 2, 3 }, { 4, 5 }, { 4, 6 }, { 7, 6 } },
+//			{ { 0, 2, 3 }, { 0, 2, 1 }, { 1, 2, 1 }, { 3 }, { 0, 1, 2 }, { 1, 3 }, { 1, 1 }, { 1, 1, 2 } },
+			/********** levels { X, 2 } **********/
+//			{ { 0 }, { 1 }, { 2 }, { 3 } }
+			/********** *************** **********/
+			/********** levels { 6, 3 } **********/
+			{ { 0 }, { 1 }, { 2, 3 }, { 2, 4 }, { 5, 4 }, { 5, 6 }, { 7, 8 } },
+			{ { 0, 1 }, { 0, 2 }, { 3, 4 }, { 1 }, { 2 }, { 5, 4 }, { 5 }, { 5, 0 }, { 5, 1 } },
+			{ { 3, 2 }, { 3 }, { 1 }, { 0, 3 }, { 2, 3 }, { 1, 3 } }
 	};
 
+	//TODO offsets for each R -> pair: pair_comp - offset ?
+	//TODO loop over R (field_comp[0]) / compute observable for each R
+
 	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[5], level_config_num,
-			{ UU_x_UU },
+			{ IU_x_IU, UU_x_UU, UU_x_UCU, U_x_U },
 			field_compositions, generate, beta, seed, { 10, 10 });
 
 //	****************************************************************************
