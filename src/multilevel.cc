@@ -34,26 +34,27 @@ void handle_GNU_options(int argc, char**& argv, bool& generate, double& beta, in
 
 	int opt = -1, long_opts_i = 0;
 	while ((opt = getopt_long(argc, argv, "mb:s:", long_opts, &long_opts_i)) != -1) {
+		std::stringstream optarg_iss;
 		switch (opt) {
 			case 'm':
 				show_mem = true;
 			break;
 			case 'b':
 				generate = true;
-				std::istringstream beta_iss(optarg);
-				beta_iss >> beta;
+				optarg_iss << optarg;
+				optarg_iss >> beta;
 			break;
 			case 's':
 				generate = true;
-				std::istringstream seed_iss(optarg);
-				seed_iss >> seed;
+				optarg_iss << optarg;
+				optarg_iss >> seed;
 			break;
 		}
 	}
 	argv = argv + optind - 1;
 }
 
-double memory_bytes_used(std::vector<std::vector<std::vector<int> > > field_compositions, std::vector<int> level_thickness,
+double memory_bytes_used(const std::vector<std::vector<std::vector<int> > >& field_compositions, const std::vector<int>& level_thickness,
 		int T, int L) {
 	int levels = level_thickness.size();
 	if (levels < 2 || field_compositions.size() != levels)
@@ -67,7 +68,7 @@ double memory_bytes_used(std::vector<std::vector<std::vector<int> > > field_comp
 	return operators_per_site * bytes_per_field + gauge_field_bytes;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
 	using namespace std;
 
 	if (argc < 7) {
