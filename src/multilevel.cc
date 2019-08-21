@@ -127,12 +127,11 @@ int main(int argc, char** argv) {
 
 //	********************************** Params **********************************
 
-	int WL_R = 10, WL_T = 8;
-	int T_offset = 0; // T_field computed with multilevel at site n corresponds to a temporal Wilson line direct product at site n + T_offset * unit_vec_t
+	int WL_R = 10;
 
 	vector<vector<vector<int> > > field_compositions = {
 			/********** levels { 2 } **********/
-//			{ { 0, 2, 3 }, { 0, 2, 1 }, { 1, 2, 1 }, { 1, 2, 1, 3 }, { 0, 1, 2, 1, 3 }, { 0, 1, 2, 1, 2 }, { 1, 1, 2, 1, 1 } }, //T = 4, 5, 6, 7, 8, 9, 10
+//			{ { 0, 2, 3 }, { 0, 2, 1 }, { 1, 2, 1 }, { 1, 2, 1, 3 }, { 0, 1, 2, 1, 3 }, { 0, 1, 2, 1, 2 }, { 1, 1, 2, 1, 1 } },
 			/********** levels { 4, 2 } **********/
 //			{ { 0, 1 }, { 0, 2 }, { 3, 2 }, { 3, 4 }, { 5, 6, 1 }, { 5, 6, 2 }, { 7, 6, 2 } },
 //			{ { 0, 2 }, { 3 }, { 1 }, { 1, 2 }, { 1, 3 }, { 0, 1 }, { 2, 1 }, { 1, 1 } },
@@ -148,8 +147,14 @@ int main(int argc, char** argv) {
 			{ { 3, 2 }, { 3 }, { 1 }, { 0, 3 }, { 2, 3 }, { 1, 3 } }
 	};
 
-	//TODO offsets for each R -> pair: pair_comp - offset ?
-	//TODO loop over R (field_comp[0]) / compute observable for each R
+	//T_Toffset[i] defines T & Toffset for field_composition[0][i]
+	//T_field at site {t, x, y, z} computed with multilevel corresponds to an operator in temporal direction defined at site {t + Toffset, x, y, z}
+	vector<pair<int, int> > T_Toffset = {
+			/********** levels { X, 2 } **********/
+//			{ 4, 1 }, { 5, 1 }, { 6, 0 }, { 7, 0 }, { 8, 1 }, { 9, 1 }, { 10, 0 }
+			/********** levels { 6, 3 } **********/
+			{ 4, 0 }, { 5, 0 }, { 6, 1 }, { 7, 1 }, { 8, 0 }, { 9, 0 }, { 10, 0 }
+	};
 
 	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[6], level_config_num,
 			{ IU_x_IU, UU_x_UU, UU_x_UCU, U_x_U },
@@ -167,12 +172,15 @@ int main(int argc, char** argv) {
 		cerr << "Error: could not open output file '" << argv[8] << "'";
 		return 0;
 	}
+	out_ofs << scientific << setprecision(11) << setfill(' ');
 
 //	***************************************************************************************************************************************
 
 	const int timeslice_num = level_thickness[0] / level_thickness[1];
-	double* T_field[1];
-	T_field_alloc_zero(*T_field, 3, timeslice_num, L);
+	const int top_level_field_num = field_compositions[0].size();
+	double* T_field[top_level_field_num];
+	for (int i = 0; i < top_level_field_num; ++i)
+		T_field_alloc_zero(T_field[i], 3, timeslice_num, L);
 
 	multilevel.compute_sublattice_fields( { config_lv0_id }, 0, T_field);
 
@@ -180,29 +188,33 @@ int main(int argc, char** argv) {
 	Gauge_Field_Alloc_silent(&gauge_field, T, L);
 	read_gauge_field(gauge_field, multilevel.config_filename( { config_lv0_id }).c_str(), T, L);
 
-	complex WL_avg;
-	co_eq_zero(&WL_avg);
-	for (int t = 0; t < T; t += level_thickness[1]) {
-		for (int x = 0; x < L; ++x) {
-			for (int y = 0; y < L; ++y) {
-				for (int z = 0; z < L; ++z) {
-					for (int i = 1; i < 4; ++i) {
-						LinkPath S0(gauge_field, T, L, { t + T_offset, x, y, z }), ST(gauge_field, T, L, { t + T_offset + WL_T, x, y, z });
-						for (int r = 0; r < WL_R; ++r) {
-							S0(i, true);
-							ST(i, true);
+	for (int T_field_i = 0; T_field_i < top_level_field_num; ++T_field_i) {
+		complex WL_avg;
+		co_eq_zero(&WL_avg);
+		for (int t = 0; t < T; t += level_thickness[1]) {
+			for (int x = 0; x < L; ++x) {
+				for (int y = 0; y < L; ++y) {
+					for (int z = 0; z < L; ++z) {
+						for (int i = 1; i < 4; ++i) {
+							LinkPath S0(gauge_field, T, L, { t + T_Toffset[T_field_i].second, x, y, z });
+							LinkPath ST(gauge_field, T, L, { t + T_Toffset[T_field_i].first + T_Toffset[T_field_i].second, x, y, z });
+							for (int r = 0; r < WL_R; ++r) {
+								S0(i, true);
+								ST(i, true);
+							}
+							complex curr_WL;
+							close_Wilson_loop(&curr_WL, T_field[T_field_i] + T_field_index(t, x, y, z, 3, i - 1, T, L, level_thickness[1]),
+									S0.path, ST.path);
+							co_pl_eq_co(&WL_avg, &curr_WL);
 						}
-						complex curr_WL;
-						close_Wilson_loop(&curr_WL, *T_field + T_field_index(t, x, y, z, 3, i - 1, T, L, level_thickness[1]),
-								S0.path, ST.path);
-						co_pl_eq_co(&WL_avg, &curr_WL);
 					}
 				}
 			}
 		}
+		co_di_eq_re(&WL_avg, 3.0 * L * L * L * timeslice_num);
+		out_ofs << setw(2) << T_Toffset[T_field_i].first << " " << showpos << WL_avg.re << " " << WL_avg.im << noshowpos << "\n";
 	}
-	delete[] *T_field;
-	co_di_eq_re(&WL_avg, 3.0 * L * L * L * timeslice_num);
 
-	out_ofs << scientific << setprecision(11) << showpos << WL_avg.re << " " << WL_avg.im << "\n";
+	for (int i = 0; i < top_level_field_num; ++i)
+		delete[] T_field[i];
 }
