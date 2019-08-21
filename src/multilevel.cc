@@ -71,7 +71,7 @@ double memory_bytes_used(const std::vector<std::vector<std::vector<int> > >& fie
 int main(int argc, char** argv) {
 	using namespace std;
 
-	if (argc < 7) {
+	if (argc < 8) {
 		cerr << "Usage: " << argv[0]
 				<< " [-m] [-b <beta> -s <seed>] <T> <L> <level_config_num> <level_thickness> <level_updates> <config_prefix> <config_id> <outfile>\n";
 		return 0;
