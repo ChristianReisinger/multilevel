@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
 
 	if (argc < 7) {
 		cerr << "Usage: " << argv[0]
-				<< " [-m] [-b <beta> -s <seed>] <T> <L> <level_config_num> <level_thickness> <config_prefix> <config_id> <outfile>\n";
+				<< " [-m] [-b <beta> -s <seed>] <T> <L> <level_config_num> <level_thickness> <level_updates> <config_prefix> <config_id> <outfile>\n";
 		return 0;
 	}
 
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
 	}
 
 	stringstream arg_ss;
-	arg_ss << argv[1] << " " << argv[2] << " " << argv[6];
+	arg_ss << argv[1] << " " << argv[2] << " " << argv[7];
 	arg_ss >> T >> L >> config_lv0_id;
 
 	stringstream config_id_ss;
@@ -112,12 +112,18 @@ int main(int argc, char** argv) {
 	}
 
 	vector<int> ds = parse_unsigned_int_list(argv[4]);
-	if (ds.empty()) {
-		cerr << "Error: no timeslice thickness specified\n";
+	if (ds.size() != level_config_num.size() - 1) {
+		cerr << "Error: invalid <level_thickness>\n";
 		return 0;
 	}
 	for (int d : ds)
 		level_thickness.push_back(d);
+
+	vector<int> level_updates = parse_unsigned_int_list(argv[5]);
+	if (level_updates.size() != level_config_num.size()) {
+		cerr << "Error: invalid <level_updates>\n";
+		return 0;
+	}
 
 //	********************************** Params **********************************
 
@@ -145,9 +151,9 @@ int main(int argc, char** argv) {
 	//TODO offsets for each R -> pair: pair_comp - offset ?
 	//TODO loop over R (field_comp[0]) / compute observable for each R
 
-	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[5], level_config_num,
+	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[6], level_config_num,
 			{ IU_x_IU, UU_x_UU, UU_x_UCU, U_x_U },
-			field_compositions, generate, beta, seed, { 10, 10 });
+			field_compositions, generate, beta, seed, level_updates);
 
 //	****************************************************************************
 
@@ -156,9 +162,9 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-	ofstream out_ofs(argv[7]);
+	ofstream out_ofs(argv[8]);
 	if (out_ofs.fail()) {
-		cerr << "Error: could not open output file '" << argv[7] << "'";
+		cerr << "Error: could not open output file '" << argv[8] << "'";
 		return 0;
 	}
 
