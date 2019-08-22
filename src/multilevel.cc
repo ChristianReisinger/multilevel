@@ -24,16 +24,17 @@
 
 bool show_mem = false;
 
-void handle_GNU_options(int argc, char**& argv, bool& generate, double& beta, int& seed) {
+void handle_GNU_options(int argc, char**& argv, bool& generate, double& beta, int& seed, std::vector<int>& level_updates) {
 	static struct option long_opts[] = {
 			{ "mem", no_argument, 0, 'm' },
 			{ "beta", required_argument, 0, 'b' },
 			{ "seed", required_argument, 0, 's' },
+			{ "updates", required_argument, 0, 'u' },
 			{ 0, 0, 0, 0 }
 	};
 
 	int opt = -1, long_opts_i = 0;
-	while ((opt = getopt_long(argc, argv, "mb:s:", long_opts, &long_opts_i)) != -1) {
+	while ((opt = getopt_long(argc, argv, "mb:s:u:", long_opts, &long_opts_i)) != -1) {
 		std::stringstream optarg_iss;
 		switch (opt) {
 			case 'm':
@@ -48,6 +49,11 @@ void handle_GNU_options(int argc, char**& argv, bool& generate, double& beta, in
 				generate = true;
 				optarg_iss << optarg;
 				optarg_iss >> seed;
+			break;
+			case 'u':
+				generate = true;
+				level_updates = parse_unsigned_int_list(optarg);
+				level_updates.insert(level_updates.begin(), 1);
 			break;
 		}
 	}
@@ -71,32 +77,63 @@ double memory_bytes_used(const std::vector<std::vector<std::vector<int> > >& fie
 int main(int argc, char** argv) {
 	using namespace std;
 
-	if (argc < 8) {
+	if (argc < 7) {
 		cerr << "Usage: " << argv[0]
-				<< " [-m] [-b <beta> -s <seed>] <T> <L> <level_config_num> <level_thickness> <level_updates> <config_prefix> <config_id> <outfile>\n";
+				<< " [-m] [-b <beta> -s <seed> -u <level_updates>] <T> <L> <level_config_num> <level_thickness> <config_prefix> <config_id> <outfile>\n"
+						"\n"
+						"Parameters\n"
+						"\n"
+						"\t<T> <L>\n"
+						"\t\tlattice dimensions\n"
+						"\n"
+						"\t<level_config_num>\n"
+						"\t\tcomma separated list of the number of configs at each level\n"
+						"\n"
+						"\t<level_thickness>\n"
+						"\t\tcomma separated list of the timeslice thickness at each level except the top one in order from highest to\n"
+						"\t\tlowest level\n"
+						"\n"
+						"\t<config_prefix>\n"
+						"\t\tgauge config filename without id extension (.01, .01.01, etc.)\n"
+						"\n"
+						"\t<config_id>\n"
+						"\t\tid of the top-level config\n"
+						"\n"
+						"\t<outfile>\n"
+						"\t\toutput filename\n"
+						"\n"
+						"Options\n"
+						"\n"
+						"\t-b <beta> -s <seed> -u <level_updates>\n"
+						"\t\tThese options must be used together. When used, configs are generated during the multilevel algorithm\n"
+						"\t\tvia heatbath with <beta>, <seed> and <level_updates>. <level_updates> is a comma separated list of the\n"
+						"\t\tnumber of updates at each level except the top one in order from highest to lowest level.\n";
 		return 0;
 	}
 
 	bool generate = false;
+	vector<int> level_updates;
 	int T, L, config_lv0_id, seed = 0;
 	double beta = 0.0;
-	vector<int> level_thickness;
-	level_thickness.push_back(T);
 
-	handle_GNU_options(argc, argv, generate, beta, seed);
+	handle_GNU_options(argc, argv, generate, beta, seed, level_updates);
 	if (generate) {
 		if (beta <= 0.0) {
-			cerr << "Error: invalid beta\n";
+			cerr << "Error: invalid <beta>\n";
 			return 0;
 		}
 		if (seed <= 0) {
-			cerr << "Error: invalid seed\n";
+			cerr << "Error: invalid <seed>\n";
+			return 0;
+		}
+		if (level_updates.size() == 0) {
+			cerr << "Error: invalid <level_updates>\n";
 			return 0;
 		}
 	}
 
 	stringstream arg_ss;
-	arg_ss << argv[1] << " " << argv[2] << " " << argv[7];
+	arg_ss << argv[1] << " " << argv[2] << " " << argv[6];
 	arg_ss >> T >> L >> config_lv0_id;
 
 	stringstream config_id_ss;
@@ -111,16 +148,14 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-	vector<int> ds = parse_unsigned_int_list(argv[4]);
-	if (ds.size() != level_config_num.size() - 1) {
+	vector<int> level_thickness = parse_unsigned_int_list(argv[4]);
+	if (level_thickness.size() != level_config_num.size() - 1) {
 		cerr << "Error: invalid <level_thickness>\n";
 		return 0;
 	}
-	for (int d : ds)
-		level_thickness.push_back(d);
+	level_thickness.insert(level_thickness.begin(), T);
 
-	vector<int> level_updates = parse_unsigned_int_list(argv[5]);
-	if (level_updates.size() != level_config_num.size()) {
+	if (level_updates.size() != level_config_num.size() - 1) {
 		cerr << "Error: invalid <level_updates>\n";
 		return 0;
 	}
@@ -156,7 +191,7 @@ int main(int argc, char** argv) {
 			{ 4, 0 }, { 5, 0 }, { 6, 1 }, { 7, 1 }, { 8, 0 }, { 9, 0 }, { 10, 0 }
 	};
 
-	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[6], level_config_num,
+	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[5], level_config_num,
 			{ IU_x_IU, UU_x_UU, UU_x_UCU, U_x_U },
 			field_compositions, generate, beta, seed, level_updates);
 
@@ -167,9 +202,9 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-	ofstream out_ofs(argv[8]);
+	ofstream out_ofs(argv[7]);
 	if (out_ofs.fail()) {
-		cerr << "Error: could not open output file '" << argv[8] << "'";
+		cerr << "Error: could not open output file '" << argv[7] << "'";
 		return 0;
 	}
 	out_ofs << scientific << setprecision(11) << setfill(' ');
