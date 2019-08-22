@@ -149,13 +149,13 @@ int main(int argc, char** argv) {
 	}
 
 	vector<int> level_thickness = parse_unsigned_int_list(argv[4]);
-	if (level_thickness.size() != level_config_num.size() - 1) {
+	level_thickness.insert(level_thickness.begin(), T);
+	if (level_thickness.size() != level_config_num.size()) {
 		cerr << "Error: invalid <level_thickness>\n";
 		return 0;
 	}
-	level_thickness.insert(level_thickness.begin(), T);
 
-	if (level_updates.size() != level_config_num.size() - 1) {
+	if (level_updates.size() != level_config_num.size()) {
 		cerr << "Error: invalid <level_updates>\n";
 		return 0;
 	}
@@ -168,28 +168,28 @@ int main(int argc, char** argv) {
 			/********** levels { 2 } **********/
 //			{ { 0, 2, 3 }, { 0, 2, 1 }, { 1, 2, 1 }, { 1, 2, 1, 3 }, { 0, 1, 2, 1, 3 }, { 0, 1, 2, 1, 2 }, { 1, 1, 2, 1, 1 } },
 			/********** levels { 4, 2 } **********/
-//			{ { 0, 1 }, { 0, 2 }, { 3, 2 }, { 3, 4 }, { 5, 6, 1 }, { 5, 6, 2 }, { 7, 6, 2 } },
-//			{ { 0, 2 }, { 3 }, { 1 }, { 1, 2 }, { 1, 3 }, { 0, 1 }, { 2, 1 }, { 1, 1 } },
+			{ { 0, 1 }, { 0, 2 }, { 3, 2 }, { 3, 4 }, { 5, 6, 1 }, { 5, 6, 2 }, { 7, 6, 2 } },
+			{ { 0, 2 }, { 3 }, { 1 }, { 1, 2 }, { 1, 3 }, { 0, 1 }, { 2, 1 }, { 1, 1 } },
 			/********** levels { 6, 2 } **********/
 //			{ { 0 }, { 1 }, { 2 }, { 2, 3 }, { 4, 5 }, { 4, 6 }, { 7, 6 } },
 //			{ { 0, 2, 3 }, { 0, 2, 1 }, { 1, 2, 1 }, { 3 }, { 0, 1, 2 }, { 1, 3 }, { 1, 1 }, { 1, 1, 2 } },
 			/********** levels { X, 2 } **********/
-//			{ { 0 }, { 1 }, { 2 }, { 3 } }
-			/********** *************** **********/
-			/********** levels { 6, 3 } **********/
-			{ { 0 }, { 1 }, { 2, 3 }, { 2, 4 }, { 5, 4 }, { 5, 6 }, { 7, 8 } },
-			{ { 0, 1 }, { 0, 2 }, { 3, 4 }, { 1 }, { 2 }, { 5, 4 }, { 5 }, { 5, 0 }, { 5, 1 } },
-			{ { 3, 2 }, { 3 }, { 1 }, { 0, 3 }, { 2, 3 }, { 1, 3 } }
-	};
+			{ { 0 }, { 1 }, { 2 }, { 3 } }
+	/********** *************** **********/
+	/********** levels { 6, 3 } **********/
+//			{ { 0 }, { 1 }, { 2, 3 }, { 2, 4 }, { 5, 4 }, { 5, 6 }, { 7, 8 } },
+//			{ { 0, 1 }, { 0, 2 }, { 3, 4 }, { 1 }, { 2 }, { 5, 4 }, { 5 }, { 5, 0 }, { 5, 1 } },
+//			{ { 3, 2 }, { 3 }, { 1 }, { 0, 3 }, { 2, 3 }, { 1, 3 } }
+			};
 
 	//T_Toffset[i] defines T & Toffset for field_composition[0][i]
 	//T_field at site {t, x, y, z} computed with multilevel corresponds to an operator in temporal direction defined at site {t + Toffset, x, y, z}
 	vector<pair<int, int> > T_Toffset = {
 			/********** levels { X, 2 } **********/
-//			{ 4, 1 }, { 5, 1 }, { 6, 0 }, { 7, 0 }, { 8, 1 }, { 9, 1 }, { 10, 0 }
-			/********** levels { 6, 3 } **********/
-			{ 4, 0 }, { 5, 0 }, { 6, 1 }, { 7, 1 }, { 8, 0 }, { 9, 0 }, { 10, 0 }
-	};
+			{ 4, 1 }, { 5, 1 }, { 6, 0 }, { 7, 0 }, { 8, 1 }, { 9, 1 }, { 10, 0 }
+	/********** levels { 6, 3 } **********/
+//			{ 4, 0 }, { 5, 0 }, { 6, 1 }, { 7, 1 }, { 8, 0 }, { 9, 0 }, { 10, 0 }
+			};
 
 	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[5], level_config_num,
 			{ IU_x_IU, UU_x_UU, UU_x_UCU, U_x_U },
