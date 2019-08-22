@@ -73,14 +73,13 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 		if (level != 0)
 			curr_tag.push_back(conf);
 
-		if (generate_configs)
+		if (generate_configs) {
 			if (level == 0)
 				read_gauge_field(config_buf, config_filename(curr_tag).c_str(), T, L);
-			else {
-				update_sublattice_gauge_field(curr_tag);
-				if (save)
-					write_config(curr_tag);
-			}
+			update_sublattice_gauge_field(curr_tag);
+			if (level != 0 && save)
+				write_config(curr_tag);
+		}
 
 		double* lower_level_fields[lower_level_field_num];
 		if (is_lowest)
