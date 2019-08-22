@@ -60,11 +60,9 @@ void handle_GNU_options(int argc, char**& argv, bool& generate, double& beta, in
 	argv = argv + optind - 1;
 }
 
-double memory_bytes_used(const std::vector<std::vector<std::vector<int> > >& field_compositions, const std::vector<int>& level_thickness,
+double memory_used(const std::vector<std::vector<std::vector<int> > >& field_compositions, const std::vector<int>& level_thickness,
 		int T, int L) {
 	int levels = level_thickness.size();
-	if (levels < 2 || field_compositions.size() != levels)
-		return -1;
 	double volume = T * L * L * L;
 	double bytes_per_field = volume * 3 * SO_elems * sizeof(double);
 	double operators_per_site = 0.0;
@@ -197,8 +195,13 @@ int main(int argc, char** argv) {
 
 //	****************************************************************************
 
+	if (field_compositions.size() != level_config_num.size()) {
+		cerr << "Error: invalid compositions\n";
+		return 0;
+	}
+
 	if (show_mem) {
-		cout << "This computation uses " << memory_bytes_used(field_compositions, level_thickness, T, L) / 1000000.0 << " MB memory.\n";
+		cout << "This computation uses " << memory_used(field_compositions, level_thickness, T, L) / 1000000.0 << " MB memory.\n";
 		return 0;
 	}
 
