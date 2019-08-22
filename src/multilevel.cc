@@ -155,7 +155,7 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-	if (level_updates.size() != level_config_num.size()) {
+	if (generate && level_updates.size() != level_config_num.size()) {
 		cerr << "Error: invalid <level_updates>\n";
 		return 0;
 	}
