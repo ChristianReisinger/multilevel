@@ -11,6 +11,7 @@
 #include <sstream>
 #include <iostream>
 #include <string>
+#include <chrono>
 
 #include <fields.hh>
 #include <io.hh>
@@ -35,7 +36,8 @@ MultilevelAnalyzer::MultilevelAnalyzer(
 		T(T), L(L), WL_R(WL_R), level_thickness(level_thickness),
 				config_prefix(config_prefix), level_config_num(level_config_num),
 				field_compositions(field_compositions), lowest_level_functions(lowest_level_functions),
-				generate_configs(generate_configs), beta(beta), seed(seed), level_updates(level_updates), save(save)
+				generate_configs(generate_configs), beta(beta), seed(seed), level_updates(level_updates), save(save),
+				time_spent_generating(0), time_spent_computing_operators(0)
 {
 	if (generate_configs) {
 		InitializeRand(seed);
@@ -92,6 +94,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 			compute_sublattice_fields(curr_tag, level + 1, lower_level_fields);
 		}
 
+		auto start_time = std::chrono::steady_clock::now();
 		for (int t = 0; t < T; t += timeslice_thickness) {
 			for (int x = 0; x < L; ++x) {
 				for (int y = 0; y < L; ++y) {
@@ -135,6 +138,8 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 				}
 			}
 		}
+		time_spent_computing_operators += std::chrono::steady_clock::now() - start_time;
+
 		for (int i = 0; i < lower_level_field_num; ++i)
 			level_field_free(lower_level_fields[i], level);
 	}
@@ -157,6 +162,8 @@ void MultilevelAnalyzer::obtain_sublattice_gauge_field(double*& sub_gauge_field,
 
 void MultilevelAnalyzer::update_sublattice_gauge_field(const std::vector<int>& tag) {
 	std::cerr << "Generating config " << tag_to_string(tag) << " ... ";
+	auto start_time = std::chrono::steady_clock::now();
+
 	std::vector<int> boundary_ts;
 	int level = tag.size() - 1;
 	if (level != 0)
@@ -164,6 +171,8 @@ void MultilevelAnalyzer::update_sublattice_gauge_field(const std::vector<int>& t
 			boundary_ts.push_back(t);
 	for (int i_swp = 0; i_swp < level_updates[level]; ++i_swp)
 		do_sweep(config_buf, T, L, beta, boundary_ts);
+
+	time_spent_generating += std::chrono::steady_clock::now() - start_time;
 	std::cerr << "ok\n";
 }
 
@@ -181,4 +190,12 @@ void MultilevelAnalyzer::level_field_free(double*& level_field, int level) {
 			Gauge_Field_Free(&level_field);
 	} else
 		T_field_free(level_field);
+}
+
+int MultilevelAnalyzer::milliseconds_spent_generating() {
+	return std::chrono::duration_cast<std::chrono::milliseconds>(time_spent_generating).count();
+}
+
+int MultilevelAnalyzer::milliseconds_spent_computing() {
+	return std::chrono::duration_cast<std::chrono::milliseconds>(time_spent_computing_operators).count();
 }

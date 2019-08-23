@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <chrono>
 
 #ifndef INCLUDE_MULTILEVELANALYZER_HH_
 #define INCLUDE_MULTILEVELANALYZER_HH_
@@ -41,6 +42,9 @@ public:
 	std::string config_filename(const std::vector<int>& tag);
 	void compute_sublattice_fields(const std::vector<int>& conf_tag, const int level, double** T_fields);
 
+	int milliseconds_spent_generating();
+	int milliseconds_spent_computing();
+
 private:
 
 	void obtain_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag);
@@ -61,6 +65,9 @@ private:
 	const std::vector<int> level_config_num;
 	const std::vector<std::vector<std::vector<int> > > field_compositions;
 	const std::vector<void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions;
+
+	std::chrono::steady_clock::duration time_spent_generating;
+	std::chrono::steady_clock::duration time_spent_computing_operators;
 };
 
 #endif /* INCLUDE_MULTILEVELANALYZER_HH_ */
