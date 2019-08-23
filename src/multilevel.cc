@@ -6,6 +6,7 @@
 #include <array>
 #include <getopt.h>
 #include <fstream>
+#include <chrono>
 
 #include <fields.hh>
 #include <io.hh>
@@ -74,6 +75,7 @@ double memory_used(const std::vector<std::vector<std::vector<int> > >& field_com
 
 int main(int argc, char** argv) {
 	using namespace std;
+	auto start_time = chrono::steady_clock::now();
 
 	if (argc < 7) {
 		cerr << "Usage: " << argv[0]
@@ -255,4 +257,9 @@ int main(int argc, char** argv) {
 
 	for (int i = 0; i < top_level_field_num; ++i)
 		delete[] T_field[i];
+
+	cout << "\nComputation time\n"
+			"\tfull program : " << chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start_time).count() << " s\n"
+			"\tgenerating configs : " << multilevel.milliseconds_spent_generating() / 1000 << " s\n"
+			"\tcomputing observables : " << multilevel.milliseconds_spent_computing() / 1000 << " s\n";
 }
