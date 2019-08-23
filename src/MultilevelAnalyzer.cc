@@ -61,7 +61,7 @@ std::string MultilevelAnalyzer::config_filename(const std::vector<int>& tag) {
 	return filename_oss.str();
 }
 
-void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_tag, int level, double** T_fields) {
+void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_tag, const int level, double** T_fields) {
 	const bool is_lowest = (level == field_compositions.size() - 1);
 
 	const int config_num = (level == 0 ? 1 : level_config_num[level]);
@@ -136,11 +136,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const std::vector<int>& conf_
 			}
 		}
 		for (int i = 0; i < lower_level_field_num; ++i)
-			if (is_lowest) {
-				if (!generate_configs)
-					Gauge_Field_Free(&lower_level_fields[i]);
-			} else
-				delete[] lower_level_fields[i];
+			level_field_free(lower_level_fields[i], level);
 	}
 	for (int i = 0; i < field_compositions[level].size(); ++i)
 		T_field_di_eq_re(T_fields[i], config_num, 3, T, L, timeslice_thickness);
@@ -177,4 +173,12 @@ void MultilevelAnalyzer::write_config(const std::vector<int>& tag) {
 	std::ostringstream header_oss;
 	header_oss << "generated during multilevel : " << beta << " " << T << " " << L << " " << seed;
 	write_gauge_field(config_buf, config_filename_oss.str().c_str(), T, L, header_oss.str().c_str());
+}
+
+void MultilevelAnalyzer::level_field_free(double*& level_field, int level) {
+	if (level == field_compositions.size() - 1) {
+		if (!generate_configs)
+			Gauge_Field_Free(&level_field);
+	} else
+		T_field_free(level_field);
 }

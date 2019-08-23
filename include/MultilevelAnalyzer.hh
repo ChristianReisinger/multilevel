@@ -33,19 +33,20 @@ public:
 			std::vector<int> level_config_num,
 			std::vector<void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions,
 			std::vector<std::vector<std::vector<int> > > field_compositions,
-			bool generate_configs = false, double beta = 0.0, int seed = 0, std::vector<int> level_updates = {}, bool save = false
+			bool generate_configs = false, double beta = 0.0, int seed = 0, std::vector<int> level_updates = { }, bool save = false
 			);
 	~MultilevelAnalyzer();
 
 	std::string tag_to_string(const std::vector<int>& tag);
 	std::string config_filename(const std::vector<int>& tag);
-	void compute_sublattice_fields(const std::vector<int>& conf_tag, int level, double** T_fields);
+	void compute_sublattice_fields(const std::vector<int>& conf_tag, const int level, double** T_fields);
 
 private:
 
 	void obtain_sublattice_gauge_field(double*& sub_gauge_field, const std::vector<int>& tag);
 	void update_sublattice_gauge_field(const std::vector<int>& tag);
 	void write_config(const std::vector<int>& tag);
+	void level_field_free(double*& level_field, int level);
 
 	const bool generate_configs;
 	const bool save;
