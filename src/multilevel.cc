@@ -25,17 +25,18 @@
 
 bool show_mem = false;
 
-void handle_GNU_options(int argc, char**& argv, bool& generate, double& beta, int& seed, std::vector<int>& level_updates) {
+void handle_GNU_options(int argc, char**& argv, bool& generate, bool& write, double& beta, int& seed, std::vector<int>& level_updates) {
 	static struct option long_opts[] = {
 			{ "mem", no_argument, 0, 'm' },
 			{ "beta", required_argument, 0, 'b' },
 			{ "seed", required_argument, 0, 's' },
 			{ "updates", required_argument, 0, 'u' },
+			{ "write", no_argument, 0, 'w' },
 			{ 0, 0, 0, 0 }
 	};
 
 	int opt = -1, long_opts_i = 0;
-	while ((opt = getopt_long(argc, argv, "mb:s:u:", long_opts, &long_opts_i)) != -1) {
+	while ((opt = getopt_long(argc, argv, "mb:s:u:w", long_opts, &long_opts_i)) != -1) {
 		std::stringstream optarg_iss;
 		switch (opt) {
 			case 'm':
@@ -55,6 +56,10 @@ void handle_GNU_options(int argc, char**& argv, bool& generate, double& beta, in
 				generate = true;
 				level_updates = parse_unsigned_int_list(optarg);
 				level_updates.insert(level_updates.begin(), 20);
+			break;
+			case 'w':
+				generate = true;
+				write = true;
 			break;
 		}
 	}
@@ -79,7 +84,7 @@ int main(int argc, char** argv) {
 
 	if (argc < 7) {
 		cerr << "Usage: " << argv[0]
-				<< " [-m] [-b <beta> -s <seed> -u <level_updates>] <T> <L> <level_config_num> <level_thickness> <config_prefix> <config_id> <outfile>\n"
+				<< " [-m] [-b <beta> -s <seed> -u <level_updates> [-w]] <T> <L> <level_config_num> <level_thickness> <config_prefix> <config_id> <outfile>\n"
 						"\n"
 						"Parameters\n"
 						"\n"
@@ -104,19 +109,20 @@ int main(int argc, char** argv) {
 						"\n"
 						"Options\n"
 						"\n"
-						"\t-b <beta> -s <seed> -u <level_updates>\n"
+						"\t-b <beta> -s <seed> -u <level_updates> [-w]\n"
 						"\t\tThese options must be used together. When used, configs are generated during the multilevel algorithm\n"
 						"\t\tvia heatbath with <beta>, <seed> and <level_updates>. <level_updates> is a comma separated list of the\n"
-						"\t\tnumber of updates at each level except the top one in order from highest to lowest level.\n";
+						"\t\tnumber of updates at each level except the top one in order from highest to lowest level.\n"
+						"\t\tWhen using also -w, generated configs are written to file with '.multilevel' appended to filenames.\n";
 		return 0;
 	}
 
-	bool generate = false;
+	bool generate = false, write = false;
 	vector<int> level_updates;
 	int T, L, config_lv0_id, seed = 0;
 	double beta = 0.0;
 
-	handle_GNU_options(argc, argv, generate, beta, seed, level_updates);
+	handle_GNU_options(argc, argv, generate, write, beta, seed, level_updates);
 	if (generate) {
 		if (beta <= 0.0) {
 			cerr << "Error: invalid <beta>\n";
@@ -166,7 +172,8 @@ int main(int argc, char** argv) {
 
 	vector<vector<vector<int> > > field_compositions = {
 			/********** levels { 2 } **********/
-			{ { 0, 2, 3 }, { 0, 2, 1 }, { 1, 2, 1 }, { 1, 2, 1, 3 }, { 0, 1, 2, 1, 3 }, { 0, 1, 2, 1, 2 }, { 1, 1, 2, 1, 1 } },
+			{ { 0, 2, 3 }, { 0, 2, 1 }, { 1, 2, 1 }, { 1, 2, 1, 3 }, { 0, 1, 2, 1, 3 }, { 0, 1, 2, 1, 2 }, { 1, 1, 2, 1, 1 },
+					{ 1, 1 }, { 1, 1, 3 }, { 1, 1, 1 }, { 1, 1, 1, 3 }, { 1, 1, 1, 1 }, { 1, 1, 1, 1, 3 }, { 1, 1, 1, 1, 1 } },
 			/********** levels { 4, 2 } **********/
 //			{ { 0, 1 }, { 0, 2 }, { 3, 2 }, { 3, 4 }, { 5, 6, 1 }, { 5, 6, 2 }, { 7, 6, 2 } },
 //			{ { 0, 2 }, { 3 }, { 1 }, { 1, 2 }, { 1, 3 }, { 0, 1 }, { 2, 1 }, { 1, 1 } },
@@ -182,20 +189,23 @@ int main(int argc, char** argv) {
 //			{ { 3, 2 }, { 3 }, { 1 }, { 0, 3 }, { 2, 3 }, { 1, 3 } }
 			};
 
-	//T_Toffset[i] defines T & Toffset for field_composition[0][i]
-	//T_field at site {t, x, y, z} computed with multilevel corresponds to an operator in temporal direction defined at site {t + Toffset, x, y, z}
-	vector<pair<int, int> > T_Toffset = {
+//T_Toffset[i] defines T & Toffset for field_composition[0][i]
+//T_field at site {t, x, y, z} computed with multilevel corresponds to an operator in temporal direction defined at site {t + Toffset, x, y, z}
+	vector<pair<int, int> >
+	T_Toffset = {
 			/********** levels { X, 2 } **********/
-			{ 4, 1 }, { 5, 1 }, { 6, 0 }, { 7, 0 }, { 8, 1 }, { 9, 1 }, { 10, 0 }
+			{ 4, 1 }, { 5, 1 }, { 6, 0 }, { 7, 0 }, { 8, 1 }, { 9, 1 }, { 10, 0 },
+			{ 4, 0 }, { 5, 0 }, { 6, 0 }, { 7, 0 }, { 8, 0 }, { 9, 0 }, { 10, 0 }
 	/********** levels { 6, 3 } **********/
 //			{ 4, 0 }, { 5, 0 }, { 6, 1 }, { 7, 1 }, { 8, 0 }, { 9, 0 }, { 10, 0 }
 			};
 
+//	****************************************************************************
+
 	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[5], level_config_num,
 			{ IU_x_IU, UU_x_UU, UU_x_UCU, U_x_U },
-			field_compositions, generate, beta, seed, level_updates);
+			field_compositions, generate, beta, seed, level_updates, write);
 
-//	****************************************************************************
 
 	if (field_compositions.size() != level_config_num.size()) {
 		cerr << "Error: invalid compositions\n";
