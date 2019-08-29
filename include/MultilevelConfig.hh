@@ -27,7 +27,7 @@ public:
 	std::string config_filename() const;
 	int thickness(int level) const;
 	int config_num(int level) const;
-	void get(double* gauge_field) const;
+	void get(double*& gauge_field) const;
 	int milliseconds_spent_generating() const;
 
 private:

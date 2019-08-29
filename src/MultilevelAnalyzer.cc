@@ -23,6 +23,7 @@
 #include <sublattice_algebra.hh>
 #include <sublattice_fields.hh>
 
+#include <MultilevelConfig.hh>
 #include <MultilevelAnalyzer.hh>
 
 //public

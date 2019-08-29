@@ -52,7 +52,7 @@ int MultilevelConfig::config_num(int level) const {
 	return level_config_num[level];
 }
 
-void MultilevelConfig::get(double* gauge_field) const {
+void MultilevelConfig::get(double*& gauge_field) const {
 	gauge_field = config_buf;
 }
 
