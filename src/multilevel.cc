@@ -21,6 +21,7 @@
 #include <sublattice_algebra.hh>
 #include <sublattice_fields.hh>
 #include <twolink_operators.hh>
+#include <MultilevelConfig.hh>
 #include <MultilevelAnalyzer.hh>
 
 bool show_mem = false;
@@ -55,7 +56,6 @@ void handle_GNU_options(int argc, char**& argv, bool& generate, bool& write, dou
 			case 'u':
 				generate = true;
 				level_updates = parse_unsigned_int_list(optarg);
-				level_updates.insert(level_updates.begin(), 20);
 			break;
 			case 'w':
 				generate = true;
@@ -112,7 +112,8 @@ int main(int argc, char** argv) {
 						"\t-b <beta> -s <seed> -u <level_updates> [-w]\n"
 						"\t\tThese options must be used together. When used, configs are generated during the multilevel algorithm\n"
 						"\t\tvia heatbath with <beta>, <seed> and <level_updates>. <level_updates> is a comma separated list of the\n"
-						"\t\tnumber of updates at each level except the top one in order from highest to lowest level.\n"
+						"\t\tnumber of updates at each level in order from highest to lowest level; updates at level 0 are applied"
+						"\t\tonce to the initial config from file before computing observables.\n"
 						"\t\tWhen using also -w, generated configs are written to file with '.multilevel' appended to filenames.\n";
 		return 0;
 	}
@@ -202,10 +203,8 @@ int main(int argc, char** argv) {
 
 //	****************************************************************************
 
-	MultilevelAnalyzer multilevel(T, L, WL_R, level_thickness, argv[5], level_config_num,
-			{ IU_x_IU, UU_x_UU, UU_x_UCU, U_x_U },
-			field_compositions, generate, beta, seed, level_updates, write);
-
+	MultilevelConfig multilevel_config(argv[5], config_lv0_id, T, L, level_thickness, level_config_num, beta, seed, level_updates, write);
+	MultilevelAnalyzer multilevel(multilevel_config, WL_R, field_compositions, { IU_x_IU, UU_x_UU, UU_x_UCU, U_x_U });
 
 	if (field_compositions.size() != level_config_num.size()) {
 		cerr << "Error: invalid compositions\n";
@@ -228,15 +227,14 @@ int main(int argc, char** argv) {
 
 	const int timeslice_num = level_thickness[0] / level_thickness[1];
 	const int top_level_field_num = field_compositions[0].size();
-	double* T_field[top_level_field_num];
+	double* T_fields[top_level_field_num];
 	for (int i = 0; i < top_level_field_num; ++i)
-		T_field_alloc_zero(T_field[i], 3, timeslice_num, L);
+		T_field_alloc_zero(T_fields[i], 3, timeslice_num, L);
 
-	multilevel.compute_sublattice_fields( { config_lv0_id }, 0, T_field);
-
+	multilevel.compute_sublattice_fields(T_fields);
+	multilevel_config.update(0);
 	double* gauge_field;
-	Gauge_Field_Alloc_silent(&gauge_field, T, L);
-	read_gauge_field(gauge_field, multilevel.config_filename( { config_lv0_id }).c_str(), T, L);
+	multilevel_config.get(gauge_field);
 
 	for (int T_field_i = 0; T_field_i < top_level_field_num; ++T_field_i) {
 		complex WL_avg;
@@ -253,7 +251,7 @@ int main(int argc, char** argv) {
 								ST(i, true);
 							}
 							complex curr_WL;
-							close_Wilson_loop(&curr_WL, T_field[T_field_i] + T_field_index(t, x, y, z, 3, i - 1, T, L, level_thickness[1]),
+							close_Wilson_loop(&curr_WL, T_fields[T_field_i] + T_field_index(t, x, y, z, 3, i - 1, T, L, level_thickness[1]),
 									S0.path, ST.path);
 							co_pl_eq_co(&WL_avg, &curr_WL);
 						}
@@ -266,10 +264,10 @@ int main(int argc, char** argv) {
 	}
 
 	for (int i = 0; i < top_level_field_num; ++i)
-		delete[] T_field[i];
+		delete[] T_fields[i];
 
 	cout << "\nComputation time\n"
 			"\tfull program : " << chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start_time).count() << " s\n"
-			"\tgenerating configs : " << multilevel.milliseconds_spent_generating() / 1000 << " s\n"
+			"\tgenerating configs : " << multilevel_config.milliseconds_spent_generating() / 1000 << " s\n"
 			"\tcomputing observables : " << multilevel.milliseconds_spent_computing() / 1000 << " s\n";
 }
