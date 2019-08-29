@@ -22,7 +22,7 @@
 
 MultilevelConfig::MultilevelConfig(const std::string& filename_prefix, int top_level_id, int T, int L,
 		const std::vector<int>& level_thickness, const std::vector<int>& level_config_num,
-		int beta, int seed, std::vector<int> level_updates, bool save) :
+		double beta, int seed, std::vector<int> level_updates, bool save) :
 		filename_prefix(filename_prefix), curr_tag( { top_level_id }), T(T), L(L),
 				level_thickness(level_thickness), level_config_num(level_config_num),
 				beta(beta), level_updates(level_updates), save(save),

@@ -17,7 +17,7 @@ public:
 
 	MultilevelConfig(const std::string& filename_prefix, int top_level_id, int T, int L,
 			const std::vector<int>& level_thickness, const std::vector<int>& level_config_num,
-			int beta = 0, int seed = 0, std::vector<int> level_updates = { }, bool save = false);
+			double beta = 0, int seed = 0, std::vector<int> level_updates = { }, bool save = false);
 
 	~MultilevelConfig();
 
