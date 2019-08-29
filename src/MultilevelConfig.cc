@@ -77,11 +77,12 @@ void MultilevelConfig::update(int level) {
 			do_sweep(config_buf, T, L, beta, boundary_ts);
 
 		time_spent_generating += std::chrono::steady_clock::now() - start_time;
+		std::cerr << "ok\n";
 	} else if (level == level_config_num.size() - 1) {
 		std::cerr << "Reading config '" << config_filename() << "' ... ";
 		read_gauge_field(config_buf, config_filename().c_str(), T, L);
+		std::cerr << "ok\n";
 	}
-	std::cerr << "ok\n";
 
 	if (generate_configs && save)
 		write_config();
