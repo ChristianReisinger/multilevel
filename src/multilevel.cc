@@ -68,14 +68,14 @@ void handle_GNU_options(int argc, char**& argv, bool& generate, bool& write, dou
 
 double memory_used(const std::vector<std::vector<std::vector<int> > >& field_compositions, const std::vector<int>& level_thickness,
 		int T, int L) {
-	int levels = level_thickness.size();
-	double volume = T * L * L * L;
-	double bytes_per_field = volume * 3 * SO_elems * sizeof(double);
+	const int levels = level_thickness.size();
+	const double volume = T * L * L * L;
+	const double bytes_per_field = volume * 3 * SO_elems * sizeof(double);
 	double operators_per_site = 0.0;
 	for (int level = 0; level < levels; ++level)
 		operators_per_site += (double) field_compositions[level].size() / (double) level_thickness[level == 0 ? 1 : level];
-	double gauge_field_bytes = volume * 4 * SUN_elems * sizeof(double);
-	return operators_per_site * bytes_per_field + gauge_field_bytes;
+	const double gauge_field_bytes = volume * 4 * SUN_elems * sizeof(double);
+	return operators_per_site * bytes_per_field + 2 * gauge_field_bytes;
 }
 
 int main(int argc, char** argv) {
@@ -169,7 +169,7 @@ int main(int argc, char** argv) {
 
 //	********************************** Params **********************************
 
-	int WL_R = 10;
+	const int WL_R = 10;
 
 	vector<vector<vector<int> > > field_compositions = {
 			/********** levels { 2 } **********/
@@ -192,8 +192,7 @@ int main(int argc, char** argv) {
 
 //T_Toffset[i] defines T & Toffset for field_composition[0][i]
 //T_field at site {t, x, y, z} computed with multilevel corresponds to an operator in temporal direction defined at site {t + Toffset, x, y, z}
-	vector<pair<int, int> >
-	T_Toffset = {
+	vector<pair<int, int> > T_Toffset = {
 			/********** levels { X, 2 } **********/
 			{ 4, 1 }, { 5, 1 }, { 6, 0 }, { 7, 0 }, { 8, 1 }, { 9, 1 }, { 10, 0 },
 			{ 4, 0 }, { 5, 0 }, { 6, 0 }, { 7, 0 }, { 8, 0 }, { 9, 0 }, { 10, 0 }
