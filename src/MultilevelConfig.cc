@@ -34,8 +34,10 @@ MultilevelConfig::MultilevelConfig(const std::string& filename_prefix, int top_l
 	read_gauge_field(top_level_conf, config_filename().c_str(), T, L);
 	if (generate_configs) {
 		InitializeRand(seed);
+		std::cerr << "Updating top level config ... ";
 		for (int i_swp = 0; i_swp < level_updates[0]; ++i_swp)
 			do_sweep(top_level_conf, T, L, beta);
+		std::cerr << "ok\n";
 	}
 }
 
