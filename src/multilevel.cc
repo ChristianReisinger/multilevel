@@ -172,9 +172,12 @@ int main(int argc, char** argv) {
 	const int WL_R = 10;
 
 	vector<vector<vector<int> > > field_compositions = {
-			/********** levels { 2 } **********/
-			{ { 0, 2, 3 }, { 0, 2, 1 }, { 1, 2, 1 }, { 1, 2, 1, 3 }, { 0, 1, 2, 1, 3 }, { 0, 1, 2, 1, 2 }, { 1, 1, 2, 1, 1 },
-					{ 1, 1 }, { 1, 1, 3 }, { 1, 1, 1 }, { 1, 1, 1, 3 }, { 1, 1, 1, 1 }, { 1, 1, 1, 1, 3 }, { 1, 1, 1, 1, 1 } },
+			{ { 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 }, { 0, 0 }, { 0, 0, 1 }, { 0, 0, 2 } },
+			{ { 0, 0 }, { 1 }, { 0 }, { 0, 1 } },
+			{ { 1 }, { 3 } }
+	/********** levels { 2 } **********/
+//			{ { 0, 2, 3 }, { 0, 2, 1 }, { 1, 2, 1 }, { 1, 2, 1, 3 }, { 0, 1, 2, 1, 3 }, { 0, 1, 2, 1, 2 }, { 1, 1, 2, 1, 1 },
+//					{ 1, 1 }, { 1, 1, 3 }, { 1, 1, 1 }, { 1, 1, 1, 3 }, { 1, 1, 1, 1 }, { 1, 1, 1, 1, 3 }, { 1, 1, 1, 1, 1 } },
 			/********** levels { 4, 2 } **********/
 //			{ { 0, 1 }, { 0, 2 }, { 3, 2 }, { 3, 4 }, { 5, 6, 1 }, { 5, 6, 2 }, { 7, 6, 2 } },
 //			{ { 0, 2 }, { 3 }, { 1 }, { 1, 2 }, { 1, 3 }, { 0, 1 }, { 2, 1 }, { 1, 1 } },
@@ -182,9 +185,9 @@ int main(int argc, char** argv) {
 //			{ { 0 }, { 1 }, { 2 }, { 2, 3 }, { 4, 5 }, { 4, 6 }, { 7, 6 } },
 //			{ { 0, 2, 3 }, { 0, 2, 1 }, { 1, 2, 1 }, { 3 }, { 0, 1, 2 }, { 1, 3 }, { 1, 1 }, { 1, 1, 2 } },
 			/********** levels { X, 2 } **********/
-			{ { 0 }, { 1 }, { 2 }, { 3 } }
-	/********** *************** **********/
-	/********** levels { 6, 3 } **********/
+//			{ { 0 }, { 1 }, { 2 }, { 3 } }
+			/********** *************** **********/
+			/********** levels { 6, 3 } **********/
 //			{ { 0 }, { 1 }, { 2, 3 }, { 2, 4 }, { 5, 4 }, { 5, 6 }, { 7, 8 } },
 //			{ { 0, 1 }, { 0, 2 }, { 3, 4 }, { 1 }, { 2 }, { 5, 4 }, { 5 }, { 5, 0 }, { 5, 1 } },
 //			{ { 3, 2 }, { 3 }, { 1 }, { 0, 3 }, { 2, 3 }, { 1, 3 } }
@@ -193,17 +196,16 @@ int main(int argc, char** argv) {
 //T_Toffset[i] defines T & Toffset for field_composition[0][i]
 //T_field at site {t, x, y, z} computed with multilevel corresponds to an operator in temporal direction defined at site {t + Toffset, x, y, z}
 	vector<pair<int, int> > T_Toffset = {
-			/********** levels { X, 2 } **********/
-			{ 4, 1 }, { 5, 1 }, { 6, 0 }, { 7, 0 }, { 8, 1 }, { 9, 1 }, { 10, 0 },
 			{ 4, 0 }, { 5, 0 }, { 6, 0 }, { 7, 0 }, { 8, 0 }, { 9, 0 }, { 10, 0 }
-	/********** levels { 6, 3 } **********/
+	//			{ 10, 0 }
+			/********** levels { X, 2 } **********/
+//			{ 4, 1 }, { 5, 1 }, { 6, 0 }, { 7, 0 }, { 8, 1 }, { 9, 1 }, { 10, 0 },
+//			{ 4, 0 }, { 5, 0 }, { 6, 0 }, { 7, 0 }, { 8, 0 }, { 9, 0 }, { 10, 0 }
+			/********** levels { 6, 3 } **********/
 //			{ 4, 0 }, { 5, 0 }, { 6, 1 }, { 7, 1 }, { 8, 0 }, { 9, 0 }, { 10, 0 }
 			};
 
 //	****************************************************************************
-
-	MultilevelConfig multilevel_config(argv[5], config_lv0_id, T, L, level_thickness, level_config_num, beta, seed, level_updates, write);
-	MultilevelAnalyzer multilevel(multilevel_config, WL_R, field_compositions, { IU_x_IU, UU_x_UU, UU_x_UCU, U_x_U });
 
 	if (field_compositions.size() != level_config_num.size()) {
 		cerr << "Error: invalid compositions\n";
@@ -223,6 +225,9 @@ int main(int argc, char** argv) {
 	out_ofs << scientific << setprecision(11) << setfill(' ');
 
 //	***************************************************************************************************************************************
+
+	MultilevelConfig multilevel_config(argv[5], config_lv0_id, T, L, level_thickness, level_config_num, beta, seed, level_updates, write);
+	MultilevelAnalyzer multilevel(multilevel_config, WL_R, field_compositions, { IU_x_IU, UU_x_UU, UU_x_UCU, U_x_U });
 
 	const int timeslice_num = level_thickness[0] / level_thickness[1];
 	const int top_level_field_num = field_compositions[0].size();
