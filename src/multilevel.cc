@@ -82,14 +82,17 @@ int main(int argc, char** argv) {
 	using namespace std;
 	auto start_time = chrono::steady_clock::now();
 
-	if (argc < 7) {
+	if (argc < 8) {
 		cerr << "Usage: " << argv[0]
-				<< " [-m] [-b <beta> -s <seed> -u <level_updates> [-w]] <T> <L> <level_config_num> <level_thickness> <config_prefix> <config_id> <outfile>\n"
+				<< " [-m] [-b <beta> -s <seed> -u <level_updates> [-w]] <T> <L> <WL_R> <level_config_num> <level_thickness> <config_prefix> <config_id> <outfile>\n"
 						"\n"
 						"Parameters\n"
 						"\n"
 						"\t<T> <L>\n"
 						"\t\tlattice dimensions\n"
+						"\n"
+						"\t<WL_R>\n"
+						"\t\tspatial Wilson loop size\n"
 						"\n"
 						"\t<level_config_num>\n"
 						"\t\tcomma separated list of the number of configs at each level\n"
@@ -120,7 +123,7 @@ int main(int argc, char** argv) {
 
 	bool generate = false, write = false;
 	vector<int> level_updates;
-	int T, L, config_lv0_id, seed = 0;
+	int T, L, WL_R, config_lv0_id, seed = 0;
 	double beta = 0.0;
 
 	handle_GNU_options(argc, argv, generate, write, beta, seed, level_updates);
@@ -140,8 +143,8 @@ int main(int argc, char** argv) {
 	}
 
 	stringstream arg_ss;
-	arg_ss << argv[1] << " " << argv[2] << " " << argv[6];
-	arg_ss >> T >> L >> config_lv0_id;
+	arg_ss << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[7];
+	arg_ss >> T >> L >> WL_R >> config_lv0_id;
 
 	stringstream config_id_ss;
 	if (arg_ss.fail()) {
@@ -149,13 +152,13 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-	vector<int> level_config_num = parse_unsigned_int_list(argv[3]);
+	vector<int> level_config_num = parse_unsigned_int_list(argv[4]);
 	if (level_config_num.size() < 2) {
 		cerr << "Error: less than 2 levels\n";
 		return 0;
 	}
 
-	vector<int> level_thickness = parse_unsigned_int_list(argv[4]);
+	vector<int> level_thickness = parse_unsigned_int_list(argv[5]);
 	level_thickness.insert(level_thickness.begin(), T);
 	if (level_thickness.size() != level_config_num.size()) {
 		cerr << "Error: invalid <level_thickness>\n";
@@ -169,41 +172,17 @@ int main(int argc, char** argv) {
 
 //	********************************** Params **********************************
 
-	const int WL_R = 10;
-
-	vector<vector<vector<int> > > field_compositions = {
-			{ { 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 }, { 0, 0 }, { 0, 0, 1 }, { 0, 0, 2 } },
-			{ { 0, 0 }, { 1 }, { 0 }, { 0, 1 } },
-			{ { 1 }, { 3 } }
 	/********** levels { 2 } **********/
-//			{ { 0, 2, 3 }, { 0, 2, 1 }, { 1, 2, 1 }, { 1, 2, 1, 3 }, { 0, 1, 2, 1, 3 }, { 0, 1, 2, 1, 2 }, { 1, 1, 2, 1, 1 },
-//					{ 1, 1 }, { 1, 1, 3 }, { 1, 1, 1 }, { 1, 1, 1, 3 }, { 1, 1, 1, 1 }, { 1, 1, 1, 1, 3 }, { 1, 1, 1, 1, 1 } },
-			/********** levels { 4, 2 } **********/
-//			{ { 0, 1 }, { 0, 2 }, { 3, 2 }, { 3, 4 }, { 5, 6, 1 }, { 5, 6, 2 }, { 7, 6, 2 } },
-//			{ { 0, 2 }, { 3 }, { 1 }, { 1, 2 }, { 1, 3 }, { 0, 1 }, { 2, 1 }, { 1, 1 } },
-			/********** levels { 6, 2 } **********/
-//			{ { 0 }, { 1 }, { 2 }, { 2, 3 }, { 4, 5 }, { 4, 6 }, { 7, 6 } },
-//			{ { 0, 2, 3 }, { 0, 2, 1 }, { 1, 2, 1 }, { 3 }, { 0, 1, 2 }, { 1, 3 }, { 1, 1 }, { 1, 1, 2 } },
-			/********** levels { X, 2 } **********/
-//			{ { 0 }, { 1 }, { 2 }, { 3 } }
-			/********** *************** **********/
-			/********** levels { 6, 3 } **********/
-//			{ { 0 }, { 1 }, { 2, 3 }, { 2, 4 }, { 5, 4 }, { 5, 6 }, { 7, 8 } },
-//			{ { 0, 1 }, { 0, 2 }, { 3, 4 }, { 1 }, { 2 }, { 5, 4 }, { 5 }, { 5, 0 }, { 5, 1 } },
-//			{ { 3, 2 }, { 3 }, { 1 }, { 0, 3 }, { 2, 3 }, { 1, 3 } }
-			};
+	vector<vector<vector<int> > > field_compositions = {
+			{ { 0, 0 }, { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 } },
+			{ { 1 } }
+	};
 
 //T_Toffset[i] defines T & Toffset for field_composition[0][i]
 //T_field at site {t, x, y, z} computed with multilevel corresponds to an operator in temporal direction defined at site {t + Toffset, x, y, z}
 	vector<pair<int, int> > T_Toffset = {
-			{ 4, 0 }, { 5, 0 }, { 6, 0 }, { 7, 0 }, { 8, 0 }, { 9, 0 }, { 10, 0 }
-	//			{ 10, 0 }
-			/********** levels { X, 2 } **********/
-//			{ 4, 1 }, { 5, 1 }, { 6, 0 }, { 7, 0 }, { 8, 1 }, { 9, 1 }, { 10, 0 },
-//			{ 4, 0 }, { 5, 0 }, { 6, 0 }, { 7, 0 }, { 8, 0 }, { 9, 0 }, { 10, 0 }
-			/********** levels { 6, 3 } **********/
-//			{ 4, 0 }, { 5, 0 }, { 6, 1 }, { 7, 1 }, { 8, 0 }, { 9, 0 }, { 10, 0 }
-			};
+			{ 4, 0 }, { 6, 0 }, { 8, 0 }, { 10, 0 }
+	};
 
 //	****************************************************************************
 
@@ -217,17 +196,17 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-	ofstream out_ofs(argv[7]);
+	ofstream out_ofs(argv[8]);
 	if (out_ofs.fail()) {
-		cerr << "Error: could not open output file '" << argv[7] << "'";
+		cerr << "Error: could not open output file '" << argv[8] << "'";
 		return 0;
 	}
 	out_ofs << scientific << setprecision(11) << setfill(' ');
 
 //	***************************************************************************************************************************************
 
-	MultilevelConfig multilevel_config(argv[5], config_lv0_id, T, L, level_thickness, level_config_num, beta, seed, level_updates, write);
-	MultilevelAnalyzer multilevel(multilevel_config, WL_R, field_compositions, { IU_x_IU, UU_x_UU, UU_x_UCU, U_x_U });
+	MultilevelConfig multilevel_config(argv[6], config_lv0_id, T, L, level_thickness, level_config_num, beta, seed, level_updates, write);
+	MultilevelAnalyzer multilevel(multilevel_config, WL_R, field_compositions, { U_x_U, UU_x_UU, UU_x_UCU, IU_x_IU });
 
 	const int timeslice_num = level_thickness[0] / level_thickness[1];
 	const int top_level_field_num = field_compositions[0].size();
