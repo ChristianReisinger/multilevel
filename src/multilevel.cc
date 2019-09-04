@@ -7,6 +7,7 @@
 #include <getopt.h>
 #include <fstream>
 #include <chrono>
+#include <exception>
 
 #include <fields.hh>
 #include <io.hh>
@@ -15,6 +16,7 @@
 #include <geometry2.hh>
 #include <LinkPath.hh>
 
+#include <io_tools.hh>
 #include <helper_functions.hh>
 
 #include <linear_algebra.hh>
@@ -25,6 +27,51 @@
 #include <MultilevelAnalyzer.hh>
 
 bool show_mem = false;
+
+void print_help(char* argv0) {
+	std::cout << "Usage: " << argv0
+			<< " [-m] [-b <beta> -s <seed> -u <level_updates> [-w]] <T> <L> <WL_R> <level_config_num> <composition_file> <config_prefix> <config_id> <outfile>\n"
+					"\n"
+					"Parameters\n"
+					"\n"
+					"\t<T> <L>\n"
+					"\t\tlattice dimensions\n"
+					"\n"
+					"\t<WL_R>\n"
+					"\t\tspatial Wilson loop size\n"
+					"\n"
+					"\t<level_config_num>\n"
+					"\t\tComma separated list of the number of configs at each level\n"
+					"\n"
+					"\t<composition_file>\n"
+					"\t\tFile containing operator composition definitions at each level, format:\n"
+					"\t\t\t(thickness <th>\n"
+					"\t\t\t(<comp>[:<T>:<offset>]) ...)\n"
+					"\t\t\t...\n"
+					"\t\tin order from lowest to highest level.\n"
+					"\t\tAt highest level, <th> must be 'T' and [...] must be given, at any other level, [...] must not be given.\n"
+					"\t\t<comp> is a comma-separated list of indices of operators defined at the next-lowest level.\n"
+					"\t\tAn operator computed at lattice site {t, x, y, z} with a given composition is taken to be defined at\n"
+					"\t\tlattice site {t+<offset>, x, y, z}.\n"
+					"\n"
+					"\t<config_prefix>\n"
+					"\t\tGauge config filename without id extension (.01, .01.01, etc.)\n"
+					"\n"
+					"\t<config_id>\n"
+					"\t\tID of the top-level config\n"
+					"\n"
+					"\t<outfile>\n"
+					"\t\tOutput filename\n"
+					"\n"
+					"Options\n"
+					"\n"
+					"\t-b <beta> -s <seed> -u <level_updates> [-w]\n"
+					"\t\tThese options must be used together. When used, configs are generated during the multilevel algorithm\n"
+					"\t\tvia heatbath with <beta>, <seed> and <level_updates>. <level_updates> is a comma separated list of the\n"
+					"\t\tnumber of updates at each level in order from highest to lowest level; updates at level 0 are applied\n"
+					"\t\tonce to the initial config from file before computing observables.\n"
+					"\t\tWhen using also -w, generated configs are written to file with '.multilevel' appended to filenames.\n";
+}
 
 void handle_GNU_options(int argc, char**& argv, bool& generate, bool& write, double& beta, int& seed, std::vector<int>& level_updates) {
 	static struct option long_opts[] = {
@@ -66,7 +113,9 @@ void handle_GNU_options(int argc, char**& argv, bool& generate, bool& write, dou
 	argv = argv + optind - 1;
 }
 
-double memory_used(const std::vector<std::vector<std::vector<int> > >& field_compositions, const std::vector<int>& level_thickness,
+double memory_used(
+		const std::vector<std::vector<std::vector<int> > >& field_compositions,
+		const std::vector<int>& level_thickness,
 		int T, int L) {
 	const int levels = level_thickness.size();
 	const double volume = T * L * L * L;
@@ -78,53 +127,90 @@ double memory_used(const std::vector<std::vector<std::vector<int> > >& field_com
 	return operators_per_site * bytes_per_field + 2 * gauge_field_bytes;
 }
 
+void parse_compositions(
+		std::vector<int>& level_thickness,
+		std::vector<std::vector<std::vector<int> > >& field_compositions,
+		std::vector<std::pair<int, int> >& T_Toffset,
+		const std::string& compstr, int T) {
+	bool first = true;
+	std::istringstream comps_iss(compstr);
+
+	for (std::string thickness_def; std::getline(comps_iss, thickness_def);) {
+		std::istringstream thickness_iss(thickness_def);
+
+		std::string thickness_token;
+		thickness_iss >> thickness_token;
+		if (thickness_token != "thickness")
+			throw std::runtime_error("invalid format");
+
+		thickness_iss >> thickness_token;
+		if (!thickness_iss.eof())
+			throw std::runtime_error("invalid format");
+
+		std::vector<std::vector<int> > level_comps;
+		int thickness = 0;
+
+		std::stringstream comp_def_ss;
+		io_tools::getline(comps_iss, comp_def_ss);
+		if (thickness_token == "T") {
+			if (first)
+				throw std::runtime_error("top level cannot be lowest level");
+			thickness = T;
+
+			std::stringstream comp_def_T_ss;
+			for (std::string comp_def; comp_def_ss >> comp_def;) {
+				std::istringstream def_token_iss(comp_def);
+				io_tools::getline(def_token_iss, comp_def_T_ss, ':');
+				comp_def_T_ss << " ";
+
+				int comp_T = 0, offset = -1;
+				char sep;
+				def_token_iss >> comp_T >> sep >> offset;
+				if (sep != ':' || !def_token_iss.eof() || comp_T < 1 || offset < 0)
+					throw std::runtime_error("invalid composition at top level");
+				T_Toffset.push_back( { comp_T, offset });
+			}
+			comp_def_ss = std::move(comp_def_T_ss);
+		} else {
+			std::istringstream thickness_val_iss(thickness_token);
+			thickness_val_iss >> thickness;
+			if (thickness_val_iss.fail() || thickness < 1)
+				throw std::runtime_error("invalid level thickness");
+		}
+
+		for (std::string comp_def; comp_def_ss >> comp_def;) {
+			std::vector<int> level_comp = parse_unsigned_int_list(comp_def.c_str());
+			for (int i : level_comp)
+				if (!first && i >= field_compositions[0].size())
+					throw std::runtime_error("operator at index i at next-lowest level is not defined");
+			level_comps.push_back(level_comp);
+		}
+
+		if (!first &&
+				(thickness <= level_thickness[0] || thickness % level_thickness[0] != 0))
+			throw std::runtime_error("invalid level thickness");
+		level_thickness.insert(level_thickness.begin(), thickness);
+		field_compositions.insert(field_compositions.begin(), level_comps);
+
+		first = false;
+	}
+}
+
 int main(int argc, char** argv) {
 	using namespace std;
 	auto start_time = chrono::steady_clock::now();
 
 	if (argc < 8) {
-		cerr << "Usage: " << argv[0]
-				<< " [-m] [-b <beta> -s <seed> -u <level_updates> [-w]] <T> <L> <WL_R> <level_config_num> <level_thickness> <config_prefix> <config_id> <outfile>\n"
-						"\n"
-						"Parameters\n"
-						"\n"
-						"\t<T> <L>\n"
-						"\t\tlattice dimensions\n"
-						"\n"
-						"\t<WL_R>\n"
-						"\t\tspatial Wilson loop size\n"
-						"\n"
-						"\t<level_config_num>\n"
-						"\t\tcomma separated list of the number of configs at each level\n"
-						"\n"
-						"\t<level_thickness>\n"
-						"\t\tcomma separated list of the timeslice thickness at each level except the top one in order from highest to\n"
-						"\t\tlowest level\n"
-						"\n"
-						"\t<config_prefix>\n"
-						"\t\tgauge config filename without id extension (.01, .01.01, etc.)\n"
-						"\n"
-						"\t<config_id>\n"
-						"\t\tid of the top-level config\n"
-						"\n"
-						"\t<outfile>\n"
-						"\t\toutput filename\n"
-						"\n"
-						"Options\n"
-						"\n"
-						"\t-b <beta> -s <seed> -u <level_updates> [-w]\n"
-						"\t\tThese options must be used together. When used, configs are generated during the multilevel algorithm\n"
-						"\t\tvia heatbath with <beta>, <seed> and <level_updates>. <level_updates> is a comma separated list of the\n"
-						"\t\tnumber of updates at each level in order from highest to lowest level; updates at level 0 are applied"
-						"\t\tonce to the initial config from file before computing observables.\n"
-						"\t\tWhen using also -w, generated configs are written to file with '.multilevel' appended to filenames.\n";
+		print_help(argv[0]);
 		return 0;
 	}
 
-	bool generate = false, write = false;
-	vector<int> level_updates;
 	int T, L, WL_R, config_lv0_id, seed = 0;
 	double beta = 0.0;
+	bool generate = false, write = false;
+	vector<int> level_config_num, level_updates, level_thickness;
+	vector<vector<vector<int> > > field_compositions;
+	vector<pair<int, int> > T_Toffset;
 
 	handle_GNU_options(argc, argv, generate, write, beta, seed, level_updates);
 	if (generate) {
@@ -152,16 +238,24 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-	vector<int> level_config_num = parse_unsigned_int_list(argv[4]);
+	level_config_num = parse_unsigned_int_list(argv[4]);
 	if (level_config_num.size() < 2) {
 		cerr << "Error: less than 2 levels\n";
 		return 0;
 	}
 
-	vector<int> level_thickness = parse_unsigned_int_list(argv[5]);
-	level_thickness.insert(level_thickness.begin(), T);
-	if (level_thickness.size() != level_config_num.size()) {
-		cerr << "Error: invalid <level_thickness>\n";
+	ifstream compositions_ifs(argv[5]);
+	ostringstream compstr_oss;
+	compstr_oss << compositions_ifs.rdbuf();
+	try {
+		parse_compositions(level_thickness, field_compositions, T_Toffset, compstr_oss.str(), T);
+	} catch (const std::exception& e) {
+		cerr << "Error when reading composition file: '" << e.what() << "'\n";
+		return 0;
+	}
+
+	if (level_config_num.size() != level_thickness.size()) {
+		cerr << "Error: invalid <level_config_num>\n";
 		return 0;
 	}
 
@@ -169,22 +263,6 @@ int main(int argc, char** argv) {
 		cerr << "Error: invalid <level_updates>\n";
 		return 0;
 	}
-
-//	********************************** Params **********************************
-
-	/********** levels { 2 } **********/
-	vector<vector<vector<int> > > field_compositions = {
-			{ { 0, 0 }, { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 } },
-			{ { 1 } }
-	};
-
-//T_Toffset[i] defines T & Toffset for field_composition[0][i]
-//T_field at site {t, x, y, z} computed with multilevel corresponds to an operator in temporal direction defined at site {t + Toffset, x, y, z}
-	vector<pair<int, int> > T_Toffset = {
-			{ 4, 0 }, { 6, 0 }, { 8, 0 }, { 10, 0 }
-	};
-
-//	****************************************************************************
 
 	if (field_compositions.size() != level_config_num.size()) {
 		cerr << "Error: invalid compositions\n";
@@ -196,6 +274,10 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
+	if (io_tools::file_exists(argv[8])) {
+		cerr << "Error: output file '" << argv[8] << "' already exists\n";
+		return 0;
+	}
 	ofstream out_ofs(argv[8]);
 	if (out_ofs.fail()) {
 		cerr << "Error: could not open output file '" << argv[8] << "'";
