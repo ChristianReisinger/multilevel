@@ -20,6 +20,10 @@ public:
 			double beta = 0, int seed = 0, std::vector<int> level_updates = { }, bool save = false);
 
 	~MultilevelConfig();
+	MultilevelConfig(const MultilevelConfig&) = delete;
+	MultilevelConfig(MultilevelConfig&&) = delete;
+	MultilevelConfig& operator=(const MultilevelConfig&) = delete;
+	MultilevelConfig& operator=(MultilevelConfig&&) = delete;
 
 	void update(int level);
 
