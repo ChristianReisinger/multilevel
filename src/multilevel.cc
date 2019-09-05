@@ -286,9 +286,16 @@ int main(int argc, char** argv) {
 	out_ofs << scientific << setprecision(11) << setfill(' ');
 
 //	***************************************************************************************************************************************
+	const std::vector<void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions = {
+			U_x_U, UU_x_UU,
+			Ex_x_I, Exbar_x_I, Ey_x_I, Eybar_x_I, Ez_x_I, Ezbar_x_I,
+			Bx_x_I, Bxbar_x_I, By_x_I, Bybar_x_I, Bz_x_I, Bzbar_x_I,
+			I_x_Ex, I_x_Exbar, I_x_Ey, I_x_Eybar, I_x_Ez, I_x_Ezbar,
+			I_x_Bx, I_x_Bxbar, I_x_By, I_x_Bybar, I_x_Bz, I_x_Bzbar
+	};
 
 	MultilevelConfig multilevel_config(argv[6], config_lv0_id, T, L, level_thickness, level_config_num, beta, seed, level_updates, write);
-	MultilevelAnalyzer multilevel(multilevel_config, WL_R, field_compositions, { U_x_U, UU_x_UU, UU_x_UCU, IU_x_IU });
+	MultilevelAnalyzer multilevel(multilevel_config, WL_R, field_compositions, lowest_level_functions);
 
 	const int timeslice_num = level_thickness[0] / level_thickness[1];
 	const int top_level_field_num = field_compositions[0].size();
