@@ -8,6 +8,7 @@
 #include <fstream>
 #include <chrono>
 #include <exception>
+#include <regex>
 
 #include <fields.hh>
 #include <io.hh>
@@ -194,6 +195,45 @@ void parse_compositions(
 
 		first = false;
 	}
+}
+
+void parse_compositions_labeled(
+		std::vector<int>& level_thickness,
+		std::vector<std::vector<std::vector<int> > >& field_compositions,
+		std::vector<std::pair<int, int> >& T_Toffset,
+		const std::string& compstr, int T) {
+
+	std::regex format(""
+			"(thickness \\d+\n+" //'\d+': thickness at current level
+			"((?!thickness)(\\S+(( |\t)+\\S+)+\n+))+)+"//first '\S+': label for current operator
+													   //second '\S+' and repeats: label of operator at next-lowest level
+			"thickness T\n+"						   //top level
+			"(\\S+(( |\t)+[^:]+)?:\\d+:(( |\t)+\\S+)+\n+)+"//first '\S+': filename
+	//optional '[^:]+' written to the beginning of each line in the file
+	//'\d+': time extent of the current operator
+	//second '\S+' and repeats: label of operator at next-lowest level
+	, std::regex::nosubs);
+
+	if (!std::regex_match(compstr, format))
+		throw std::runtime_error("invalid composition format");
+
+	std::regex non_top_level_format(""
+			"thickness (\\d+)\n+"
+			"(?:(?!thickness)(?:\\S+(?:(?: |\t)+\\S+)+\n+))+");
+
+	for (std::sregex_iterator level_it(compstr.begin(), compstr.end(), non_top_level_format);
+			level_it != std::sregex_iterator(); ++level_it) {
+		int thickness = io_tools::parse_int(level_it->str(1));
+
+		std::string level_def = level_it->str();
+		std::regex operator_format("(\\S+)(?:(?: |\t)+\\S+)+");
+		std::map<std::string, int> curr_level_operators; //TODO
+	}
+
+	std::regex top_level_format(""
+			"thickness \\d+\n+"
+			"((?!thickness)(\\S+(( |\t)+\\S+)+\n+))+"
+			);
 }
 
 int main(int argc, char** argv) {
