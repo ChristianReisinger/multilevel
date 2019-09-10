@@ -78,6 +78,12 @@ void print_help(char* argv0) {
 					"\n"
 					"Options\n"
 					"\n"
+					"\t-m\n"
+					"\t\tshow required memory and exit\n"
+					"\n"
+					"\t-e <ext>\n"
+					"\t\tappend <ext> to all output file names\n"
+					"\n"
 					"\t-b <beta> -s <seed> -u <level_updates> [-w]\n"
 					"\t\tThese options must be used together. When used, configs are generated during the multilevel algorithm\n"
 					"\t\tvia heatbath with <beta>, <seed> and <level_updates>. <level_updates> is a comma separated list of the\n"
@@ -86,18 +92,21 @@ void print_help(char* argv0) {
 					"\t\tWhen using also -w, generated configs are written to file with '.multilevel' appended to filenames.\n";
 }
 
-void handle_GNU_options(int argc, char**& argv, bool& generate, bool& write, double& beta, int& seed, std::vector<int>& level_updates) {
+void handle_GNU_options(int argc, char**& argv,
+		bool& generate, bool& write, double& beta, int& seed, std::vector<int>& level_updates,
+		std::string& extension) {
 	static struct option long_opts[] = {
 			{ "mem", no_argument, 0, 'm' },
 			{ "beta", required_argument, 0, 'b' },
 			{ "seed", required_argument, 0, 's' },
 			{ "updates", required_argument, 0, 'u' },
 			{ "write", no_argument, 0, 'w' },
+			{ "extension", no_argument, 0, 'e' },
 			{ 0, 0, 0, 0 }
 	};
 
 	int opt = -1, long_opts_i = 0;
-	while ((opt = getopt_long(argc, argv, "mb:s:u:w", long_opts, &long_opts_i)) != -1) {
+	while ((opt = getopt_long(argc, argv, "mb:s:u:we:", long_opts, &long_opts_i)) != -1) {
 		std::stringstream optarg_iss;
 		switch (opt) {
 			case 'm':
@@ -120,6 +129,9 @@ void handle_GNU_options(int argc, char**& argv, bool& generate, bool& write, dou
 			case 'w':
 				generate = true;
 				write = true;
+			break;
+			case 'e':
+				extension = optarg;
 			break;
 		}
 	}
@@ -281,7 +293,9 @@ int main(int argc, char** argv) {
 	vector<pair<int, int> > T_Toffset;
 	vector<pair<string, string> > operator_filename_lineprefix;
 
-	handle_GNU_options(argc, argv, generate, write, beta, seed, level_updates);
+	string outfile_extension = "";
+
+	handle_GNU_options(argc, argv, generate, write, beta, seed, level_updates, outfile_extension);
 	if (generate) {
 		if (beta <= 0.0) {
 			cerr << "Error: invalid <beta>\n";
@@ -346,7 +360,10 @@ int main(int argc, char** argv) {
 
 	map<string, std::unique_ptr<ofstream> > outfiles;
 	for (const auto& e : operator_filename_lineprefix) {
-		const string filename = e.first;
+		ostringstream filename_oss;
+		filename_oss << e.first << outfile_extension;
+		const string filename = filename_oss.str();
+
 		if (!outfiles.count(filename)) {
 			if (file_exists(filename)) {
 				cerr << "Error: output file '" << filename << "' already exists\n";
