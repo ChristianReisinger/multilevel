@@ -331,17 +331,18 @@ int main(int argc, char** argv) {
 	map<string, std::unique_ptr<ofstream> > outfiles;
 	for (const auto& e : operator_filename_lineprefix) {
 		const string filename = e.first;
-		if (io_tools::file_exists(filename)) {
-			cerr << "Error: output file '" << filename << "' already exists\n";
-			return 0;
-		}
-		if (!outfiles.count(filename))
+		if (!outfiles.count(filename)) {
+			if (io_tools::file_exists(filename)) {
+				cerr << "Error: output file '" << filename << "' already exists\n";
+				return 0;
+			}
 			outfiles[filename] = make_unique<ofstream>(filename);
-		if (outfiles.at(filename)->fail()) {
-			cerr << "Error: could not open output file '" << filename << "'";
-			return 0;
+			if (outfiles.at(filename)->fail()) {
+				cerr << "Error: could not open output file '" << filename << "'";
+				return 0;
+			}
+			*outfiles.at(filename) << scientific << setprecision(11) << setfill(' ');
 		}
-		*outfiles.at(filename) << scientific << setprecision(11) << setfill(' ');
 	}
 
 //	***************************************************************************************************************************************
