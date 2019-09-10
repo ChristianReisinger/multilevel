@@ -394,8 +394,7 @@ int main(int argc, char** argv) {
 		co_di_eq_re(&WL_avg, 3.0 * L * L * L * timeslice_num);
 		const string filename = operator_filename_lineprefix.at(T_field_i).first;
 		const string lineprefix = operator_filename_lineprefix.at(T_field_i).second;
-		*outfiles.at(filename) << lineprefix << " " << setw(2) << T_Toffset[T_field_i].first << " "
-				<< showpos << WL_avg.re << " " << WL_avg.im << noshowpos << "\n";
+		*outfiles.at(filename) << lineprefix << " " << showpos << WL_avg.re << " " << WL_avg.im << noshowpos << "\n";
 	}
 
 	for (int i = 0; i < top_level_field_num; ++i)
