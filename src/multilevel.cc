@@ -31,7 +31,7 @@ bool show_mem = false;
 
 void print_help(char* argv0) {
 	std::cout << "Usage: " << argv0
-			<< " [-m] [-b <beta> -s <seed> -u <level_updates> [-w]] <T> <L> <WL_R> <level_config_num> <composition_file> <config_prefix> <config_id> <outfile>\n"
+			<< " [-m] [-b <beta> -s <seed> -u <level_updates> [-w]] <T> <L> <WL_R> <level_config_num> <composition_file> <config_prefix> <config_id>\n"
 					"\n"
 					"Parameters\n"
 					"\n"
@@ -54,7 +54,7 @@ void print_help(char* argv0) {
 					"\t\t\t(<filename>:<line_prefix>:<T>: <factors> ...\n"
 					"\t\t\t)...\n"
 					"\t\twhere levels with thickness <th> are defined in order from lowest to highest and the top level is\n"
-					"\t\tindicated by 'thickness T'. Operators named <label> are defined as product of <factor>'s on the same"
+					"\t\tindicated by 'thickness T'. Operators named <label> are defined as product of <factor>'s on the same\n"
 					"\t\tline, where <factor> is on of the <label>'s from the next-lowest level. At the top level, <filename>\n"
 					"\t\tis the output file into which the final results are written, <T> is the temporal size of the Wilson\n"
 					"\t\tloop for each operator and <line_prefix> (can be empty) is written in the output at the start of the\n"
@@ -251,7 +251,7 @@ int main(int argc, char** argv) {
 	using namespace std;
 	auto start_time = chrono::steady_clock::now();
 
-	if (argc < 8) {
+	if (argc < 7) {
 		print_help(argv[0]);
 		return 0;
 	}
