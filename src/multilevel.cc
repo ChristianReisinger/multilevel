@@ -174,8 +174,9 @@ void parse_operator_factors(std::vector<int>& operator_def,
 void parse_operators(
 		std::vector<std::vector<int> >& operators,
 		std::map<std::string, int>& labels,
-		std::vector<std::pair<std::string, std::string> >& operator_filename_lineprefix,
 		std::vector<std::pair<int, int> >& T_Toffset,
+		std::vector<std::pair<std::string, std::string> >& operator_filename_lineprefix,
+		const std::string& outfile_extension,
 		const std::map<std::string, int>& prev_level_labels,
 		const bool top,
 		const std::string& operators_str) {
@@ -197,7 +198,7 @@ void parse_operators(
 		labels[operator_name] = operator_index;
 		operators.push_back(operator_def);
 		if (top) {
-			operator_filename_lineprefix.push_back( { operator_name, operator_it->str(2) });
+			operator_filename_lineprefix.push_back( { operator_name + "." + outfile_extension, operator_it->str(2) });
 			T_Toffset.push_back( { tools::io_tools::parse_int(operator_it->str(3)), 0 });
 		}
 	}
@@ -208,7 +209,7 @@ void parse_compositions(
 		std::vector<std::vector<std::vector<int> > >& field_compositions,
 		std::vector<std::pair<int, int> >& T_Toffset,
 		std::vector<std::pair<std::string, std::string> >& operator_filename_lineprefix,
-		const std::string& compstr, int T) {
+		const std::string& outfile_extension, const std::string& compstr, int T) {
 	std::map<std::string, int> lowest_level_labels;
 	int label_i = 0;
 	for (std::string label : { "U_x_U", "UU_x_UU",
@@ -255,8 +256,8 @@ void parse_compositions(
 		std::vector<std::vector<int> > curr_level_operators;
 		std::map<std::string, int> curr_level_labels;
 
-		parse_operators(curr_level_operators, curr_level_labels, operator_filename_lineprefix, T_Toffset,
-				operator_labels, top, level_it->str(2));
+		parse_operators(curr_level_operators, curr_level_labels, T_Toffset, operator_filename_lineprefix,
+				outfile_extension, operator_labels, top, level_it->str(2));
 
 		prev_level_labels = curr_level_labels;
 		field_compositions.insert(field_compositions.begin(), curr_level_operators);
@@ -331,7 +332,9 @@ int main(int argc, char** argv) {
 	ostringstream compstr_oss;
 	compstr_oss << compositions_ifs.rdbuf();
 	try {
-		parse_compositions(level_thickness, field_compositions, T_Toffset, operator_filename_lineprefix, compstr_oss.str(), T);
+		parse_compositions(level_thickness, field_compositions, T_Toffset,
+				operator_filename_lineprefix, outfile_extension,
+				compstr_oss.str(), T);
 	} catch (const std::exception& e) {
 		cerr << "Error when reading composition file: '" << e.what() << "'\n";
 		return 0;
@@ -360,9 +363,7 @@ int main(int argc, char** argv) {
 
 	map<string, std::unique_ptr<ofstream> > outfiles;
 	for (const auto& e : operator_filename_lineprefix) {
-		ostringstream filename_oss;
-		filename_oss << e.first << outfile_extension;
-		const string filename = filename_oss.str();
+		const string filename = e.first;
 
 		if (!outfiles.count(filename)) {
 			if (file_exists(filename)) {
