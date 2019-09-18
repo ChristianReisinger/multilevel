@@ -17,6 +17,9 @@ namespace de_uni_frankfurt_itp {
 namespace reisinger {
 namespace multilevel_0819 {
 
+using latticetools_0719::SUN_elems;
+using latticetools_0719::LinkPath;
+
 void clover(double* result, const double* sub_gauge_field, int T, int L,
 		const std::array<int, 4>& n, int mu, int nu, bool bar) {
 

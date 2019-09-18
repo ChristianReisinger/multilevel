@@ -31,6 +31,8 @@ namespace de_uni_frankfurt_itp {
 namespace reisinger {
 namespace multilevel_0819 {
 
+using latticetools_0719::SUN_elems;
+
 bool show_mem = false;
 
 void print_help(char* argv0) {
@@ -257,7 +259,9 @@ void parse_compositions(
 
 int main(int argc, char** argv) {
 	using namespace std;
+	using de_uni_frankfurt_itp::reisinger::latticetools_0719::LinkPath;
 	using namespace de_uni_frankfurt_itp::reisinger::multilevel_0819;
+
 	auto start_time = chrono::steady_clock::now();
 
 	if (argc < 7) {

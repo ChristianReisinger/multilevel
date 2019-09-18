@@ -15,6 +15,8 @@ namespace de_uni_frankfurt_itp {
 namespace reisinger {
 namespace multilevel_0819 {
 
+using latticetools_0719::SUN_N;
+
 constexpr int SO_elems = 2 * SUN_N * SUN_N * SUN_N * SUN_N;
 
 inline int so_superindex(int alpha, int beta, int gamma, int delta) {
