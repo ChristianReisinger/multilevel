@@ -26,6 +26,10 @@
 #include <MultilevelConfig.hh>
 #include <MultilevelAnalyzer.hh>
 
+namespace de_uni_frankfurt_itp {
+namespace reisinger {
+namespace multilevel_0819 {
+
 //public
 
 MultilevelAnalyzer::MultilevelAnalyzer(MultilevelConfig& multilevel_config, int WL_R,
@@ -121,4 +125,8 @@ void MultilevelAnalyzer::compute_sublattice_fields(double** T_fields, const int 
 
 int MultilevelAnalyzer::milliseconds_spent_computing() {
 	return std::chrono::duration_cast<std::chrono::milliseconds>(time_spent_computing_operators).count();
+}
+
+}
+}
 }

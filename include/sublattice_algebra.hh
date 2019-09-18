@@ -11,6 +11,10 @@
 #ifndef INCLUDE_SUBLATTICE_ALGEBRA_HH_
 #define INCLUDE_SUBLATTICE_ALGEBRA_HH_
 
+namespace de_uni_frankfurt_itp {
+namespace reisinger {
+namespace multilevel_0819 {
+
 constexpr int SO_elems = 2 * SUN_N * SUN_N * SUN_N * SUN_N;
 
 inline int so_superindex(int alpha, int beta, int gamma, int delta) {
@@ -60,5 +64,9 @@ void so_eq_cm_x_cm(double* result, const double* T0, const double* TR);
  * S0 at t = 0, and ST at t = T = temporal Wilson loop size
  */
 void close_Wilson_loop(complex* WL, const double* SO, const double* S0, const double* ST);
+
+}
+}
+}
 
 #endif /* INCLUDE_SUBLATTICE_ALGEBRA_HH_ */

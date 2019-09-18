@@ -20,6 +20,10 @@
 
 #include <MultilevelConfig.hh>
 
+namespace de_uni_frankfurt_itp {
+namespace reisinger {
+namespace multilevel_0819 {
+
 MultilevelConfig::MultilevelConfig(const std::string& filename_prefix, int top_level_id, int T, int L,
 		const std::vector<int>& level_thickness, const std::vector<int>& level_config_num,
 		double beta, int seed, std::vector<int> level_updates, bool save) :
@@ -122,4 +126,8 @@ void MultilevelConfig::write_config() const {
 	std::ostringstream header_oss;
 	header_oss << "generated during multilevel : " << beta << " " << T << " " << L;
 	write_gauge_field(config_buf, config_filename_oss.str().c_str(), T, L, header_oss.str().c_str());
+}
+
+}
+}
 }

@@ -8,6 +8,10 @@
 #ifndef INCLUDE_TWOLINK_OPERATORS_HH_
 #define INCLUDE_TWOLINK_OPERATORS_HH_
 
+namespace de_uni_frankfurt_itp {
+namespace reisinger {
+namespace multilevel_0819 {
+
 inline int z_rel_dir(int dir, int z_dir) {
 	return (dir + z_dir - 1) % 3 + 1;
 }
@@ -93,5 +97,9 @@ void I_x_Bzbar(double* result, const double* sub_gauge_field, int T, int L,
 
 void IU_x_IU(double* result, const double* sub_gauge_field, int T, int L,
 		int& t, int x, int y, int z, int dir, int rsep);
+
+}
+}
+}
 
 #endif /* INCLUDE_TWOLINK_OPERATORS_HH_ */

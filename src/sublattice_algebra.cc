@@ -9,6 +9,10 @@
 #include <linear_algebra.hh>
 #include <sublattice_algebra.hh>
 
+namespace de_uni_frankfurt_itp {
+namespace reisinger {
+namespace multilevel_0819 {
+
 void so_eq_so_ti_so(double* result, const double* T1, const double* T2) {
 	for (int a = 0; a < SUN_N; ++a) {
 		for (int b = 0; b < SUN_N; ++b) {
@@ -91,4 +95,8 @@ void close_Wilson_loop(complex* WL, const double* SO, const double* S0, const do
 
 	WL->re /= SUN_N;
 	WL->im /= SUN_N;
+}
+
+}
+}
 }

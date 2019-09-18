@@ -14,6 +14,10 @@
 #ifndef INCLUDE_MULTILEVELANALYZER_HH_
 #define INCLUDE_MULTILEVELANALYZER_HH_
 
+namespace de_uni_frankfurt_itp {
+namespace reisinger {
+namespace multilevel_0819 {
+
 class MultilevelAnalyzer {
 public:
 	/**
@@ -44,5 +48,9 @@ private:
 
 	bool top_level = true;
 };
+
+}
+}
+}
 
 #endif /* INCLUDE_MULTILEVELANALYZER_HH_ */

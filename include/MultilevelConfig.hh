@@ -12,6 +12,10 @@
 #ifndef INCLUDE_MULTILEVELCONFIG_HH_
 #define INCLUDE_MULTILEVELCONFIG_HH_
 
+namespace de_uni_frankfurt_itp {
+namespace reisinger {
+namespace multilevel_0819 {
+
 class MultilevelConfig {
 public:
 
@@ -55,5 +59,9 @@ private:
 
 	std::chrono::steady_clock::duration time_spent_generating;
 };
+
+}
+}
+}
 
 #endif /* INCLUDE_MULTILEVELCONFIG_HH_ */

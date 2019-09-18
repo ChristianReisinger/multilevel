@@ -13,6 +13,10 @@
 #include <twolink_operators.hh>
 #include <iostream>
 
+namespace de_uni_frankfurt_itp {
+namespace reisinger {
+namespace multilevel_0819 {
+
 void clover(double* result, const double* sub_gauge_field, int T, int L,
 		const std::array<int, 4>& n, int mu, int nu, bool bar) {
 
@@ -251,4 +255,8 @@ void IU_x_IU(double* result, const double* sub_gauge_field, int T, int L,
 
 	t += 2;
 	so_eq_cm_x_cm(result, T0.path, TR.path);
+}
+
+}
+}
 }
