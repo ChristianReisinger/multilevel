@@ -115,7 +115,7 @@ void handle_GNU_options(int argc, char**& argv, bool& generate, bool& write, dou
 			break;
 			case 'u':
 				generate = true;
-				level_updates = parse_unsigned_int_list(optarg);
+				level_updates = tools::helper::parse_unsigned_int_list(optarg);
 			break;
 			case 'w':
 				generate = true;
@@ -186,7 +186,7 @@ void parse_operators(
 		operators.push_back(operator_def);
 		if (top) {
 			operator_filename_lineprefix.push_back( { operator_name, operator_it->str(2) });
-			T_Toffset.push_back( { io_tools::parse_int(operator_it->str(3)), 0 });
+			T_Toffset.push_back( { tools::io_tools::parse_int(operator_it->str(3)), 0 });
 		}
 	}
 }
@@ -233,7 +233,7 @@ void parse_compositions(
 			thickness = T;
 			top = true;
 		} else
-			thickness = io_tools::parse_int(thickness_val);
+			thickness = tools::io_tools::parse_int(thickness_val);
 		if (thickness < 1 || (!lowest &&
 				(thickness <= level_thickness.at(0) || thickness % level_thickness.at(0) != 0)
 				))
@@ -260,6 +260,9 @@ void parse_compositions(
 int main(int argc, char** argv) {
 	using namespace std;
 	using de_uni_frankfurt_itp::reisinger::latticetools_0719::LinkPath;
+	using de_uni_frankfurt_itp::reisinger::tools::helper::parse_unsigned_int_list;
+	using de_uni_frankfurt_itp::reisinger::tools::io_tools::file_exists;
+	using de_uni_frankfurt_itp::reisinger::tools::helper::make_unique;
 	using namespace de_uni_frankfurt_itp::reisinger::multilevel_0819;
 
 	auto start_time = chrono::steady_clock::now();
@@ -345,7 +348,7 @@ int main(int argc, char** argv) {
 	for (const auto& e : operator_filename_lineprefix) {
 		const string filename = e.first;
 		if (!outfiles.count(filename)) {
-			if (io_tools::file_exists(filename)) {
+			if (file_exists(filename)) {
 				cerr << "Error: output file '" << filename << "' already exists\n";
 				return 0;
 			}
