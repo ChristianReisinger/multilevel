@@ -11,6 +11,10 @@
 #ifndef INCLUDE_SUBLATTICE_FIELDS_HH_
 #define INCLUDE_SUBLATTICE_FIELDS_HH_
 
+namespace de_uni_frankfurt_itp {
+namespace reisinger {
+namespace multilevel_0819 {
+
 inline void T_field_alloc_zero(double*& T_field, int n, int timeslice_num, int L) {
 	T_field = new double[n * SO_elems * L * L * L * timeslice_num]();
 }
@@ -26,6 +30,10 @@ inline unsigned long int T_field_index(int t, int x, int y, int z, int n, int i,
 inline void T_field_di_eq_re(double* T_field, double re, int n, int T, int L, int timeslice_thickness) {
 	for (int i = 0; i < n * SO_elems * L * L * L * T / timeslice_thickness; ++i)
 		T_field[i] /= re;
+}
+
+}
+}
 }
 
 #endif /* INCLUDE_SUBLATTICE_FIELDS_HH_ */
