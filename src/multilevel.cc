@@ -37,7 +37,7 @@ bool show_mem = false;
 
 void print_help(char* argv0) {
 	std::cout << "Usage: " << argv0
-			<< " [-m] [-b <beta> -s <seed> -u <level_updates> [-w]] <T> <L> <WL_R> <level_config_num> <composition_file> <config_prefix> <config_id>\n"
+			<< " [-m] [-e <ext>] [-b <beta> -s <seed> -u <level_updates> [-w]] <T> <L> <WL_R> <level_config_num> <composition_file> <config_prefix> <config_id>\n"
 					"\n"
 					"Parameters\n"
 					"\n"
