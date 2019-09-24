@@ -76,9 +76,9 @@ void MultilevelConfig::update(int level) {
 		std::cerr << "Generating config '" << config_filename() << "' ... ";
 		auto start_time = std::chrono::steady_clock::now();
 
-		std::vector<int> boundary_ts;
+		std::set<int> boundary_ts;
 		for (int t = 0; t < T; t += level_thickness[level])
-			boundary_ts.push_back(t);
+			boundary_ts.insert(t);
 		for (int i_swp = 0; i_swp < level_updates[level]; ++i_swp)
 			do_sweep(config_buf, T, L, beta, boundary_ts);
 
