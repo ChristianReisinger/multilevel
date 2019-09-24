@@ -116,15 +116,15 @@ void MultilevelAnalyzer::compute_sublattice_fields(std::map<int, double**> T_fie
 					}
 				}
 			}
-			time_spent_computing_operators += std::chrono::steady_clock::now() - start_time;
 
 			if (!is_lowest)
 				for (int i = 0; i < lower_level_field_num; ++i)
 					T_field_free(lower_level_fields.at(WL_R)[i]);
-
 		}
-		if(!is_lowest)
-			for(auto& e : lower_level_fields)
+		time_spent_computing_operators += std::chrono::steady_clock::now() - start_time;
+
+		if (!is_lowest)
+			for (auto& e : lower_level_fields)
 				delete[] e.second;
 	}
 	for (const auto WL_R : WL_Rs)
