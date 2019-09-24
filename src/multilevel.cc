@@ -198,7 +198,9 @@ void parse_operators(
 		labels[operator_name] = operator_index;
 		operators.push_back(operator_def);
 		if (top) {
-			operator_filename_lineprefix.push_back( { operator_name + "." + outfile_extension, operator_it->str(2) });
+			operator_filename_lineprefix.push_back( {
+					operator_name + (outfile_extension.empty() ? "" : ".") + outfile_extension,
+					operator_it->str(2) });
 			T_Toffset.push_back( { tools::io_tools::parse_int(operator_it->str(3)), 0 });
 		}
 	}
