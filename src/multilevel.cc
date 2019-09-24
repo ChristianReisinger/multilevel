@@ -37,15 +37,15 @@ bool show_mem = false;
 
 void print_help(char* argv0) {
 	std::cout << "Usage: " << argv0
-			<< " [-m] [-e <ext>] [-b <beta> -s <seed> -u <level_updates> [-w]] <T> <L> <WL_R> <level_config_num> <composition_file> <config_prefix> <config_id>\n"
+			<< " [-m] [-e <ext>] [-b <beta> -s <seed> -u <level_updates> [-w]] <T> <L> <WL_Rs> <level_config_num> <composition_file> <config_prefix> <config_id>\n"
 					"\n"
 					"Parameters\n"
 					"\n"
 					"\t<T> <L>\n"
 					"\t\tlattice dimensions\n"
 					"\n"
-					"\t<WL_R>\n"
-					"\t\tspatial Wilson loop size\n"
+					"\t<WL_Rs>\n"
+					"\t\tspatial Wilson loop sizes\n"
 					"\n"
 					"\t<level_config_num>\n"
 					"\t\tComma separated list of the number of configs at each level\n"
@@ -141,7 +141,7 @@ void handle_GNU_options(int argc, char**& argv,
 double memory_used(
 		const std::vector<std::vector<std::vector<int> > >& field_compositions,
 		const std::vector<int>& level_thickness,
-		int T, int L) {
+		int T, int L, int num_R) {
 	const int levels = level_thickness.size();
 	const double volume = T * L * L * L;
 	const double bytes_per_field = volume * 3 * SO_elems * sizeof(double);
@@ -149,7 +149,7 @@ double memory_used(
 	for (int level = 0; level < levels; ++level)
 		operators_per_site += (double) field_compositions[level].size() / (double) level_thickness[level == 0 ? 1 : level];
 	const double gauge_field_bytes = volume * 4 * SUN_elems * sizeof(double);
-	return operators_per_site * bytes_per_field + 2 * gauge_field_bytes;
+	return num_R * operators_per_site * bytes_per_field + 2 * gauge_field_bytes;
 }
 
 void parse_operator_factors(std::vector<int>& operator_def,
@@ -287,9 +287,10 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
-	int T, L, WL_R, config_lv0_id, seed = 0;
+	int T, L, config_lv0_id, seed = 0;
 	double beta = 0.0;
 	bool generate = false, write = false;
+	set<int> WL_Rs;
 
 	vector<int> level_config_num, level_updates, level_thickness;
 	vector<vector<vector<int> > > field_compositions;
@@ -315,8 +316,10 @@ int main(int argc, char** argv) {
 	}
 
 	stringstream arg_ss;
-	arg_ss << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[7];
-	arg_ss >> T >> L >> WL_R >> config_lv0_id;
+	arg_ss << argv[1] << " " << argv[2] << " " << argv[7];
+	arg_ss >> T >> L >> config_lv0_id;
+	vector<int> WL_R_list = parse_unsigned_int_list(argv[3]);
+	WL_Rs = set<int>(WL_R_list.begin(), WL_R_list.end());
 
 	stringstream config_id_ss;
 	if (arg_ss.fail()) {
@@ -358,7 +361,7 @@ int main(int argc, char** argv) {
 	}
 
 	if (show_mem) {
-		cout << "This computation uses " << memory_used(field_compositions, level_thickness, T, L) / 1000000.0
+		cout << "This computation uses " << memory_used(field_compositions, level_thickness, T, L, WL_Rs.size()) / 1000000.0
 				<< " MB memory.\n";
 		return 0;
 	}
@@ -391,50 +394,59 @@ int main(int argc, char** argv) {
 	};
 
 	MultilevelConfig multilevel_config(argv[6], config_lv0_id, T, L, level_thickness, level_config_num, beta, seed, level_updates, write);
-	MultilevelAnalyzer multilevel(multilevel_config, WL_R, field_compositions, lowest_level_functions);
+	MultilevelAnalyzer multilevel(multilevel_config, WL_Rs, field_compositions, lowest_level_functions);
 
 	const int timeslice_num = level_thickness[0] / level_thickness[1];
 	const int top_level_field_num = field_compositions[0].size();
-	double* T_fields[top_level_field_num];
-	for (int i = 0; i < top_level_field_num; ++i)
-		T_field_alloc_zero(T_fields[i], 3, timeslice_num, L);
+	map<int, double**> T_fields;
+	for (const auto WL_R : WL_Rs) {
+		T_fields[WL_R] = new double*[top_level_field_num];
+		for (int i = 0; i < top_level_field_num; ++i)
+			T_field_alloc_zero(T_fields.at(WL_R)[i], 3, timeslice_num, L);
+	}
 
 	multilevel.compute_sublattice_fields(T_fields);
 	multilevel_config.update(0);
 	double* gauge_field;
 	multilevel_config.get(gauge_field);
 
-	for (int T_field_i = 0; T_field_i < top_level_field_num; ++T_field_i) {
-		complex WL_avg;
-		co_eq_zero(&WL_avg);
-		for (int t = 0; t < T; t += level_thickness[1]) {
-			for (int x = 0; x < L; ++x) {
-				for (int y = 0; y < L; ++y) {
-					for (int z = 0; z < L; ++z) {
-						for (int i = 1; i < 4; ++i) {
-							LinkPath S0(gauge_field, T, L, { t + T_Toffset[T_field_i].second, x, y, z });
-							LinkPath ST(gauge_field, T, L, { t + T_Toffset[T_field_i].first + T_Toffset[T_field_i].second, x, y, z });
-							for (int r = 0; r < WL_R; ++r) {
-								S0(i, true);
-								ST(i, true);
+	for (const auto WL_R : WL_Rs) {
+		for (int T_field_i = 0; T_field_i < top_level_field_num; ++T_field_i) {
+			complex WL_avg;
+			co_eq_zero(&WL_avg);
+			for (int t = 0; t < T; t += level_thickness[1]) {
+				for (int x = 0; x < L; ++x) {
+					for (int y = 0; y < L; ++y) {
+						for (int z = 0; z < L; ++z) {
+							for (int i = 1; i < 4; ++i) {
+								LinkPath S0(gauge_field, T, L, { t + T_Toffset[T_field_i].second, x, y, z });
+								LinkPath ST(gauge_field, T, L, { t + T_Toffset[T_field_i].first + T_Toffset[T_field_i].second, x, y, z });
+								for (int r = 0; r < WL_R; ++r) {
+									S0(i, true);
+									ST(i, true);
+								}
+								complex curr_WL;
+								close_Wilson_loop(&curr_WL,
+										T_fields.at(WL_R)[T_field_i] + T_field_index(t, x, y, z, 3, i - 1, T, L, level_thickness[1]),
+										S0.path, ST.path);
+								co_pl_eq_co(&WL_avg, &curr_WL);
 							}
-							complex curr_WL;
-							close_Wilson_loop(&curr_WL, T_fields[T_field_i] + T_field_index(t, x, y, z, 3, i - 1, T, L, level_thickness[1]),
-									S0.path, ST.path);
-							co_pl_eq_co(&WL_avg, &curr_WL);
 						}
 					}
 				}
 			}
+			co_di_eq_re(&WL_avg, 3.0 * L * L * L * timeslice_num);
+			const string filename = operator_filename_lineprefix.at(T_field_i).first;
+			const string lineprefix = operator_filename_lineprefix.at(T_field_i).second;
+			*outfiles.at(filename) << lineprefix << " " << WL_R << " " << showpos << WL_avg.re << " " << WL_avg.im << noshowpos << "\n";
 		}
-		co_di_eq_re(&WL_avg, 3.0 * L * L * L * timeslice_num);
-		const string filename = operator_filename_lineprefix.at(T_field_i).first;
-		const string lineprefix = operator_filename_lineprefix.at(T_field_i).second;
-		*outfiles.at(filename) << lineprefix << " " << showpos << WL_avg.re << " " << WL_avg.im << noshowpos << "\n";
+
+		for (int i = 0; i < top_level_field_num; ++i)
+			delete[] T_fields.at(WL_R)[i];
 	}
 
-	for (int i = 0; i < top_level_field_num; ++i)
-		delete[] T_fields[i];
+	for(auto& e : T_fields)
+		delete[] e.second;
 
 	cout << "\nComputation time\n"
 			"\tfull program : " << chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start_time).count() << " s\n"
