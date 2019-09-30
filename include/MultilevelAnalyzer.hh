@@ -6,6 +6,8 @@
  */
 
 #include <vector>
+#include <set>
+#include <map>
 #include <string>
 #include <chrono>
 
@@ -29,18 +31,18 @@ public:
 	 *							At the lowest level (= field_compositions.size() - 1), j instead is an index of a
 	 *							function in lowest_level_functions.
 	 */
-	MultilevelAnalyzer(MultilevelConfig& multilevel_config, int WL_R,
+	MultilevelAnalyzer(MultilevelConfig& multilevel_config, std::set<int> WL_Rs,
 			std::vector<std::vector<std::vector<int> > > field_compositions,
 			std::vector<void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions
 			);
 
-	void compute_sublattice_fields(double** T_fields, const int level = 0);
+	void compute_sublattice_fields(std::map<int, double**> T_fields, const int level = 0);
 	int milliseconds_spent_computing();
 
 private:
 
 	MultilevelConfig* config;
-	const int WL_R;
+	const std::set<int> WL_Rs;
 	const std::vector<std::vector<std::vector<int> > > field_compositions;
 	const std::vector<void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions;
 
