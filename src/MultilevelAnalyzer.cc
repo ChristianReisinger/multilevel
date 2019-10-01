@@ -34,7 +34,8 @@ MultilevelAnalyzer::MultilevelAnalyzer(MultilevelConfig& multilevel_config, std:
 		std::map<std::string, void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions) :
 		config(&multilevel_config), WL_Rs(WL_Rs),
 				level_operator_factors(level_operator_factors), level_operator_timeslice_defined(level_operator_timeslice_defined),
-				lowest_level_functions(lowest_level_functions) {
+				lowest_level_functions(lowest_level_functions),
+				time_spent_computing_operators(0) {
 }
 
 std::map<std::string, std::map<int, T_field> > MultilevelAnalyzer::compute_T_fields() {
