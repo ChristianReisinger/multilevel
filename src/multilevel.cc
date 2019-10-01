@@ -287,7 +287,7 @@ int main(int argc, char** argv) {
 
 	auto start_time = chrono::steady_clock::now();
 
-	if (argc < 7) {
+	if (argc < 8) {
 		print_help(argv[0]);
 		return 0;
 	}
