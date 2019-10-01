@@ -22,33 +22,27 @@ namespace multilevel_0819 {
 
 class MultilevelAnalyzer {
 public:
-	/**
-	 * @param field_compositions a vector V at index L in field_compositions describes compositions
-	 *							of the fields F_i(L) at level L from those at level L+1.
-	 *							A vector W at index i in V contains indices j of the fields at level L+1.
-	 *							The field F_i(L) is obtained by multiplying fields F_j(L+1) for all j in the order
-	 *							they appear in W.
-	 *							At the lowest level (= field_compositions.size() - 1), j instead is an index of a
-	 *							function in lowest_level_functions.
-	 */
 	MultilevelAnalyzer(MultilevelConfig& multilevel_config, std::set<int> WL_Rs,
-			std::vector<std::vector<std::vector<int> > > field_compositions,
-			std::vector<void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions
+			std::vector<std::map<std::string, std::vector<std::string> > > level_operator_factors,
+			std::vector<std::map<std::string, std::vector<bool> > > level_operator_timeslice_defined,
+			std::map<std::string, void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions
 			);
 
-	void compute_sublattice_fields(std::map<int, double**> T_fields, const int level = 0);
+	std::map<std::string, std::map<int, T_field> > compute_T_fields();
 	int milliseconds_spent_computing();
 
 private:
 
+	void alloc_T_fields(std::map<std::string, std::map<int, T_field> >& T_fields, const int level);
+	void compute_sublattice_fields(std::map<std::string, std::map<int, T_field> >& T_fields, const int level);
+
 	MultilevelConfig* config;
 	const std::set<int> WL_Rs;
-	const std::vector<std::vector<std::vector<int> > > field_compositions;
-	const std::vector<void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions;
+	const std::vector<std::map<std::string, std::vector<std::string> > > level_operator_factors;
+	const std::vector<std::map<std::string, std::vector<bool> > > level_operator_timeslice_defined;
+	const std::map<std::string, void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions;
 
 	std::chrono::steady_clock::duration time_spent_computing_operators;
-
-	bool top_level = true;
 };
 
 }

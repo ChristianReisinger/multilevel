@@ -1,14 +1,16 @@
 #include <iostream>
+#include <sstream>
+#include <fstream>
 #include <iomanip>
 #include <string>
-#include <sstream>
 #include <vector>
-#include <array>
+#include <set>
+#include <map>
 #include <getopt.h>
-#include <fstream>
 #include <chrono>
 #include <exception>
 #include <regex>
+#include <memory>
 
 #include <fields.hh>
 #include <io.hh>
@@ -23,7 +25,7 @@
 
 #include <linear_algebra.hh>
 #include <sublattice_algebra.hh>
-#include <sublattice_fields.hh>
+#include <T_field.hh>
 #include <twolink_operators.hh>
 #include <MultilevelConfig.hh>
 #include <MultilevelAnalyzer.hh>
@@ -33,8 +35,6 @@ namespace reisinger {
 namespace multilevel_0819 {
 
 using latticetools_0719::SUN_elems;
-
-bool show_mem = false;
 
 void print_help(char* argv0) {
 	std::cout << "Usage: " << argv0
@@ -58,18 +58,27 @@ void print_help(char* argv0) {
 					"\t<composition_file>\n"
 					"\t\tFile containing operator composition definitions at each level, format:\n"
 					"\t\t\t(thickness <th>\n"
-					"\t\t\t(<label> <factor> ...\n"
+					"\t\t\t(<name>:<timeslice_def>: <factor> ...\n"
 					"\t\t\t)...\n"
 					"\t\t\t)...\n"
 					"\t\t\tthickness T\n"
-					"\t\t\t(<filename>:<line_prefix>:<T>: <factors> ...\n"
+					"\t\t\t(<file>:<timeslice_def>:<line_prefix>:<T>: <factors> ...\n"
 					"\t\t\t)...\n"
-					"\t\twhere levels with thickness <th> are defined in order from lowest to highest and the top level is\n"
-					"\t\tindicated by 'thickness T'. Operators named <label> are defined as product of <factor>'s on the same\n"
-					"\t\tline, where <factor> is on of the <label>'s from the next-lowest level. At the top level, <filename>\n"
-					"\t\tis the output file into which the final results are written, <T> is the temporal size of the Wilson\n"
-					"\t\tloop for each operator and <line_prefix> (can be empty) is written in the output at the start of the\n"
-					"\t\tline for the corresponding result. Possible <label>'s at the lowest level are\n"
+					"\t\twhere levels are defined in order from lowest to highest and the top level is indicated by <th> = 'T'\n"
+					"\t\t('thickness T').\n"
+					"\t\t<th> is a comma separated list of timeslice thicknesses. If the total thickness does not fill the\n"
+					"\t\t\tlattice, the pattern is repeated periodically. Each level must define a partition of each timeslice\n"
+					"\t\t\tdefined at the next-lowest level.\n"
+					"\t\t<timeslice_def> is a string of '.' or 'x', with length equal to the number of entries in <th>, where the\n"
+					"\t\t\tn-th character 'x' / '.' indicates that the operator is / is not defined at the n-th timeslice. At top\n"
+					"\t\tlevel (level 0), <timeslice_def> corresponds to entries in <th> at level 1 instead.\n"
+					"\t\tOperators named <name> are defined as product of <factor>'s on the same line, where <factor> is one of\n"
+					"\t\t\tthe <name>'s defined at the next-lowest level.\n"
+					"\t\tAt top level, '<file>.<ext>' (or '<file>' if <ext> is empty) is the output file into which final results\n"
+					"\t\t\tare written.\n"
+					"\t\t<T> is the temporal size of the Wilson loop for each operator.\n"
+					"\t\t<line_prefix> (can be empty) is written at the start of the line of the corresponding output file.\n"
+					"\t\tPossible <name>'s at the lowest level are\n"
 					"\t\t\tU_x_U, UU_x_UU, Ex_x_I, ex_x_I, Ey_x_I, ..., Bx_x_I, ..., I_x_Ex, ... .\n"
 					"\n"
 					"\t<config_prefix>\n"
@@ -87,7 +96,7 @@ void print_help(char* argv0) {
 					"\t\tshow required memory and exit\n"
 					"\n"
 					"\t-e <ext>\n"
-					"\t\tappend <ext> to all output file names\n"
+					"\t\tappend '.<ext>' to all output file names\n"
 					"\n"
 					"\t-b <beta> -s <seed> -u <level_updates> [-w]\n"
 					"\t\tThese options must be used together. When used, configs are generated during the multilevel algorithm\n"
@@ -98,7 +107,7 @@ void print_help(char* argv0) {
 }
 
 void handle_GNU_options(int argc, char**& argv,
-		bool& generate, bool& write, double& beta, int& seed, std::vector<int>& level_updates,
+		bool& show_mem, bool& generate, bool& write, double& beta, int& seed, std::vector<int>& level_updates,
 		std::string& extension) {
 	static struct option long_opts[] = {
 			{ "mem", no_argument, 0, 'm' },
@@ -143,133 +152,186 @@ void handle_GNU_options(int argc, char**& argv,
 	argv = argv + optind - 1;
 }
 
-double memory_used(
-		const std::vector<std::vector<std::vector<int> > >& field_compositions,
-		const std::vector<int>& level_thickness,
+double memory_used(const std::vector<std::map<std::string, std::vector<bool> > >& level_operator_timeslice_defined,
 		int T, int L, int num_R) {
-	const int levels = level_thickness.size();
-	const double volume = T * L * L * L;
-	const double bytes_per_field = volume * 3 * SO_elems * sizeof(double);
-	double operators_per_site = 0.0;
-	for (int level = 0; level < levels; ++level)
-		operators_per_site += (double) field_compositions[level].size() / (double) level_thickness[level == 0 ? 1 : level];
-	const double gauge_field_bytes = volume * 4 * SUN_elems * sizeof(double);
-	return num_R * operators_per_site * bytes_per_field + 3 * gauge_field_bytes;
+	const double gauge_field_bytes = T * L * L * L * 4 * SUN_elems * sizeof(double);
+	const double bytes_per_timeslice = L * L * L * 3 * SO_elems * sizeof(double);
+
+	double timeslice_num = 0.0;
+	for (const auto& level : level_operator_timeslice_defined)
+		for (const auto& operator_tsl : level)
+			for (bool is_defined : operator_tsl.second)
+				if (is_defined)
+					timeslice_num += 1.0;
+
+	return num_R * timeslice_num * bytes_per_timeslice + 3 * gauge_field_bytes;
 }
 
-void parse_operator_factors(std::vector<int>& operator_def,
-		const std::map<std::string, int>& operator_labels,
-		const std::string& factor_str) {
+void parse_operator_factors(std::vector<std::string>& operator_def,
+		const std::set<std::string>& prev_level_operator_names, const std::string& factor_str) {
 
 	std::regex factor_format("(\\S+)");
 	for (std::sregex_iterator factor_it(factor_str.begin(), factor_str.end(), factor_format);
 			factor_it != std::sregex_iterator(); ++factor_it) {
 
-		const std::string factor_label = factor_it->str(1);
-		if (operator_labels.count(factor_label))
-			operator_def.push_back(operator_labels.at(factor_label));
-		else {
-			std::ostringstream err_iss;
-			err_iss << "invalid operator name '" << factor_label << "'";
-			throw std::runtime_error(err_iss.str());
-		}
+		const std::string factor_name = factor_it->str(1);
+		if (prev_level_operator_names.count(factor_name))
+			operator_def.push_back(factor_name);
+		else
+			throw std::runtime_error("invalid operator name '" + factor_name + "'");
+	}
+}
+
+void parse_timeslice_defined(std::vector<bool>& timeslice_defined, const std::string& timeslice_def_str) {
+	std::istringstream is_def_iss(timeslice_def_str);
+	char is_def_char;
+	while (is_def_iss >> is_def_char) {
+		if (is_def_char == '.')
+			timeslice_defined.push_back(false);
+		else if (is_def_char == 'x')
+			timeslice_defined.push_back(true);
 	}
 }
 
 void parse_operators(
-		std::vector<std::vector<int> >& operators,
-		std::map<std::string, int>& labels,
-		std::vector<std::pair<int, int> >& T_Toffset,
-		std::vector<std::pair<std::string, std::string> >& operator_filename_lineprefix,
+		std::map<std::string, std::vector<std::string> >& operator_factors,
+		std::map<std::string, std::vector<bool> >& operator_timeslice_defined,
+		std::map<std::string, std::pair<int, int> >& operator_T_Toffset,
+		std::map<std::string, std::pair<std::string, std::string> >& operator_filename_lineprefix,
 		const std::string& outfile_extension,
-		const std::map<std::string, int>& prev_level_labels,
 		const bool top,
+		const std::set<std::string>& prev_level_operator_names,
 		const std::string& operators_str) {
 
-	std::ostringstream operator_format_oss;
-	operator_format_oss << "(\\S+?)"
-			<< (top ? ":(.*):(\\d+):" : "")
-			<< "((?:(?: |\t)+\\S+)+)\n";
-	std::regex operator_format(operator_format_oss.str());
+	std::regex operator_format(std::string("(\\S+?):([.x]+):")
+			+ (top ? "(.*):(\\d+):" : "")
+			+ "((?:(?: |\t)+\\S+)+)\n");
 	for (std::sregex_iterator operator_it(operators_str.begin(), operators_str.end(), operator_format);
 			operator_it != std::sregex_iterator(); ++operator_it) {
 
-		std::vector<int> operator_def;
-		const std::string factors = operator_it->str(top ? 4 : 2);
-		parse_operator_factors(operator_def, prev_level_labels, factors);
+		std::vector<std::string> operator_def;
+		const std::string factors = operator_it->str(top ? 5 : 3);
+		parse_operator_factors(operator_def, prev_level_operator_names, factors);
+
+		std::vector<bool> timeslice_defined;
+		const std::string timeslice_def_str = operator_it->str(2);
+		parse_timeslice_defined(timeslice_defined, timeslice_def_str);
 
 		const std::string operator_name = operator_it->str(1);
-		const int operator_index = operators.size();
-		labels[operator_name] = operator_index;
-		operators.push_back(operator_def);
+		if (operator_factors.count(operator_name))
+			throw std::runtime_error("duplicate definition of '" + operator_name + "'");
+
+		operator_factors[operator_name] = operator_def;
+		operator_timeslice_defined[operator_name] = timeslice_defined;
 		if (top) {
-			operator_filename_lineprefix.push_back( {
-					operator_name + (outfile_extension.empty() ? "" : ".") + outfile_extension,
-					operator_it->str(2) });
-			T_Toffset.push_back( { tools::io_tools::parse_int(operator_it->str(3)), 0 });
+			operator_filename_lineprefix[operator_name] = {
+				operator_name + (outfile_extension.empty() ? "": ".") + outfile_extension,
+				operator_it->str(3)};
+			operator_T_Toffset[operator_name] = {tools::io_tools::parse_int(operator_it->str(4)), 0};
 		}
 	}
 }
 
-void parse_compositions(
-		std::vector<int>& level_thickness,
-		std::vector<std::vector<std::vector<int> > >& field_compositions,
-		std::vector<std::pair<int, int> >& T_Toffset,
-		std::vector<std::pair<std::string, std::string> >& operator_filename_lineprefix,
-		const std::string& outfile_extension, const std::string& compstr, int T) {
-	std::map<std::string, int> lowest_level_labels;
-	int label_i = 0;
-	for (std::string label : { "U_x_U", "UU_x_UU",
-			"Ex_x_I", "ex_x_I", "Ey_x_I", "ey_x_I", "Ez_x_I", "ez_x_I",
-			"Bx_x_I", "bx_x_I", "By_x_I", "by_x_I", "Bz_x_I", "bz_x_I",
-			"I_x_Ex", "I_x_ex", "I_x_Ey", "I_x_ey", "I_x_Ez", "I_x_ez",
-			"I_x_Bx", "I_x_bx", "I_x_By", "I_x_by", "I_x_Bz", "I_x_bz" }) {
-		lowest_level_labels[label] = label_i;
-		++label_i;
+bool verify_thickness(const std::vector<int>& timeslice_thickness, const std::vector<int>& prev_level_thickness, bool top) {
+	for (int th : timeslice_thickness)
+		if (th < 1)
+			return false;
+
+	if (!prev_level_thickness.empty()) {
+		auto curr_level_it = timeslice_thickness.begin();
+		auto prev_level_it = prev_level_thickness.begin();
+		int prev_lev_total = 0;
+		while (prev_level_it != prev_level_thickness.end()) {
+			prev_lev_total += *(prev_level_it++);
+			if (prev_lev_total == *curr_level_it) {
+				prev_lev_total = 0;
+				++curr_level_it;
+			} else if (prev_lev_total > *curr_level_it)
+				return false;
+		}
+		if (top)
+			return (*curr_level_it % prev_lev_total == 0);
+		else
+			return (curr_level_it == timeslice_thickness.end());
 	}
 
+	return true;
+}
+
+void parse_compositions(
+		std::vector<std::vector<int> >& level_thickness,
+		std::vector<std::map<std::string, std::vector<std::string> > >& level_operator_factors,
+		std::vector<std::map<std::string, std::vector<bool> > >& level_operator_timeslice_defined,
+		std::map<std::string, std::pair<int, int> >& operator_T_Toffset,
+		std::map<std::string, std::pair<std::string, std::string> >& operator_filename_lineprefix,
+		std::set<std::string> prev_level_operator_names,
+		const std::string& outfile_extension, int T, const std::string& compstr) {
+
+	level_thickness.clear();
+	level_operator_factors.clear();
+	level_operator_timeslice_defined.clear();
+	operator_T_Toffset.clear();
+	operator_filename_lineprefix.clear();
+
 	std::regex format(""
-			"(thickness \\d+\n+"
-			"((?!thickness)\\S+(( |\t)+\\S+)+\n+)+)+"
+			"(thickness \\d+(,\\d+)*\n+"
+			"((?!thickness)\\S+?:[.x]+:(( |\t)+\\S+)+\n+)+)+"
 			"thickness T\n+"
-			"((?!thickness)\\S+?:.*:\\d+:(( |\t)+\\S+)+\n+)+", std::regex::nosubs);
+			"((?!thickness)\\S+?:[.x]+:.*:\\d+:(( |\t)+\\S+)+\n+)+", std::regex::nosubs);
 	if (!std::regex_match(compstr, format))
 		throw std::runtime_error("invalid composition format");
 
 	std::regex level_format(""
-			"thickness (\\d+|T)\n+"
-			"((?:(?!thickness)\\S+?(?::.*:\\d+:)?(?:(?: |\t)+\\S+)+\n+)+)");
-	bool lowest = true;
-	std::map<std::string, int> prev_level_labels;
+			"thickness (\\d+(?:,\\d+)*|T)\n+"
+			"((?:(?!thickness)\\S+?:[.x]+(?::.*:\\d+)?:(?:(?: |\t)+\\S+)+\n+)+)");
 	for (std::sregex_iterator level_it(compstr.begin(), compstr.end(), level_format);
 			level_it != std::sregex_iterator(); ++level_it) {
 
-		const std::map<std::string, int>& operator_labels = (lowest ? lowest_level_labels : prev_level_labels);
-
 		bool top = false;
-		int thickness = -1;
+		std::vector<int> timeslice_thickness;
 		const std::string thickness_val = level_it->str(1);
 		if (thickness_val == "T") {
-			thickness = T;
+			timeslice_thickness.push_back(T);
 			top = true;
 		} else
-			thickness = tools::io_tools::parse_int(thickness_val);
-		if (thickness < 1 || (!lowest &&
-				(thickness <= level_thickness.at(0) || thickness % level_thickness.at(0) != 0)
-				))
-			throw std::runtime_error("invalid level thickness");
-		level_thickness.insert(level_thickness.begin(), thickness);
+			timeslice_thickness = tools::helper::parse_unsigned_int_list(thickness_val.c_str());
 
-		std::vector<std::vector<int> > curr_level_operators;
-		std::map<std::string, int> curr_level_labels;
+		if (!verify_thickness(timeslice_thickness,
+				level_thickness.empty() ? std::vector<int>() : level_thickness.at(0), top))
+			throw std::runtime_error("invalid timeslice partition");
 
-		parse_operators(curr_level_operators, curr_level_labels, T_Toffset, operator_filename_lineprefix,
-				outfile_extension, operator_labels, top, level_it->str(2));
+		level_thickness.insert(level_thickness.begin(), timeslice_thickness);
 
-		prev_level_labels = curr_level_labels;
-		field_compositions.insert(field_compositions.begin(), curr_level_operators);
+		std::map<std::string, std::vector<std::string> > curr_operator_factors;
+		std::map<std::string, std::vector<bool> > curr_operator_timeslice_defined;
+		parse_operators(curr_operator_factors, curr_operator_timeslice_defined,
+				operator_T_Toffset, operator_filename_lineprefix, outfile_extension,
+				top, prev_level_operator_names, level_it->str(2));
+		level_operator_factors.insert(level_operator_factors.begin(), curr_operator_factors);
+		level_operator_timeslice_defined.insert(level_operator_timeslice_defined.begin(), curr_operator_timeslice_defined);
 
-		lowest = false;
+		prev_level_operator_names.clear();
+		for (const auto& name_factors : curr_operator_factors)
+			prev_level_operator_names.insert(name_factors.first);
+	}
+}
+
+void open_outfiles(std::map<std::string, std::unique_ptr<std::ofstream> >& outfiles,
+		const std::map<std::string, std::pair<std::string, std::string> >& operator_filename_lineprefix) {
+
+	for (const auto& e : operator_filename_lineprefix) {
+		const std::string& filename = e.second.first;
+
+		if (!outfiles.count(filename)) {
+			if (tools::io_tools::file_exists(filename))
+				throw std::runtime_error("output file '" + filename + "' already exists");
+
+			outfiles[filename] = tools::helper::make_unique<std::ofstream>(filename);
+			if (outfiles.at(filename)->fail())
+				throw std::runtime_error("could not open output file '" + filename + "'");
+
+			*outfiles.at(filename) << std::scientific << std::setprecision(11) << std::setfill(' ');
+		}
 	}
 }
 
@@ -289,34 +351,43 @@ int main(int argc, char** argv) {
 
 	if (argc < 7) {
 		print_help(argv[0]);
-		return 0;
+		return 1;
 	}
+	const vector<string> lowest_level_operator_names = {
+			"U_x_U", "UU_x_UU",
+			"Ex_x_I", "ex_x_I", "Ey_x_I", "ey_x_I", "Ez_x_I", "ez_x_I",
+			"Bx_x_I", "bx_x_I", "By_x_I", "by_x_I", "Bz_x_I", "bz_x_I",
+			"I_x_Ex", "I_x_ex", "I_x_Ey", "I_x_ey", "I_x_Ez", "I_x_ez",
+			"I_x_Bx", "I_x_bx", "I_x_By", "I_x_by", "I_x_Bz", "I_x_bz"
+	};
 
 	int T, L, config_lv0_id, seed = 0;
 	double beta = 0.0;
-	bool generate = false, write = false;
+	bool show_mem = false, generate = false, write = false;
 	set<int> WL_Rs, NAPEs;
 
-	vector<int> level_config_num, level_updates, level_thickness;
-	vector<vector<vector<int> > > field_compositions;
-	vector<pair<int, int> > T_Toffset;
-	vector<pair<string, string> > operator_filename_lineprefix;
+	vector<int> level_config_num, level_updates;
+	vector<vector<int> > level_thickness;
+	vector<map<string, vector<string> > > level_operator_factors;
+	vector<map<string, vector<bool> > > level_operator_timeslice_defined;
+	map<string, pair<int, int> > operator_T_Toffset;
 
+	map<string, pair<string, string> > operator_filename_lineprefix;
 	string outfile_extension = "";
 
-	handle_GNU_options(argc, argv, generate, write, beta, seed, level_updates, outfile_extension);
+	handle_GNU_options(argc, argv, show_mem, generate, write, beta, seed, level_updates, outfile_extension);
 	if (generate) {
 		if (beta <= 0.0) {
 			cerr << "Error: invalid <beta>\n";
-			return 0;
+			return 1;
 		}
 		if (seed <= 0) {
 			cerr << "Error: invalid <seed>\n";
-			return 0;
+			return 1;
 		}
 		if (level_updates.size() == 0) {
 			cerr << "Error: invalid <level_updates>\n";
-			return 0;
+			return 1;
 		}
 	}
 
@@ -332,139 +403,136 @@ int main(int argc, char** argv) {
 	stringstream config_id_ss;
 	if (arg_ss.fail()) {
 		cerr << "Error: failed to read one or more of <T> <L> <config_id>\n";
-		return 0;
+		return 1;
 	}
 
 	level_config_num = parse_unsigned_int_list(argv[5]);
 	if (level_config_num.size() < 2) {
 		cerr << "Error: less than 2 levels\n";
-		return 0;
+		return 1;
 	}
 
 	ifstream compositions_ifs(argv[6]);
 	ostringstream compstr_oss;
 	compstr_oss << compositions_ifs.rdbuf();
 	try {
-		parse_compositions(level_thickness, field_compositions, T_Toffset,
-				operator_filename_lineprefix, outfile_extension,
-				compstr_oss.str(), T);
+		parse_compositions(level_thickness, level_operator_factors, level_operator_timeslice_defined,
+				operator_T_Toffset, operator_filename_lineprefix,
+				set<string>(lowest_level_operator_names.begin(), lowest_level_operator_names.end()),
+				outfile_extension, T, compstr_oss.str());
 	} catch (const std::exception& e) {
-		cerr << "Error when reading composition file: '" << e.what() << "'\n";
-		return 0;
+		cerr << "Error reading composition file: " << e.what() << "\n";
+		return 1;
 	}
 
 	if (level_config_num.size() != level_thickness.size()) {
 		cerr << "Error: invalid <level_config_num>\n";
-		return 0;
+		return 1;
 	}
 
 	if (generate && level_updates.size() != level_thickness.size()) {
 		cerr << "Error: invalid <level_updates>\n";
-		return 0;
+		return 1;
 	}
 
-	if (field_compositions.size() != level_thickness.size()) {
+	if (level_operator_factors.size() != level_thickness.size()) {
 		cerr << "Error: invalid compositions\n";
-		return 0;
+		return 1;
 	}
 
 	if (show_mem) {
-		cout << "This computation uses " << memory_used(field_compositions, level_thickness, T, L, WL_Rs.size()) / 1000000.0
+		cout << "This computation uses "
+				<< memory_used(level_operator_timeslice_defined, T, L, WL_Rs.size()) / 1000000.0
 				<< " MB memory.\n";
 		return 0;
 	}
 
-	map<string, std::unique_ptr<ofstream> > outfiles;
-	for (const auto& e : operator_filename_lineprefix) {
-		const string filename = e.first;
-
-		if (!outfiles.count(filename)) {
-			if (file_exists(filename)) {
-				cerr << "Error: output file '" << filename << "' already exists\n";
-				return 0;
-			}
-			outfiles[filename] = make_unique<ofstream>(filename);
-			if (outfiles.at(filename)->fail()) {
-				cerr << "Error: could not open output file '" << filename << "'";
-				return 0;
-			}
-			*outfiles.at(filename) << scientific << setprecision(11) << setfill(' ');
-		}
-	}
-
 //	***************************************************************************************************************************************
-	const vector<void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions = {
+
+	map<string, void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions;
+	int i = 0;
+	for (auto& f : {
 			U_x_U, UU_x_UU,
 			Ex_x_I, Exbar_x_I, Ey_x_I, Eybar_x_I, Ez_x_I, Ezbar_x_I,
 			Bx_x_I, Bxbar_x_I, By_x_I, Bybar_x_I, Bz_x_I, Bzbar_x_I,
 			I_x_Ex, I_x_Exbar, I_x_Ey, I_x_Eybar, I_x_Ez, I_x_Ezbar,
-			I_x_Bx, I_x_Bxbar, I_x_By, I_x_Bybar, I_x_Bz, I_x_Bzbar
-	};
-
-	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, level_thickness, level_config_num, beta, seed, level_updates, write);
-	MultilevelAnalyzer multilevel(multilevel_config, WL_Rs, field_compositions, lowest_level_functions);
-
-	const int timeslice_num = level_thickness[0] / level_thickness[1];
-	const int top_level_field_num = field_compositions[0].size();
-	map<int, double**> T_fields;
-	for (const auto WL_R : WL_Rs) {
-		T_fields[WL_R] = new double*[top_level_field_num];
-		for (int i = 0; i < top_level_field_num; ++i)
-			T_field_alloc_zero(T_fields.at(WL_R)[i], 3, timeslice_num, L);
+			I_x_Bx, I_x_Bxbar, I_x_By, I_x_Bybar, I_x_Bz, I_x_Bzbar }) {
+		lowest_level_functions[lowest_level_operator_names.at(i)] = f;
+		++i;
 	}
 
-	multilevel.compute_sublattice_fields(T_fields);
-	multilevel_config.update(0);
+	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, level_thickness, level_config_num, beta, seed, level_updates, write);
+	MultilevelAnalyzer multilevel(multilevel_config, WL_Rs, level_operator_factors, level_operator_timeslice_defined,
+			lowest_level_functions);
+
+	map<string, map<int, T_field> > T_fields;
+	try {
+		T_fields = multilevel.compute_T_fields();
+	} catch (runtime_error& e) {
+		cout << "Error: " << e.what() << "\n";
+		return 1;
+	}
+
 	double* gauge_field, *smeared_gauge_field;
 	multilevel_config.get(gauge_field);
 	Gauge_Field_Alloc_silent(&smeared_gauge_field, T, L);
 	Gauge_Field_Copy(smeared_gauge_field, gauge_field, T, L);
+
+	//	***************************************************************************************************************************************
+
+	map<string, std::unique_ptr<ofstream> > outfiles;
+	try {
+		open_outfiles(outfiles, operator_filename_lineprefix);
+	} catch (runtime_error& e) {
+		cerr << "Error: " << e.what() << "\n";
+		return 1;
+	}
 
 	int smeared_steps = 0;
 	for (int NAPE : NAPEs) {
 		for (; smeared_steps < NAPE; ++smeared_steps)
 			APE_Smearing_Step(smeared_gauge_field, T, L, 0.5);
 
-		for (const auto WL_R : WL_Rs) {
-			for (int T_field_i = 0; T_field_i < top_level_field_num; ++T_field_i) {
+		for (const auto& name_rfields : T_fields) {
+			for (const auto& r_field : name_rfields.second) {
+				const int WL_R = r_field.first;
+				const string& fieldname = name_rfields.first;
+
 				complex WL_avg;
 				co_eq_zero(&WL_avg);
-				for (int t = 0; t < T; t += level_thickness[1]) {
+
+				int timeslice_num = 0;
+				for (int t : r_field.second.defined_ts()) {
+					++timeslice_num;
 					for (int x = 0; x < L; ++x) {
 						for (int y = 0; y < L; ++y) {
 							for (int z = 0; z < L; ++z) {
 								for (int i = 1; i < 4; ++i) {
-									LinkPath S0(smeared_gauge_field, T, L, { t + T_Toffset[T_field_i].second, x, y, z });
+									LinkPath S0(smeared_gauge_field, T, L, { t + operator_T_Toffset[fieldname].second, x, y, z });
 									LinkPath ST(smeared_gauge_field, T, L,
-											{ t + T_Toffset[T_field_i].first + T_Toffset[T_field_i].second, x, y, z });
+											{ t + operator_T_Toffset[fieldname].first + operator_T_Toffset[fieldname].second,
+													x, y, z });
 									for (int r = 0; r < WL_R; ++r) {
 										S0(i, true);
 										ST(i, true);
 									}
 									complex curr_WL;
-									close_Wilson_loop(&curr_WL,
-											T_fields.at(WL_R)[T_field_i] + T_field_index(t, x, y, z, 3, i - 1, T, L, level_thickness[1]),
-											S0.path, ST.path);
+									close_Wilson_loop(&curr_WL, r_field.second.T_at(t, x, y, z, i), S0.path, ST.path);
 									co_pl_eq_co(&WL_avg, &curr_WL);
 								}
 							}
 						}
 					}
 				}
+
 				co_di_eq_re(&WL_avg, 3.0 * L * L * L * timeslice_num);
-				const string filename = operator_filename_lineprefix.at(T_field_i).first;
-				const string lineprefix = operator_filename_lineprefix.at(T_field_i).second;
+				const string filename = operator_filename_lineprefix.at(fieldname).first;
+				const string lineprefix = operator_filename_lineprefix.at(fieldname).second;
 				*outfiles.at(filename) << NAPE << " " << WL_R << " " << lineprefix << " "
 						<< showpos << WL_avg.re << " " << WL_avg.im << noshowpos << "\n";
 			}
-
-			for (int i = 0; i < top_level_field_num; ++i)
-				delete[] T_fields.at(WL_R)[i];
 		}
 	}
-
-	for (auto& e : T_fields)
-		delete[] e.second;
 
 	Gauge_Field_Free(&smeared_gauge_field);
 
@@ -472,4 +540,6 @@ int main(int argc, char** argv) {
 			"\tfull program : " << chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start_time).count() << " s\n"
 			"\tgenerating configs : " << multilevel_config.milliseconds_spent_generating() / 1000 << " s\n"
 			"\tcomputing observables : " << multilevel.milliseconds_spent_computing() / 1000 << " s\n";
+
+	return 0;
 }

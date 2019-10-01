@@ -1,14 +1,8 @@
-/*
- * MultilevelConfig.cc
- *
- *  Created on: 28 Aug 2019
- *      Author: reisinger
- */
-
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <vector>
+#include <set>
 #include <iomanip>
 #include <cmath>
 #include <chrono>
@@ -25,7 +19,7 @@ namespace reisinger {
 namespace multilevel_0819 {
 
 MultilevelConfig::MultilevelConfig(const std::string& filename_prefix, int top_level_id, int T, int L,
-		const std::vector<int>& level_thickness, const std::vector<int>& level_config_num,
+		const std::vector<std::vector<int> >& level_thickness, const std::vector<int>& level_config_num,
 		double beta, int seed, std::vector<int> level_updates, bool save) :
 		filename_prefix(filename_prefix), curr_tag( { top_level_id }), T(T), L(L),
 				level_thickness(level_thickness), level_config_num(level_config_num),
@@ -39,7 +33,7 @@ MultilevelConfig::MultilevelConfig(const std::string& filename_prefix, int top_l
 	if (generate_configs) {
 		InitializeRand(seed);
 		std::cerr << "Updating top level config ... ";
-		for (int i_swp = 0; i_swp < level_updates[0]; ++i_swp)
+		for (int i_swp = 0; i_swp < level_updates.at(0); ++i_swp)
 			do_sweep(top_level_conf, T, L, beta);
 		std::cerr << "ok\n";
 	}
@@ -50,12 +44,12 @@ MultilevelConfig::~MultilevelConfig() {
 	Gauge_Field_Free(&top_level_conf);
 }
 
-int MultilevelConfig::thickness(int level) const {
-	return level_thickness[level];
-}
-
 int MultilevelConfig::config_num(int level) const {
 	return level_config_num[level];
+}
+
+std::vector<int> MultilevelConfig::thickness(int level) const {
+	return level_thickness.at(level);
 }
 
 void MultilevelConfig::get(double*& gauge_field) const {
@@ -63,9 +57,7 @@ void MultilevelConfig::get(double*& gauge_field) const {
 }
 
 std::string MultilevelConfig::config_filename() const {
-	std::ostringstream filename_oss;
-	filename_oss << filename_prefix << tag_to_string();
-	return filename_oss.str();
+	return filename_prefix + tag_to_string();
 }
 
 void MultilevelConfig::update(int level) {
@@ -77,9 +69,14 @@ void MultilevelConfig::update(int level) {
 		auto start_time = std::chrono::steady_clock::now();
 
 		std::set<int> boundary_ts;
-		for (int t = 0; t < T; t += level_thickness[level])
-			boundary_ts.insert(t);
-		for (int i_swp = 0; i_swp < level_updates[level]; ++i_swp)
+		int boundary_t = 0;
+		while (boundary_t < T) {
+			for (int timeslice_thickness : level_thickness.at(level)) {
+				boundary_ts.insert(boundary_t);
+				boundary_t += timeslice_thickness;
+			}
+		}
+		for (int i_swp = 0; i_swp < level_updates.at(level); ++i_swp)
 			do_sweep(config_buf, T, L, beta, boundary_ts);
 
 		time_spent_generating += std::chrono::steady_clock::now() - start_time;
@@ -102,14 +99,14 @@ int MultilevelConfig::milliseconds_spent_generating() const {
 
 void MultilevelConfig::next_tag(int level) {
 	if (level == 0)
-		curr_tag = std::vector<int> { curr_tag[0] };
+		curr_tag = std::vector<int> { curr_tag.at(0) };
 	else if (level == curr_tag.size() - 1)
-		++curr_tag[level];
+		++curr_tag.at(level);
 	else if (level == curr_tag.size())
 		curr_tag.push_back(1);
 	else if (level < curr_tag.size() - 1) {
 		curr_tag.erase(curr_tag.begin() + level + 1, curr_tag.end());
-		++curr_tag[level];
+		++curr_tag.at(level);
 	}
 }
 
@@ -121,11 +118,10 @@ std::string MultilevelConfig::tag_to_string() const {
 }
 
 void MultilevelConfig::write_config() const {
-	std::ostringstream config_filename_oss;
-	config_filename_oss << filename_prefix << ".multilevel" << tag_to_string();
+	std::string config_filename = filename_prefix + ".multilevel" + tag_to_string();
 	std::ostringstream header_oss;
 	header_oss << "generated during multilevel : " << beta << " " << T << " " << L;
-	write_gauge_field(config_buf, config_filename_oss.str().c_str(), T, L, header_oss.str().c_str());
+	write_gauge_field(config_buf, config_filename.c_str(), T, L, header_oss.str().c_str());
 }
 
 }
