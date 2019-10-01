@@ -35,7 +35,8 @@ namespace multilevel_0819 {
 MultilevelAnalyzer::MultilevelAnalyzer(MultilevelConfig& multilevel_config, std::set<int> WL_Rs,
 		std::vector<std::vector<std::vector<int> > > field_compositions,
 		std::vector<void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions) :
-		config(&multilevel_config), WL_Rs(WL_Rs), field_compositions(field_compositions), lowest_level_functions(lowest_level_functions) {
+		config(&multilevel_config), WL_Rs(WL_Rs), field_compositions(field_compositions), lowest_level_functions(lowest_level_functions),
+		time_spent_computing_operators(0) {
 }
 
 void MultilevelAnalyzer::compute_sublattice_fields(std::map<int, double**> T_fields, const int level) {
