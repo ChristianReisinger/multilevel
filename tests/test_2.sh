@@ -10,12 +10,12 @@ R=4
 Nc=2	#number of configs at level 1
 Ncc=2	#number of configs at level 2
 
-../bin/multilevel -e test -b 2.96 -s 46421 -u 5,5,5 -w 20 20 $R 0 1,${Nc},${Ncc} comps_2.dat su2_T20L20_b2.96 1
-
 if [ $# -ne 5 ]; then
 	echo "Usage: $0 <t> <x> <y> <z> <dir>"
 	exit
 fi
+
+../bin/multilevel -e test -b 2.96 -s 46421 -u 5,5,5 -w 20 20 $R 0 1,${Nc},${Ncc} comps_2.dat su2_T20L20_b2.96 1
 
 t0=$1
 x0=$2
@@ -169,5 +169,4 @@ T WL S0 ST
 exit
 '
 
-"$ilp_program" su2_T20L20_b2.96.multilevel.1 20 20 0 <<< "$scr"
-rm "su2_T20L20_b2.96.multilevel.1.*"
+. ./test_fin.sh
