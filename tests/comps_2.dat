@@ -1,0 +1,10 @@
+thickness 2,2,3,3
+T2:xx..:	UU_x_UU
+T3:..xx:	UU_x_UU U_x_U
+
+thickness 4,6
+T4:x.:		T2 T2
+T6:.x:		T3 T3
+
+thickness T
+WL:x.:10:10:	T4 T6
