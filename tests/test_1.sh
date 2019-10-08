@@ -1,10 +1,10 @@
 #!/bin/bash
 
+#test correct computation on irregular timeslice pattern - 2 levels
+
 #compare to multilevel Wilson loop output at <t>,<x>,<y>,<z> (in direction <dir>)
 #--> in Wilson loop computing for ( ... ), do
 #	if (vector<int>{t,x,y,z,i} == vector<int>{...}) { cout << ... curr_WL ... }
-
-ilp_program="interactive_link_products"
 
 R=4
 Nc=2 #number of configs at level 1
