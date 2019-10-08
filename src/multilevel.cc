@@ -218,15 +218,22 @@ void parse_operators(
 		const std::string timeslice_def_str = operator_it->str(2);
 		parse_timeslice_defined(timeslice_defined, timeslice_def_str);
 
-		const std::string operator_name = operator_it->str(1);
-		if (operator_factors.count(operator_name))
+		std::string operator_name = operator_it->str(1);
+		std::string filestem = operator_name;
+		if (top) {
+			auto variant_num = std::count_if(operator_factors.begin(), operator_factors.end(),
+					[&](const operator_factors_type::value_type& val) {
+						return val.first.substr(0, operator_name.length() + 1) == operator_name + " ";
+					});
+			operator_name += " " + std::to_string(variant_num);
+		} else if (operator_factors.count(operator_name))
 			throw std::runtime_error("duplicate definition of '" + operator_name + "'");
 
 		operator_factors[operator_name] = operator_def;
 		operator_timeslice_defined[operator_name] = timeslice_defined;
 		if (top) {
 			operator_filename_lineprefix[operator_name] = {
-				operator_name + (outfile_extension.empty() ? "": ".") + outfile_extension,
+				filestem + (outfile_extension.empty() ? "": ".") + outfile_extension,
 				operator_it->str(3)};
 			operator_T_Toffset[operator_name] = {tools::io_tools::parse_int(operator_it->str(4)), 0};
 		}
@@ -481,13 +488,7 @@ int main(int argc, char** argv) {
 
 	//	***************************************************************************************************************************************
 
-	map<string, std::unique_ptr<ofstream> > outfiles;
-	try {
-		open_outfiles(outfiles, operator_filename_lineprefix);
-	} catch (runtime_error& e) {
-		cerr << "Error: " << e.what() << "\n";
-		return 1;
-	}
+	map<string, map<string, vector<pair<int, complex> > > > results;
 
 	int smeared_steps = 0;
 	for (int NAPE : NAPEs) {
@@ -502,9 +503,8 @@ int main(int argc, char** argv) {
 				complex WL_avg;
 				co_eq_zero(&WL_avg);
 
-				int timeslice_num = 0;
-				for (int t : r_field.second.defined_ts()) {
-					++timeslice_num;
+				const auto& ts = r_field.second.defined_ts();
+				for (int t : ts) {
 					for (int x = 0; x < L; ++x) {
 						for (int y = 0; y < L; ++y) {
 							for (int z = 0; z < L; ++z) {
@@ -526,12 +526,37 @@ int main(int argc, char** argv) {
 					}
 				}
 
-				co_di_eq_re(&WL_avg, 3.0 * L * L * L * timeslice_num);
+				co_di_eq_re(&WL_avg, 3.0 * L * L * L);
 				const string filename = operator_filename_lineprefix.at(fieldname).first;
-				const string lineprefix = operator_filename_lineprefix.at(fieldname).second;
-				*outfiles.at(filename) << NAPE << " " << WL_R << " " << lineprefix << " "
-						<< showpos << WL_avg.re << " " << WL_avg.im << noshowpos << "\n";
+				std::ostringstream params_oss;
+				params_oss << NAPE << " " << WL_R << " " << operator_filename_lineprefix.at(fieldname).second;
+				results[filename][params_oss.str()].emplace_back(ts.size(), WL_avg);
 			}
+		}
+	}
+
+	//	***************************************************************************************************************************************
+
+	map<string, std::unique_ptr<ofstream> > outfiles;
+	try {
+		open_outfiles(outfiles, operator_filename_lineprefix);
+	} catch (runtime_error& e) {
+		cerr << "Error: " << e.what() << "\n";
+		return 1;
+	}
+
+	for (const auto& filename_params_data : results) {
+		const auto& filename = filename_params_data.first;
+		for (const auto& params_data : filename_params_data.second) {
+			const auto& params = params_data.first;
+			complex avg { 0, 0 };
+			int tsl_num = 0;
+			for (const auto& tnum_data : params_data.second) {
+				tsl_num += tnum_data.first;
+				co_pl_eq_co(&avg, &tnum_data.second);
+			}
+			co_di_eq_re(&avg, tsl_num);
+			*outfiles.at(filename) << params << " " << showpos << avg.re << " " << avg.im << noshowpos << "\n";
 		}
 	}
 
