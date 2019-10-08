@@ -209,7 +209,8 @@ void parse_operators(
 	for (std::sregex_iterator operator_it(operators_str.begin(), operators_str.end(), operator_format);
 			operator_it != std::sregex_iterator(); ++operator_it) {
 
-		std::vector<std::string> operator_def;
+		using operator_factors_type = std::remove_reference<decltype(operator_factors)>::type;
+		operator_factors_type::mapped_type operator_def;
 		const std::string factors = operator_it->str(top ? 5 : 3);
 		parse_operator_factors(operator_def, prev_level_operator_names, factors);
 
@@ -302,8 +303,8 @@ void parse_compositions(
 
 		level_thickness.insert(level_thickness.begin(), timeslice_thickness);
 
-		std::map<std::string, std::vector<std::string> > curr_operator_factors;
-		std::map<std::string, std::vector<bool> > curr_operator_timeslice_defined;
+		std::remove_reference<decltype(level_operator_factors)>::type::value_type curr_operator_factors;
+		std::remove_reference<decltype(level_operator_timeslice_defined)>::type::value_type curr_operator_timeslice_defined;
 		parse_operators(curr_operator_factors, curr_operator_timeslice_defined,
 				operator_T_Toffset, operator_filename_lineprefix, outfile_extension,
 				top, prev_level_operator_names, level_it->str(2));
