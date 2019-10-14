@@ -1,10 +1,3 @@
-/*
- * twolink_operators.cc
- *
- *  Created on: 9 Aug 2019
- *      Author: reisinger
- */
-
 #include <array>
 
 #include <LinkPath.hh>

@@ -1,10 +1,3 @@
-/*
- * MultilevelAnalyzer.hh
- *
- *  Created on: 9 Aug 2019
- *      Author: reisinger
- */
-
 #include <vector>
 #include <set>
 #include <map>

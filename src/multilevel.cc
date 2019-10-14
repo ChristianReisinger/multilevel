@@ -8,7 +8,7 @@
 #include <map>
 #include <getopt.h>
 #include <chrono>
-#include <exception>
+#include <stdexcept>
 #include <regex>
 #include <memory>
 

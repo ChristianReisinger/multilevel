@@ -7,7 +7,7 @@
 #include <iostream>
 #include <string>
 #include <chrono>
-#include <exception>
+#include <stdexcept>
 
 #include <fields.hh>
 #include <io.hh>

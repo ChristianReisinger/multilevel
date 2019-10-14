@@ -1,10 +1,3 @@
-/*
- * MultilevelConfig.hh
- *
- *  Created on: 28 Aug 2019
- *      Author: reisinger
- */
-
 #include <string>
 #include <vector>
 #include <chrono>

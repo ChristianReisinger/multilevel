@@ -1,10 +1,3 @@
-/*
- * sublattice_fields.hh
- *
- *  Created on: 9 Aug 2019
- *      Author: reisinger
- */
-
 #include <geometry.hh>
 #include <sublattice_algebra.hh>
 
