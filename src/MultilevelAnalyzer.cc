@@ -59,7 +59,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(std::map<std::string, std::ma
 	for (int conf = 1; conf <= config_num; ++conf) {
 		config->update(level);
 
-		std::map<std::string, std::map<int, T_field> > lower_level_fields;
+		std::remove_reference<decltype(T_fields)>::type	lower_level_fields;
 		double* lowest_level_gauge_field;
 		if (is_lowest)
 			config->get(lowest_level_gauge_field);
@@ -72,10 +72,12 @@ void MultilevelAnalyzer::compute_sublattice_fields(std::map<std::string, std::ma
 
 		auto start_time = std::chrono::steady_clock::now();
 		for (auto& name_rfields : T_fields) {
+			const std::string& name = name_rfields.first;
 			for (auto& r_fields : name_rfields.second) {
 				int WL_R = r_fields.first;
+				const T_field& field = r_fields.second;
 				try {
-					for (int t : name_rfields.second.at(WL_R).defined_ts()) {
+					for (int t : field.defined_ts()) {
 						for (int x = 0; x < config->L; ++x) {
 							for (int y = 0; y < config->L; ++y) {
 								for (int z = 0; z < config->L; ++z) {
@@ -84,7 +86,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(std::map<std::string, std::ma
 										so_eq_id(curr_operator);
 										int curr_t = t;
 
-										for (const std::string& factor_name : level_operator_factors.at(level).at(name_rfields.first)) {
+										for (const std::string& factor_name : level_operator_factors.at(level).at(name)) {
 											double* factor;
 											if (is_lowest) {
 												factor = new double[SO_elems];
@@ -104,7 +106,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(std::map<std::string, std::ma
 											so_eq_so(curr_operator, Ttemp);
 										}
 
-										so_pl_eq_so(name_rfields.second.at(WL_R).T_at(t, x, y, z, i), curr_operator);
+										so_pl_eq_so(field.T_at(t, x, y, z, i), curr_operator);
 									}
 
 								}
@@ -112,7 +114,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(std::map<std::string, std::ma
 						}
 					}
 				} catch (std::out_of_range& e) {
-					throw std::runtime_error("invalid definition of operator '" + name_rfields.first + "'");
+					throw std::runtime_error("invalid definition of operator '" + name + "'");
 				}
 
 			}
