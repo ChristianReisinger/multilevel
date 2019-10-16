@@ -52,7 +52,7 @@ void TwolinkOperator::at(double* result, int t, int x, int y, int z, int dir, in
 	try {
 		so_eq_so(result, m_r_fields.at(rsep).T_at(t, x, y, z, dir));
 	} catch (std::out_of_range& e) {
-		throw std::runtime_error("cannot read LevelOperator " + m_name);
+		throw std::runtime_error("cannot read LevelOperator '" + m_name + "'");
 	}
 
 }
