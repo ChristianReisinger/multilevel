@@ -201,42 +201,29 @@ std::vector<TwolinkComputer> make_twolink_computers() {
 	return twolink_comps;
 }
 
-std::vector<OperatorFactor*> parse_operator_factors(const std::vector<LevelDef>& levels,
-		const std::vector<TwolinkComputer>& twolink_computers, int level, const std::string& factor_str) {
+template<typename T>
+std::vector<OperatorFactor*> parse_operator_factors(const std::vector<T>& available_operators, const std::string& factor_str) {
 	std::vector<OperatorFactor*> factors;
-
-	const bool lowest = (++level == levels.size());
 	std::regex factor_format("(\\S+)");
 	for (std::sregex_iterator factor_it(factor_str.begin(), factor_str.end(), factor_format);
 			factor_it != std::sregex_iterator(); ++factor_it) {
 
 		const std::string factor_name = factor_it->str(1);
-		auto is_named = [&](const OperatorFactor* f) {
-			return f->name() == factor_name;
-		};
+		const auto& named_factor_it = std::find_if(available_operators.begin(), available_operators.end(), [&](const T& f) {
+			return f.name() == factor_name;
+		});
 
-		std::vector<OperatorFactor*> available_operators;
-		if (lowest)
-			for (const auto& op : twolink_computers) {
-				OperatorFactor* op_ptr = &op;
-				available_operators.push_back(op_ptr);
-			}
-		else
-			for (const auto& op : levels.at(level).operators()) {
-				OperatorFactor* op_ptr = &op;
-				available_operators.push_back(op_ptr);
-			}
-
-		const auto& factor_it = std::find_if(available_operators.begin(), available_operators.end(), is_named);
-		if (factor_it != available_operators.end())
-			factors.push_back(*factor_it);
-		else
+		if (named_factor_it != available_operators.end()) {
+			OperatorFactor* f = &*named_factor_it;
+			factors.push_back(f);
+		} else
 			throw std::invalid_argument("Twolink operator " + factor_name + " does not exist");
 	}
 	return factors;
 }
 
-void parse_timeslice_defined(std::vector<bool>& timeslice_defined, const std::string& timeslice_def_str) {
+std::vector<bool> parse_timeslice_defined(const std::string& timeslice_def_str) {
+	std::vector<bool> timeslice_defined;
 	std::istringstream is_def_iss(timeslice_def_str);
 	char is_def_char;
 	while (is_def_iss >> is_def_char) {
@@ -245,47 +232,44 @@ void parse_timeslice_defined(std::vector<bool>& timeslice_defined, const std::st
 		else if (is_def_char == 'x')
 			timeslice_defined.push_back(true);
 	}
+	return timeslice_defined;
 }
 
-void parse_operators(std::vector<LevelDef>& levels, const std::vector<TwolinkComputer>& twolink_computers, const int level,
-		const std::string& operators_str) {
-	const bool top = (level == 0);
-	std::regex operator_format(std::string("(\\S+?):([.x]+):")
-			+ (top ? "(.*):(\\d+):" : "")
-			+ "((?:(?: |\t)+\\S+)+)\n");
-	for (std::sregex_iterator operator_it(operators_str.begin(), operators_str.end(), operator_format);
-			operator_it != std::sregex_iterator(); ++operator_it) {
+std::pair<bool, std::sregex_iterator> make_operators_it(const std::string& operators_str) {
+	const std::string name_tsldef_regex = "(\\S+?):([.x]+):";
+	const std::string descr_T_regex = "(.*):(\\d+):"; //TODO T is not needed anymore .. computed automatically in TwolinkOperator class
+	const std::string factors_regex = "((?:(?: |\t)+\\S+)+)\n";
+	std::regex operator_format(name_tsldef_regex + factors_regex);
+	std::regex operator_format_top(name_tsldef_regex + descr_T_regex + factors_regex);
 
-		std::string operator_name = operator_it->str(1);
-		TwolinkOperator curr_op;
-//		using operator_factors_type = std::remove_reference<decltype(operator_factors)>::type;
-//		operator_factors_type::mapped_type operator_def;
-		const std::string factors_str = operator_it->str(top ? 5 : 3);
-		std::vector<OperatorFactor*> factors = parse_operator_factors(levels, twolink_computers, level, factors_str);
+	bool top = false;
+	if (std::regex_search(operators_str, operator_format_top))
+		top = true;
 
-		std::vector<bool> timeslice_defined;
-		const std::string timeslice_def_str = operator_it->str(2);
-		parse_timeslice_defined(timeslice_defined, timeslice_def_str);
+	return {top, std::sregex_iterator(operators_str.begin(), operators_str.end(), top ? operator_format_top : operator_format)};
+}
 
-		std::string operator_name = operator_it->str(1);
-		std::string filestem = operator_name;
-		if (top) {
-			auto variant_num = std::count_if(operator_factors.begin(), operator_factors.end(),
-					[&](const operator_factors_type::value_type& val) {
-						return val.first.substr(0, operator_name.length() + 1) == operator_name + " ";
-					});
-			operator_name += " " + std::to_string(variant_num);
-		} else if (operator_factors.count(operator_name))
+template<typename T>
+void parse_operators(LevelDef& level, const std::vector<T>& available_operators, const std::string& operators_str) {
+
+	auto istop_it = make_operators_it(operators_str);
+	for (auto operator_it = istop_it.second; operator_it != std::sregex_iterator(); ++operator_it) {
+
+		const std::string operator_name = operator_it->str(1);
+
+		TwolinkOperator curr_op(operator_name,
+				parse_timeslice_defined(operator_it->str(2)),
+				parse_operator_factors(available_operators, operator_it->str(istop_it.first ? 5 : 3)));
+
+		if (istop_it.first)
+			curr_op.descr(operator_it->str(3));
+
+		if (istop_it.first || std::count_if(level.operators().begin(), level.operators().end(), [](const TwolinkOperator& op) {
+			return op.name() == operator_name;
+		}) == 0)
+			level.add_operator(curr_op);
+		else
 			throw std::runtime_error("duplicate definition of '" + operator_name + "'");
-
-		operator_factors[operator_name] = operator_def;
-		operator_timeslice_defined[operator_name] = timeslice_defined;
-		if (top) {
-			operator_filename_lineprefix[operator_name] = {
-				filestem + (outfile_extension.empty() ? "": ".") + outfile_extension,
-				operator_it->str(3)};
-			operator_T_Toffset[operator_name] = {tools::io_tools::parse_int(operator_it->str(4)), 0};
-		}
 	}
 }
 
@@ -316,7 +300,7 @@ bool verify_timeslice_sizes(const std::vector<LevelDef>& level_factories) {
 	return true;
 }
 
-std::vector<LevelDef> parse_levels(int T, const std::string& compstr) {
+std::vector<LevelDef> parse_levels(const std::vector<TwolinkComputer>& twolink_computers, int T, const std::string& compstr) {
 	std::vector<LevelDef> levels;
 
 	std::regex format(""
@@ -331,10 +315,10 @@ std::vector<LevelDef> parse_levels(int T, const std::string& compstr) {
 			"thickness (\\d+(?:,\\d+)*|T)\n+"
 			"((?:(?!thickness)\\S+?:[.x]+(?::.*:\\d+)?:(?:(?: |\t)+\\S+)+\n+)+)");
 
-	std::sregex_iterator level_begin(compstr.begin(), compstr.end(), level_format);
+	const std::sregex_iterator level_begin(compstr.begin(), compstr.end(), level_format);
 	auto level_num = std::distance(level_begin, std::sregex_iterator());
 
-	for (auto& level_it = level_begin; level_it != std::sregex_iterator(); ++level_it) {
+	for (auto level_it = level_begin; level_it != std::sregex_iterator(); ++level_it) {
 
 		std::vector<int> timeslice_sizes;
 		const std::string size_str = level_it->str(1);
@@ -343,6 +327,11 @@ std::vector<LevelDef> parse_levels(int T, const std::string& compstr) {
 		else
 			timeslice_sizes = tools::helper::parse_unsigned_int_list(size_str.c_str());
 		levels.insert(levels.begin(), LevelDef(timeslice_sizes));
+
+		if (level_it == level_begin)
+			parse_operators(levels[0], twolink_computers, level_it->str(2));
+		else
+			parse_operators(levels[0], level[1], level_it->str(2));
 
 //		TODO call new verify after parsing all levels
 //		if (!verify_thickness(timeslice_thickness,
@@ -498,7 +487,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	double* gauge_field, *smeared_gauge_field;
+	double* gauge_field, * smeared_gauge_field;
 	multilevel_config.get(gauge_field);
 	Gauge_Field_Alloc_silent(&smeared_gauge_field, T, L);
 	Gauge_Field_Copy(smeared_gauge_field, gauge_field, T, L);
