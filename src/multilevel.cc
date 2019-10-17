@@ -12,6 +12,7 @@
 #include <regex>
 #include <memory>
 #include <numeric>
+#include <algorithm>
 
 #include <fields.hh>
 #include <io.hh>
