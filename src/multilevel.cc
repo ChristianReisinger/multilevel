@@ -292,7 +292,7 @@ bool verify_timeslice_sizes(const std::vector<LevelDef>& levels) {
 	return true;
 }
 
-std::vector<LevelDef> parse_levels(const std::vector<TwolinkComputer>& twolink_computers, int T, const std::string& compstr) {
+std::vector<LevelDef> parse_levels(const std::vector<TwolinkComputer>& twolink_computers, int T, int L, const std::string& compstr) {
 	std::vector<LevelDef> levels;
 
 	std::regex format(""
@@ -319,7 +319,7 @@ std::vector<LevelDef> parse_levels(const std::vector<TwolinkComputer>& twolink_c
 			timeslice_sizes = levels[0].timeslice_sizes();
 		else
 			timeslice_sizes = tools::helper::parse_unsigned_int_list(size_str.c_str());
-		levels.insert(levels.begin(), LevelDef(timeslice_sizes));
+		levels.insert(levels.begin(), LevelDef(timeslice_sizes, T, L));
 
 		if (level_it == level_begin)
 			parse_operators(levels[0], twolink_computers, level_it->str(2));
@@ -401,7 +401,7 @@ int main(int argc, char** argv) {
 		ifstream compositions_ifs(argv[6]);
 		ostringstream compstr_oss;
 		compstr_oss << compositions_ifs.rdbuf();
-		levels = parse_levels(twolink_computers, T, compstr_oss.str());
+		levels = parse_levels(twolink_computers, T, L, compstr_oss.str());
 
 		if (level_config_num.size() != levels.size()
 				|| (generate && level_updates.size() != levels.size()))

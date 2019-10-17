@@ -12,7 +12,7 @@ namespace multilevel_0819 {
 
 class LevelDef {
 public:
-	LevelDef(std::vector<int> timeslice_sizes);
+	LevelDef(std::vector<int> timeslice_sizes, int T, int L);
 
 	int config_num() const;
 	int config_num(int configs);
@@ -22,9 +22,10 @@ public:
 
 	const std::vector<TwolinkOperator>& operators() const;
 	void add_operator(const TwolinkOperator& def);
-	void alloc_operators(const std::set<int>& WL_Rs, int T, int L);
+	void alloc_operators(const std::set<int>& WL_Rs);
 
 private:
+	const int m_T, m_L;
 	int m_config_num = 1, m_update_num = 0;
 	std::vector<int> m_timeslice_sizes;
 	std::vector<TwolinkOperator> m_operators { };
