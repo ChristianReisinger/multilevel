@@ -273,17 +273,17 @@ void parse_operators(LevelDef& level, const std::vector<T>& available_operators,
 	}
 }
 
-bool verify_timeslice_sizes(const std::vector<LevelDef>& level_factories) {
-	if (level_factories.empty())
+bool verify_timeslice_sizes(const std::vector<LevelDef>& levels) {
+	if (levels.empty())
 		return false;
-	for (auto level_it = ++level_factories.begin(); level_it != level_factories.end(); ++level_it) {
+	for (auto level_it = ++levels.begin(); level_it != levels.end(); ++level_it) {
 
-		const auto& level_sizes = level_it->timeslice_sizes;
-		auto size_it = level_sizes.begin();
-		for (const int prev_level_size : std::prev(level_it)->timeslice_sizes) {
+		const auto& tsl_sizes = level_it->timeslice_sizes();
+		auto size_it = tsl_sizes.begin();
+		for (const int prev_level_size : std::prev(level_it)->timeslice_sizes()) {
 			int curr_total_size = 0;
 
-			while (size_it != level_sizes.end()) {
+			while (size_it != tsl_sizes.end()) {
 				curr_total_size += *size_it;
 				++size_it;
 				if (curr_total_size == prev_level_size)
@@ -294,7 +294,7 @@ bool verify_timeslice_sizes(const std::vector<LevelDef>& level_factories) {
 			if (curr_total_size != prev_level_size)
 				return false;
 		}
-		if (size_it != level_sizes.end())
+		if (size_it != tsl_sizes.end())
 			return false;
 	}
 	return true;
