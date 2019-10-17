@@ -403,6 +403,11 @@ int main(int argc, char** argv) {
 		if (level_config_num.size() != levels.size()
 				|| (generate && level_updates.size() != levels.size()))
 			throw std::invalid_argument("invalid <level_config_num> or <level_updates>");
+		for (int lv_i = 0; lv_i <= levels.size(); ++lv_i) {
+			levels[lv_i].config_num(level_config_num[lv_i]);
+			if (generate)
+				levels[lv_i].update_num(level_updates[lv_i]);
+		}
 
 		config_lv0_id = std::stoi(argv[8]);
 	} catch (std::exception& e) {
