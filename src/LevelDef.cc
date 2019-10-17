@@ -36,7 +36,7 @@ int LevelDef::update_num(int updates) {
 	return update_num();
 }
 
-std::vector<int> LevelDef::timeslice_sizes() const {
+const std::vector<int>& LevelDef::timeslice_sizes() const {
 	return m_timeslice_sizes;
 }
 

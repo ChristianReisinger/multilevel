@@ -125,20 +125,17 @@ void handle_GNU_options(int argc, char**& argv, bool& show_mem,
 
 	int opt = -1, long_opts_i = 0;
 	while ((opt = getopt_long(argc, argv, "mb:s:u:we:", long_opts, &long_opts_i)) != -1) {
-		std::stringstream optarg_iss;
 		switch (opt) {
 			case 'm':
 				show_mem = true;
 			break;
 			case 'b':
 				generate = true;
-				optarg_iss << optarg;
-				optarg_iss >> beta;
+				beta = std::stod(optarg);
 			break;
 			case 's':
 				generate = true;
-				optarg_iss << optarg;
-				optarg_iss >> seed;
+				seed = std::stoi(optarg);
 			break;
 			case 'u':
 				generate = true;
@@ -156,30 +153,25 @@ void handle_GNU_options(int argc, char**& argv, bool& show_mem,
 	argv = argv + optind - 1;
 }
 
-double memory_used(const std::vector<std::vector<int> >& level_thickness,
-		const std::vector<std::map<std::string, std::vector<bool> > >& level_operator_timeslice_defined,
-		int T, int L, int num_R) {
+double memory_used(const std::vector<LevelDef>& levels, int T, int L, int num_R) {
 	const double gauge_field_bytes = T * L * L * L * 4 * SUN_elems * sizeof(double);
 	const double bytes_per_timeslice = L * L * L * 3 * SO_elems * sizeof(double);
 
 	double timeslice_num = 0.0;
-	for (int level = 0; level < level_thickness.size(); ++level) {
+	for (const auto& level : levels) {
 
 		int curr_level_tsl_num = 0;
-		for (const auto& operator_tsl : level_operator_timeslice_defined.at(level))
-			for (bool is_defined : operator_tsl.second)
-				if (is_defined)
-					curr_level_tsl_num += 1.0;
+		for (const auto& op : level.operators())
+			curr_level_tsl_num += op.timeslice_num_per_cycle();
 
-		const auto& tsl_sizes = level_thickness.at(level == 0 ? 1 : level);
-		curr_level_tsl_num *= ((double) T) / std::accumulate(tsl_sizes.begin(), tsl_sizes.end(), 0);
+		curr_level_tsl_num *= ((double) T) / std::accumulate(level.timeslice_sizes().begin(), level.timeslice_sizes().end(), 0);
 		timeslice_num += curr_level_tsl_num;
 	}
-
 	return num_R * timeslice_num * bytes_per_timeslice + 3 * gauge_field_bytes;
 }
 
-std::vector<TwolinkComputer> make_twolink_computers() {
+std::vector<TwolinkComputer> make_twolink_computers()
+{
 	const std::vector<std::tuple<std::string, twolink_operator_sig (*), int> > twolink_comp_args = {
 			{ "U_x_U", U_x_U, 1 }, { "UU_x_UU", UU_x_UU, 2 },
 			{ "Ex_x_I", Ex_x_I, 0 }, { "ex_x_I", Exbar_x_I, 0 },
@@ -394,81 +386,52 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+	const auto twolink_computers = make_twolink_computers();
+
+//	Parameters ****************************************************************************************************************************
+
 	int T, L, config_lv0_id, seed = 0;
 	double beta = 0.0;
 	bool show_mem = false, generate = false, write = false;
 	set<int> WL_Rs, NAPEs;
-
+	string outfile_extension = "";
 	vector<LevelDef> levels;
 
-	string outfile_extension = "";
-
-	vector<int> level_updates;
-	handle_GNU_options(argc, argv, show_mem, generate, write, beta, seed, level_updates, outfile_extension);
-	if (generate) {
-		if (beta <= 0.0) {
-			cerr << "Error: invalid <beta>\n";
-			return 1;
-		}
-		if (seed <= 0) {
-			cerr << "Error: invalid <seed>\n";
-			return 1;
-		}
-	}
-
-	stringstream arg_ss;
-	arg_ss << argv[1] << " " << argv[2] << " " << argv[8];
-	arg_ss >> T >> L >> config_lv0_id;
-	vector<int> WL_R_list = parse_unsigned_int_list(argv[3]);
-	WL_Rs = set<int>(WL_R_list.begin(), WL_R_list.end());
-
-	vector<int> NAPE_list = parse_unsigned_int_list(argv[4]);
-	NAPEs = set<int>(NAPE_list.begin(), NAPE_list.end());
-
-	stringstream config_id_ss;
-	if (arg_ss.fail()) {
-		cerr << "Error: failed to read one or more of <T> <L> <config_id>\n";
-		return 1;
-	}
-
-	vector<int> level_config_num = parse_unsigned_int_list(argv[5]);
-	if (level_config_num.size() < 2) {
-		cerr << "Error: less than 2 levels\n";
-		return 1;
-	}
-	if (generate && level_config_num.size() != level_updates.size()) {
-		cerr << "Error: invalid <level_updates>\n";
-		return 1;
-	}
-
-	ifstream compositions_ifs(argv[6]);
-	ostringstream compstr_oss;
-	compstr_oss << compositions_ifs.rdbuf();
 	try {
-		levels = parse_levels(T, compstr_oss.str());
-	} catch (const std::exception& e) {
-		cerr << "Error reading composition file: " << e.what() << "\n";
-		return 1;
-	}
+		vector<int> level_updates;
+		handle_GNU_options(argc, argv, show_mem, generate, write, beta, seed, level_updates, outfile_extension);
+		if (generate && (beta <= 0.0 || seed <= 0))
+			throw std::invalid_argument("invalid <beta> or <seed>");
 
-	if (level_config_num.size() != level_thickness.size()) {
-		cerr << "Error: invalid <level_config_num>\n";
-		return 1;
-	}
+		T = std::stoi(argv[1]);
+		L = std::stoi(argv[2]);
 
-	if (generate && level_updates.size() != level_thickness.size()) {
-		cerr << "Error: invalid <level_updates>\n";
-		return 1;
-	}
+		vector<int> WL_R_list = parse_unsigned_int_list(argv[3]);
+		WL_Rs = set<int>(WL_R_list.begin(), WL_R_list.end());
 
-	if (level_operator_factors.size() != level_thickness.size()) {
-		cerr << "Error: invalid compositions\n";
+		vector<int> NAPE_list = parse_unsigned_int_list(argv[4]);
+		NAPEs = set<int>(NAPE_list.begin(), NAPE_list.end());
+
+		vector<int> level_config_num = parse_unsigned_int_list(argv[5]);
+
+		ifstream compositions_ifs(argv[6]);
+		ostringstream compstr_oss;
+		compstr_oss << compositions_ifs.rdbuf();
+		levels = parse_levels(twolink_computers, T, compstr_oss.str());
+
+		if (level_config_num.size() != levels.size()
+				|| (generate && level_updates.size() != levels.size()))
+			throw std::invalid_argument("invalid <level_config_num> or <level_updates>");
+
+		config_lv0_id = std::stoi(argv[8]);
+	} catch (std::exception& e) {
+		cerr << "Error: " + e.what() + "\n";
 		return 1;
 	}
 
 	if (show_mem) {
 		cout << "This computation uses "
-				<< memory_used(level_thickness, level_operator_timeslice_defined, T, L, WL_Rs.size()) / 1000000.0
+				<< memory_used(levels, T, L, WL_Rs.size()) / 1000000.0
 				<< " MB memory.\n";
 		return 0;
 	}
@@ -487,12 +450,12 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	double* gauge_field, * smeared_gauge_field;
+	double* gauge_field, *smeared_gauge_field;
 	multilevel_config.get(gauge_field);
 	Gauge_Field_Alloc_silent(&smeared_gauge_field, T, L);
 	Gauge_Field_Copy(smeared_gauge_field, gauge_field, T, L);
 
-	//	***************************************************************************************************************************************
+//	***************************************************************************************************************************************
 
 	map<string, map<string, vector<pair<int, complex> > > > results;
 
@@ -541,7 +504,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	//	***************************************************************************************************************************************
+//	***************************************************************************************************************************************
 
 	map<string, std::unique_ptr<ofstream> > outfiles;
 	try {

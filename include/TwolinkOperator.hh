@@ -18,6 +18,7 @@ class TwolinkOperator: OperatorFactor {
 public:
 	TwolinkOperator(std::string name, std::vector<bool> timeslice_isdefined, std::vector<OperatorFactor*> factors);
 
+	int timeslice_num_per_cycle() const;
 	std::string descr() const;
 	std::string descr(std::string str);
 

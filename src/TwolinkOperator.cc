@@ -1,6 +1,7 @@
 #include <vector>
 #include <stdexcept>
 #include <utility>
+#include <algorithm>
 
 #include <OperatorFactor.hh>
 #include <T_field.hh>
@@ -25,6 +26,10 @@ TwolinkOperator::TwolinkOperator(std::string name, std::vector<bool> timeslice_i
 	for (const OperatorFactor* def : factors)
 		m_t_extent += def->t_extent();
 
+}
+
+int TwolinkOperator::timeslice_num_per_cycle() const {
+	return std::count_if(m_timeslice_isdefined.begin(), m_timeslice_isdefined.end(), [](bool b) {return b;});
 }
 
 std::string TwolinkOperator::descr() const {
