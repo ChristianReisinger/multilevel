@@ -308,6 +308,9 @@ std::vector<LevelDef> parse_levels(const std::vector<TwolinkComputer>& twolink_c
 			"((?:(?!thickness)\\S+?:[.x]+(?::.*:\\d+)?:(?:(?: |\t)+\\S+)+\n+)+)");
 
 	const std::sregex_iterator level_begin(compstr.begin(), compstr.end(), level_format);
+	if (std::distance(level_begin, std::sregex_iterator()) < 2)
+		throw std::invalid_argument("less than 2 levels");
+
 	for (auto level_it = level_begin; level_it != std::sregex_iterator(); ++level_it) {
 
 		std::vector<int> timeslice_sizes;
