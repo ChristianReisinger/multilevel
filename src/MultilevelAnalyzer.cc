@@ -8,18 +8,19 @@
 #include <string>
 #include <chrono>
 #include <stdexcept>
+#include <algorithm>
 
 #include <fields.hh>
 #include <io.hh>
 #include <ranlux.hh>
 #include <heatbath.hh>
-
 #include <global_defs.hh>
 
 #include <sublattice_algebra.hh>
 #include <T_field.hh>
-
+#include <LevelDef.hh>
 #include <MultilevelConfig.hh>
+
 #include <MultilevelAnalyzer.hh>
 
 namespace de_uni_frankfurt_itp {
@@ -28,19 +29,25 @@ namespace multilevel_0819 {
 
 //public
 
-MultilevelAnalyzer::MultilevelAnalyzer(MultilevelConfig& multilevel_config, std::set<int> WL_Rs,
-		std::vector<std::map<std::string, std::vector<std::string> > > level_operator_factors,
-		std::vector<std::map<std::string, std::vector<bool> > > level_operator_timeslice_defined,
-		std::map<std::string, void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions) :
-		config(&multilevel_config), WL_Rs(WL_Rs),
-				level_operator_factors(level_operator_factors), level_operator_timeslice_defined(level_operator_timeslice_defined),
-				lowest_level_functions(lowest_level_functions),
-				time_spent_computing_operators(0) {
+MultilevelAnalyzer::MultilevelAnalyzer(std::vector<LevelDef>& levels, MultilevelConfig& multilevel_config, std::set<int> WL_Rs) :
+
+//		TODO
+//		erase no longer needed levels during computation -> frees no longer needed T_fields ?
+//			--> modifying levels (and multilevel_config ?) after constructing this object is UB
+//			--> indicate ownership transfer?
+//		how to return / request result ?
+
+		config(&multilevel_config), WL_Rs(WL_Rs) {
+	if (levels.size() < 2 || WL_Rs.empty()
+			|| std::count_if(WL_Rs.begin(), WL_Rs.end(), [](int WL_R) {return WL_R < 0;}))
+		throw std::invalid_argument("invalid MultilevelAnalyzer");
+
+	for (auto& level : levels)
+		m_levels.push_back(&level);
 }
 
 std::map<std::string, std::map<int, T_field> > MultilevelAnalyzer::compute_T_fields() {
-	std::map<std::string, std::map<int, T_field> > T_fields;
-	alloc_T_fields(T_fields, 0);
+	m_levels[0]->alloc_operators(WL_Rs);
 	compute_sublattice_fields(T_fields, 0);
 	config->update(0);
 	return T_fields;
@@ -59,7 +66,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(std::map<std::string, std::ma
 	for (int conf = 1; conf <= config_num; ++conf) {
 		config->update(level);
 
-		std::remove_reference<decltype(T_fields)>::type	lower_level_fields;
+		std::remove_reference<decltype(T_fields)>::type lower_level_fields;
 		double* lowest_level_gauge_field;
 		if (is_lowest)
 			config->get(lowest_level_gauge_field);
