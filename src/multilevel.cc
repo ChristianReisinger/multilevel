@@ -308,8 +308,6 @@ std::vector<LevelDef> parse_levels(const std::vector<TwolinkComputer>& twolink_c
 			"((?:(?!thickness)\\S+?:[.x]+(?::.*:\\d+)?:(?:(?: |\t)+\\S+)+\n+)+)");
 
 	const std::sregex_iterator level_begin(compstr.begin(), compstr.end(), level_format);
-	auto level_num = std::distance(level_begin, std::sregex_iterator());
-
 	for (auto level_it = level_begin; level_it != std::sregex_iterator(); ++level_it) {
 
 		std::vector<int> timeslice_sizes;
@@ -323,28 +321,11 @@ std::vector<LevelDef> parse_levels(const std::vector<TwolinkComputer>& twolink_c
 		if (level_it == level_begin)
 			parse_operators(levels[0], twolink_computers, level_it->str(2));
 		else
-			parse_operators(levels[0], level[1], level_it->str(2));
-
-//		TODO call new verify after parsing all levels
-//		if (!verify_thickness(timeslice_thickness,
-//				level_thickness.empty() ? std::vector<int>() : level_thickness.at(0), top))
-//			throw std::runtime_error("invalid timeslice partition");
-
-//		std::remove_reference<decltype(level_operator_factors)>::type::value_type curr_operator_factors;
-//		std::remove_reference<decltype(level_operator_timeslice_defined)>::type::value_type curr_operator_timeslice_defined;
-		parse_operators(levels, level, level_it->str(2));
-//				curr_operator_factors, curr_operator_timeslice_defined,
-//				operator_T_Toffset, operator_filename_lineprefix, outfile_extension,
-//				top, prev_level_operator_names, level_it->str(2));
-//		level_operator_factors.insert(level_operator_factors.begin(), curr_operator_factors);
-//		level_operator_timeslice_defined.insert(level_operator_timeslice_defined.begin(), curr_operator_timeslice_defined);
-
-//		prev_level_operator_names.clear();
-//		for (const auto& name_factors : curr_operator_factors)
-//			prev_level_operator_names.insert(name_factors.first);
-
-		--level;
+			parse_operators(levels[0], levels[1].operators(), level_it->str(2));
 	}
+	if (!verify_timeslice_sizes(levels))
+		throw std::invalid_argument("invalid timeslice sizes");
+
 	return levels;
 }
 
