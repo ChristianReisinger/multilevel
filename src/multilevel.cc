@@ -316,7 +316,7 @@ std::vector<LevelDef> parse_levels(const std::vector<TwolinkComputer>& twolink_c
 		std::vector<int> timeslice_sizes;
 		const std::string size_str = level_it->str(1);
 		if (size_str == "T")
-			timeslice_sizes.push_back(T);
+			timeslice_sizes = levels[0].timeslice_sizes();
 		else
 			timeslice_sizes = tools::helper::parse_unsigned_int_list(size_str.c_str());
 		levels.insert(levels.begin(), LevelDef(timeslice_sizes));
