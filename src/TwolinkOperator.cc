@@ -62,6 +62,14 @@ void TwolinkOperator::at(double* result, int t, int x, int y, int z, int dir, in
 
 }
 
+int TwolinkOperator::timeslice_num() const {
+	int tsl_num = 0;
+	for (bool b : m_timeslice_isdefined)
+		if (b)
+			++tsl_num;
+	return tsl_num;
+}
+
 void TwolinkOperator::alloc_T_fields(const std::set<int>& WL_Rs,
 		const std::vector<int>& timeslice_sizes, int T, int L) {
 
