@@ -424,9 +424,8 @@ int main(int argc, char** argv) {
 
 //	***************************************************************************************************************************************
 
-	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, level_thickness, level_config_num, beta, seed, level_updates, write);
-	MultilevelAnalyzer multilevel(multilevel_config, WL_Rs, level_operator_factors, level_operator_timeslice_defined,
-			lowest_level_functions);
+	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, levels, beta, seed, write);
+	MultilevelAnalyzer multilevel(multilevel_config, WL_Rs, levels);
 
 	map<string, map<int, T_field> > T_fields;
 	try {
