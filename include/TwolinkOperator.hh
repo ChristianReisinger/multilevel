@@ -27,6 +27,7 @@ public:
 	void at(double* result, int t, int x, int y, int z, int dir, int rsep,
 			const double* sub_gauge_field = nullptr, int T = 0, int L = 0) const override;
 	int timeslice_num() const;
+	const std::set<int>& defined_ts(int WL_R) const;
 
 	void alloc_T_fields(const std::set<int>& WL_Rs, const std::vector<int>& timeslice_sizes, int T, int L);
 

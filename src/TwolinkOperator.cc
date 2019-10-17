@@ -70,6 +70,10 @@ int TwolinkOperator::timeslice_num() const {
 	return tsl_num;
 }
 
+const std::set<int>& TwolinkOperator::defined_ts(int WL_R) const {
+	return m_r_fields.at(WL_R).defined_ts();
+}
+
 void TwolinkOperator::alloc_T_fields(const std::set<int>& WL_Rs,
 		const std::vector<int>& timeslice_sizes, int T, int L) {
 
@@ -86,13 +90,13 @@ void TwolinkOperator::alloc_T_fields(const std::set<int>& WL_Rs,
 //private
 
 bool TwolinkOperator::valid_timeslice_def() {
-	bool is_def = false;
+	bool valid = false;
 	for (bool b : m_timeslice_isdefined)
 		if (b) {
-			is_def = true;
+			valid = true;
 			break;
 		}
-	return is_def;
+	return valid;
 }
 
 }
