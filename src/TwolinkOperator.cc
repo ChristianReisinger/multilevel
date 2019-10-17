@@ -14,14 +14,11 @@ namespace reisinger {
 namespace multilevel_0819 {
 
 TwolinkOperator::TwolinkOperator(std::string name, std::vector<bool> timeslice_isdefined,
-		std::vector<OperatorFactor*> factors) :
+		std::vector<const OperatorFactor*> factors) :
 		m_name(name), m_timeslice_isdefined(m_timeslice_isdefined), m_factors(factors), m_t_extent(0) {
 
-	if (name.empty())
+	if (name.empty() || factors.empty() || !valid_timeslice_def())
 		throw std::invalid_argument("invalid LevelOperator");
-
-	if (!valid_timeslice_def())
-		throw std::invalid_argument("LevelOperator not defined on any timeslice");
 
 	for (const OperatorFactor* def : factors)
 		m_t_extent += def->t_extent();

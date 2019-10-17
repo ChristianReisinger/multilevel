@@ -16,7 +16,7 @@ namespace multilevel_0819 {
 
 class TwolinkOperator: OperatorFactor {
 public:
-	TwolinkOperator(std::string name, std::vector<bool> timeslice_isdefined, std::vector<OperatorFactor*> factors);
+	TwolinkOperator(std::string name, std::vector<bool> timeslice_isdefined, std::vector<const OperatorFactor*> factors);
 
 	int timeslice_num_per_cycle() const;
 	std::string descr() const;
@@ -32,12 +32,12 @@ public:
 	void alloc_T_fields(const std::set<int>& WL_Rs, const std::vector<int>& timeslice_sizes, int T, int L);
 
 private:
-	std::string m_name, m_descr = "";
-	std::vector<bool> m_timeslice_isdefined;
-	std::vector<OperatorFactor*> m_factors;
-
-	std::string m_name;
+	const std::string m_name;
+	const std::vector<bool> m_timeslice_isdefined;
+	const std::vector<const OperatorFactor*> m_factors;
 	int m_t_extent;
+
+	std::string m_descr = "";
 	std::map<int, T_field> m_r_fields { };
 
 	bool valid_timeslice_def();
