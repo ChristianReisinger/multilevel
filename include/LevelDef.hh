@@ -18,6 +18,7 @@ public:
 	int config_num(int configs);
 	int update_num() const;
 	int update_num(int updates);
+	std::vector<int> timeslice_sizes() const;
 
 	const std::vector<TwolinkOperator>& operators() const;
 	void add_operator(const TwolinkOperator& def);

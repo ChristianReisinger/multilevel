@@ -36,12 +36,15 @@ int LevelDef::update_num(int updates) {
 	return update_num();
 }
 
+std::vector<int> LevelDef::timeslice_sizes() const {
+	return m_timeslice_sizes;
+}
+
 const std::vector<TwolinkOperator>& LevelDef::operators() const {
 	return m_operators;
 }
 
 void LevelDef::add_operator(const TwolinkOperator& def) {
-	//TODO check for collision
 	m_operators.push_back(def);
 }
 
