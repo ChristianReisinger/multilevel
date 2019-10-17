@@ -49,9 +49,8 @@ void LevelDef::add_operator(const TwolinkOperator& def) {
 }
 
 void LevelDef::alloc_operators(const std::set<int>& WL_Rs, int T, int L) {
-	for (auto& op : m_operators) {
+	for (auto& op : m_operators)
 		op.alloc_T_fields(WL_Rs, m_timeslice_sizes, T, L);
-	}
 }
 
 }
