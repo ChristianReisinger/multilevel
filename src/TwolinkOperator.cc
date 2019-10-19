@@ -51,15 +51,7 @@ int TwolinkOperator::t_extent() const {
 void TwolinkOperator::at(double* result, int t, int x, int y, int z, int dir, int rsep,
 		const double* sub_gauge_field, int T, int L) const {
 
-	if (sub_gauge_field != nullptr || T != 0 || L != 0)
-		throw std::invalid_argument("invalid T_field access");
-
-	try {
-		so_eq_so(result, m_r_fields.at(rsep).T_at(t, x, y, z, dir));
-	} catch (std::out_of_range& e) {
-		throw std::runtime_error("cannot read LevelOperator '" + m_name + "'");
-	}
-
+	so_eq_so(result, m_r_fields.at(rsep).T_at(t, x, y, z, dir));
 }
 
 int TwolinkOperator::timeslice_num() const {
