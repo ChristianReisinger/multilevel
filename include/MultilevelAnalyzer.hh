@@ -18,18 +18,23 @@ namespace multilevel_0819 {
 class MultilevelAnalyzer {
 public:
 	MultilevelAnalyzer(std::vector<LevelDef>& levels, MultilevelConfig& multilevel_config, std::set<int> WL_Rs);
+	~MultilevelAnalyzer() = default;
+	MultilevelAnalyzer(const MultilevelAnalyzer&) = delete;
+	MultilevelAnalyzer(MultilevelAnalyzer&&) = delete;
+	MultilevelAnalyzer& operator=(const MultilevelAnalyzer&) = delete;
+	MultilevelAnalyzer& operator=(MultilevelAnalyzer&&) = delete;
 
-	std::map<std::string, std::map<int, T_field> > compute_T_fields();
-	int milliseconds_spent_computing();
+	void compute_T_fields();
+	int milliseconds_spent_computing() const;
 
 private:
 
-	void alloc_T_fields(std::map<std::string, std::map<int, T_field> >& T_fields, const int level);
-	void compute_sublattice_fields(std::map<std::string, std::map<int, T_field> >& T_fields, const int level);
+	bool valid_levels() const;
+	void compute_sublattice_fields(const int level);
 
-	MultilevelConfig* config;
-	const std::set<int> WL_Rs;
 	std::vector<LevelDef*> m_levels;
+	MultilevelConfig* const m_config;
+	const std::set<int> m_WL_Rs;
 
 	std::chrono::steady_clock::duration time_spent_computing_operators { 0 };
 };
@@ -38,4 +43,4 @@ private:
 }
 }
 
-#endif /* INCLUDE_MULTILEVELANALYZER_HH_ */
+#endif
