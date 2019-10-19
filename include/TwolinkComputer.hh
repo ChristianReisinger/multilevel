@@ -11,7 +11,7 @@ namespace de_uni_frankfurt_itp {
 namespace reisinger {
 namespace multilevel_0819 {
 
-class TwolinkComputer: OperatorFactor {
+class TwolinkComputer: public OperatorFactor {
 public:
 	TwolinkComputer(std::string name, twolink_operator_sig (*computes_twolink), int t_extent);
 
