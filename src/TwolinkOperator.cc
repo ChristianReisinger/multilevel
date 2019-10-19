@@ -3,6 +3,9 @@
 #include <utility>
 #include <algorithm>
 
+#include <global_defs.hh>
+#include <linear_algebra.hh>
+
 #include <OperatorFactor.hh>
 #include <T_field.hh>
 #include <sublattice_algebra.hh>
@@ -67,7 +70,7 @@ int TwolinkOperator::timeslice_num() const {
 	return tsl_num;
 }
 
-const std::set<int>& TwolinkOperator::defined_ts(int WL_R) const {
+std::set<int> TwolinkOperator::defined_ts(int WL_R) const {
 	return m_r_fields.at(WL_R).defined_ts();
 }
 
