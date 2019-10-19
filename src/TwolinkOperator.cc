@@ -18,7 +18,7 @@ namespace multilevel_0819 {
 
 TwolinkOperator::TwolinkOperator(std::string name, std::vector<bool> timeslice_isdefined,
 		std::vector<const OperatorFactor*> factors) :
-		m_name(name), m_timeslice_isdefined(m_timeslice_isdefined), m_factors(factors), m_t_extent(0) {
+		m_name(name), m_timeslice_isdefined(m_timeslice_isdefined), factors(factors), m_t_extent(0) {
 
 	if (name.empty() || factors.empty() || !valid_timeslice_def())
 		throw std::invalid_argument("invalid LevelOperator");
@@ -66,6 +66,8 @@ std::set<int> TwolinkOperator::defined_ts(int WL_R) const {
 	return m_r_fields.at(WL_R).defined_ts();
 }
 
+//private
+
 void TwolinkOperator::alloc_T_fields(const std::set<int>& WL_Rs,
 		const std::vector<int>& timeslice_sizes, int T, int L) {
 
@@ -78,8 +80,6 @@ void TwolinkOperator::alloc_T_fields(const std::set<int>& WL_Rs,
 	for (int WL_R : WL_Rs)
 		m_r_fields.emplace(WL_R, T_field(timeslice_size_defined, T, L));
 }
-
-//private
 
 bool TwolinkOperator::valid_timeslice_def() {
 	bool valid = false;

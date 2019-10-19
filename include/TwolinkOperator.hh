@@ -29,12 +29,13 @@ public:
 	int timeslice_num() const;
 	std::set<int> defined_ts(int WL_R) const;
 
-	void alloc_T_fields(const std::set<int>& WL_Rs, const std::vector<int>& timeslice_sizes, int T, int L);
+	const std::vector<const OperatorFactor*> factors;
 
 private:
+	void alloc_T_fields(const std::set<int>& WL_Rs, const std::vector<int>& timeslice_sizes, int T, int L);
+
 	const std::string m_name;
 	const std::vector<bool> m_timeslice_isdefined;
-	const std::vector<const OperatorFactor*> m_factors;
 	int m_t_extent;
 
 	std::string m_descr = "";
@@ -42,6 +43,7 @@ private:
 
 	bool valid_timeslice_def();
 
+	friend class TwolinkOperatorWriter;
 };
 
 }
