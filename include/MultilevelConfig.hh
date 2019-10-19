@@ -2,6 +2,8 @@
 #include <vector>
 #include <chrono>
 
+#include <global_defs.hh>
+
 #include <LevelDef.hh>
 
 #ifndef INCLUDE_MULTILEVELCONFIG_HH_
@@ -14,8 +16,8 @@ namespace multilevel_0819 {
 class MultilevelConfig {
 public:
 
-	MultilevelConfig(const std::string& filename_prefix, int top_level_id, int T, int L,
-			const std::vector<LevelDef>& levels, double beta = 0, int seed = 0, bool save = false);
+	MultilevelConfig(const std::string& filestem, int top_level_id, int T, int L,
+			double beta = 0, int seed = 0, bool write = false);
 
 	~MultilevelConfig();
 	MultilevelConfig(const MultilevelConfig&) = delete;
@@ -23,33 +25,35 @@ public:
 	MultilevelConfig& operator=(const MultilevelConfig&) = delete;
 	MultilevelConfig& operator=(MultilevelConfig&&) = delete;
 
-	void update(int level);
-
-	const int T, L;
 	std::string config_filename() const;
-	int config_num(int level) const;
-	std::vector<int> thickness(int level) const;
 	void get(double*& gauge_field) const;
 	int milliseconds_spent_generating() const;
 
+	const int T, L;
+
 private:
+	void set_levels(std::vector<LevelDef*> levels);
+	void update(int level);
 
 	void next_tag(int level);
 	std::string tag_to_string() const;
 	void write_config() const;
 
-	const std::string filename_prefix;
-	std::vector<const LevelDef*> m_levels;
+	const std::string m_filestem;
+	std::vector<const LevelDef*> m_levels { };
 
-	const bool generate_configs;
-	const double beta;
-	const bool save;
+	const bool m_generate;
+	const double m_beta;
+	const int m_seed;
+	const bool m_write;
 
-	std::vector<int> curr_tag;
-	double* top_level_conf;
-	double* config_buf;
+	std::vector<int> m_tag;
+	double* m_top_level_conf;
+	double* m_config_buf;
 
-	std::chrono::steady_clock::duration time_spent_generating;
+	std::chrono::steady_clock::duration m_time_spent_generating { 0 };
+
+	friend class LevelAccess;
 };
 
 }
