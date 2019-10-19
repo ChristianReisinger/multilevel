@@ -18,10 +18,10 @@ void clover(double* result, const double* sub_gauge_field, int T, int L,
 		const std::array<int, 4>& n, int mu, int nu, bool bar = false);
 
 void C_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep, int mu, int nu, bool bar = false);
+		int t, int x, int y, int z, int dir, int rsep, int mu, int nu, bool bar = false);
 
 void I_x_C(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep, int mu, int nu, bool bar = false);
+		int t, int x, int y, int z, int dir, int rsep, int mu, int nu, bool bar = false);
 
 /**
  * function naming:
