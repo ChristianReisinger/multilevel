@@ -195,8 +195,8 @@ std::vector<TwolinkComputer> make_twolink_computers()
 }
 
 template<typename T>
-std::vector<OperatorFactor*> parse_operator_factors(const std::vector<T>& available_operators, const std::string& factor_str) {
-	std::vector<OperatorFactor*> factors;
+std::vector<const OperatorFactor*> parse_operator_factors(const std::vector<T>& available_operators, const std::string& factor_str) {
+	std::vector<const OperatorFactor*> factors;
 	std::regex factor_format("(\\S+)");
 	for (std::sregex_iterator factor_it(factor_str.begin(), factor_str.end(), factor_format);
 			factor_it != std::sregex_iterator(); ++factor_it) {
@@ -207,7 +207,7 @@ std::vector<OperatorFactor*> parse_operator_factors(const std::vector<T>& availa
 		});
 
 		if (named_factor_it != available_operators.end()) {
-			OperatorFactor* f = &*named_factor_it;
+			const OperatorFactor* f = &*named_factor_it;
 			factors.push_back(f);
 		} else
 			throw std::invalid_argument("Twolink operator " + factor_name + " does not exist");
@@ -257,7 +257,7 @@ void parse_operators(LevelDef& level, const std::vector<T>& available_operators,
 		if (istop_it.first)
 			curr_op.descr(operator_it->str(3));
 
-		if (istop_it.first || std::count_if(level.operators().begin(), level.operators().end(), [](const TwolinkOperator& op) {
+		if (istop_it.first || std::count_if(level.operators().begin(), level.operators().end(), [&](const TwolinkOperator& op) {
 			return op.name() == operator_name;
 		}) == 0)
 			level.add_operator(curr_op);
@@ -293,7 +293,7 @@ bool verify_timeslice_sizes(const std::vector<LevelDef>& levels) {
 	return true;
 }
 
-std::vector<LevelDef> parse_levels(const std::vector<TwolinkComputer>& twolink_computers, int T, int L, const std::string& compstr) {
+std::vector<LevelDef> parse_levels(const std::vector<TwolinkComputer>& twolink_computers, const std::string& compstr) {
 	std::vector<LevelDef> levels;
 
 	std::regex format(""
@@ -320,7 +320,7 @@ std::vector<LevelDef> parse_levels(const std::vector<TwolinkComputer>& twolink_c
 			timeslice_sizes = levels[0].timeslice_sizes();
 		else
 			timeslice_sizes = tools::helper::parse_unsigned_int_list(size_str.c_str());
-		levels.insert(levels.begin(), LevelDef(timeslice_sizes, T, L));
+		levels.insert(levels.begin(), LevelDef(timeslice_sizes));
 
 		if (level_it == level_begin)
 			parse_operators(levels[0], twolink_computers, level_it->str(2));
@@ -333,11 +333,8 @@ std::vector<LevelDef> parse_levels(const std::vector<TwolinkComputer>& twolink_c
 	return levels;
 }
 
-void open_outfiles(std::map<std::string, std::unique_ptr<std::ofstream> >& outfiles,
-		const std::map<std::string, std::pair<std::string, std::string> >& operator_filename_lineprefix) {
-
-	for (const auto& e : operator_filename_lineprefix) {
-		const std::string& filename = e.second.first;
+void open_outfiles(std::map<std::string, std::unique_ptr<std::ofstream> >& outfiles, const std::set<std::string>& filenames) {
+	for (const auto& filename : filenames) {
 
 		if (!outfiles.count(filename)) {
 			if (tools::io_tools::file_exists(filename))
@@ -347,7 +344,7 @@ void open_outfiles(std::map<std::string, std::unique_ptr<std::ofstream> >& outfi
 			if (outfiles.at(filename)->fail())
 				throw std::runtime_error("could not open output file '" + filename + "'");
 
-			*outfiles.at(filename) << std::scientific << std::setprecision(11) << std::setfill(' ');
+			*outfiles.at(filename) << std::scientific << std::setprecision(11);
 		}
 	}
 }
@@ -386,27 +383,27 @@ int main(int argc, char** argv) {
 		vector<int> level_updates;
 		handle_GNU_options(argc, argv, show_mem, generate, write, beta, seed, level_updates, outfile_extension);
 		if (generate && (beta <= 0.0 || seed <= 0))
-			throw std::invalid_argument("invalid <beta> or <seed>");
+			throw invalid_argument("invalid <beta> or <seed>");
 
-		T = std::stoi(argv[1]);
-		L = std::stoi(argv[2]);
+		T = stoi(argv[1]);
+		L = stoi(argv[2]);
 
-		vector<int> WL_R_list = parse_unsigned_int_list(argv[3]);
-		WL_Rs = set<int>(WL_R_list.begin(), WL_R_list.end());
+		const vector<int> WL_R_list = parse_unsigned_int_list(argv[3]);
+		WL_Rs = std::set<int>(WL_R_list.begin(), WL_R_list.end());
 
 		vector<int> NAPE_list = parse_unsigned_int_list(argv[4]);
-		NAPEs = set<int>(NAPE_list.begin(), NAPE_list.end());
+		NAPEs = std::set<int>(NAPE_list.begin(), NAPE_list.end());
 
-		vector<int> level_config_num = parse_unsigned_int_list(argv[5]);
+		const vector<int> level_config_num = parse_unsigned_int_list(argv[5]);
 
 		ifstream compositions_ifs(argv[6]);
 		ostringstream compstr_oss;
 		compstr_oss << compositions_ifs.rdbuf();
-		levels = parse_levels(twolink_computers, T, L, compstr_oss.str());
+		levels = parse_levels(twolink_computers, compstr_oss.str());
 
 		if (level_config_num.size() != levels.size()
 				|| (generate && level_updates.size() != levels.size()))
-			throw std::invalid_argument("invalid <level_config_num> or <level_updates>");
+			throw invalid_argument("invalid <level_config_num> or <level_updates>");
 		for (int lv_i = 0; lv_i <= levels.size(); ++lv_i) {
 			levels[lv_i].config_num(level_config_num[lv_i]);
 			if (generate)
@@ -415,7 +412,7 @@ int main(int argc, char** argv) {
 
 		config_lv0_id = std::stoi(argv[8]);
 	} catch (std::exception& e) {
-		cerr << "Error: " + e.what() + "\n";
+		cerr << "Error: " << e.what() << "\n";
 		return 1;
 	}
 
@@ -428,18 +425,17 @@ int main(int argc, char** argv) {
 
 //	***************************************************************************************************************************************
 
-	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, levels, beta, seed, write);
-	MultilevelAnalyzer multilevel(multilevel_config, WL_Rs, levels);
+	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, beta, seed, write);
+	MultilevelAnalyzer multilevel(levels, multilevel_config, WL_Rs);
 
-	map<string, map<int, T_field> > T_fields;
 	try {
-		T_fields = multilevel.compute_T_fields();
+		multilevel.compute_T_fields();
 	} catch (runtime_error& e) {
 		cout << "Error: " << e.what() << "\n";
 		return 1;
 	}
 
-	double* gauge_field, *smeared_gauge_field;
+	double* gauge_field, * smeared_gauge_field;
 	multilevel_config.get(gauge_field);
 	Gauge_Field_Alloc_silent(&smeared_gauge_field, T, L);
 	Gauge_Field_Copy(smeared_gauge_field, gauge_field, T, L);
@@ -453,30 +449,27 @@ int main(int argc, char** argv) {
 		for (; smeared_steps < NAPE; ++smeared_steps)
 			APE_Smearing_Step(smeared_gauge_field, T, L, 0.5);
 
-		for (const auto& name_rfields : T_fields) {
-			for (const auto& r_field : name_rfields.second) {
-				const int WL_R = r_field.first;
-				const string& fieldname = name_rfields.first;
-
+		for (const auto& op : levels[0].operators()) {
+			for (const int WL_R : WL_Rs) {
 				complex WL_avg;
 				co_eq_zero(&WL_avg);
 
-				const auto& ts = r_field.second.defined_ts();
+				const auto& ts = op.defined_ts(WL_R);
 				for (int t : ts) {
 					for (int x = 0; x < L; ++x) {
 						for (int y = 0; y < L; ++y) {
 							for (int z = 0; z < L; ++z) {
 								for (int i = 1; i < 4; ++i) {
-									LinkPath S0(smeared_gauge_field, T, L, { t + operator_T_Toffset[fieldname].second, x, y, z });
-									LinkPath ST(smeared_gauge_field, T, L,
-											{ t + operator_T_Toffset[fieldname].first + operator_T_Toffset[fieldname].second,
-													x, y, z });
+									LinkPath S0(smeared_gauge_field, T, L, { t, x, y, z });
+									LinkPath ST(smeared_gauge_field, T, L, { t + op.t_extent(), x, y, z });
 									for (int r = 0; r < WL_R; ++r) {
 										S0(i, true);
 										ST(i, true);
 									}
 									complex curr_WL;
-									close_Wilson_loop(&curr_WL, r_field.second.T_at(t, x, y, z, i), S0.path, ST.path);
+									double T_op[SO_elems];
+									op.at(T_op, t, x, y, z, i, WL_R);
+									close_Wilson_loop(&curr_WL, T_op, S0.path, ST.path);
 									co_pl_eq_co(&WL_avg, &curr_WL);
 								}
 							}
@@ -485,19 +478,21 @@ int main(int argc, char** argv) {
 				}
 
 				co_di_eq_re(&WL_avg, 3.0 * L * L * L);
-				const string filename = operator_filename_lineprefix.at(fieldname).first;
-				std::ostringstream params_oss;
-				params_oss << NAPE << " " << WL_R << " " << operator_filename_lineprefix.at(fieldname).second;
-				results[filename][params_oss.str()].emplace_back(ts.size(), WL_avg);
+				const string filename = op.name();
+				const string params = to_string(NAPE) + " " + to_string(WL_R) + " " + op.descr();
+				results[filename][params].emplace_back(ts.size(), WL_avg);
 			}
 		}
 	}
 
 //	***************************************************************************************************************************************
 
-	map<string, std::unique_ptr<ofstream> > outfiles;
+	map<string, unique_ptr<ofstream> > outfiles;
 	try {
-		open_outfiles(outfiles, operator_filename_lineprefix);
+		set<string> filenames;
+		for (const auto& result : results)
+			filenames.insert(result.first);
+		open_outfiles(outfiles, filenames);
 	} catch (runtime_error& e) {
 		cerr << "Error: " << e.what() << "\n";
 		return 1;
