@@ -18,10 +18,10 @@ namespace multilevel_0819 {
 
 TwolinkOperator::TwolinkOperator(std::string name, std::vector<bool> timeslice_isdefined,
 		std::vector<const OperatorFactor*> factors) :
-		m_name(name), m_timeslice_isdefined(m_timeslice_isdefined), factors(factors), m_t_extent(0) {
+		m_name(name), m_timeslice_isdefined(timeslice_isdefined), factors(factors), m_t_extent(0) {
 
 	if (name.empty() || factors.empty() || !valid_timeslice_def())
-		throw std::invalid_argument("invalid LevelOperator");
+		throw std::invalid_argument("invalid TwolinkOperator");
 
 	for (const OperatorFactor* def : factors)
 		m_t_extent += def->t_extent();
