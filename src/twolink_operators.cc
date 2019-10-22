@@ -1,10 +1,3 @@
-/*
- * twolink_operators.cc
- *
- *  Created on: 9 Aug 2019
- *      Author: reisinger
- */
-
 #include <array>
 
 #include <LinkPath.hh>
@@ -169,11 +162,11 @@ void I_x_Eybar(double* result, const double* sub_gauge_field, int T, int L,
 }
 void I_x_Ez(double* result, const double* sub_gauge_field, int T, int L,
 		int& t, int x, int y, int z, int dir, int rsep) {
-	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, z_rel_dir(3, dir));
+	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, dir);
 }
 void I_x_Ezbar(double* result, const double* sub_gauge_field, int T, int L,
 		int& t, int x, int y, int z, int dir, int rsep) {
-	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, z_rel_dir(3, dir), true);
+	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, dir, true);
 }
 void I_x_Bx(double* result, const double* sub_gauge_field, int T, int L,
 		int& t, int x, int y, int z, int dir, int rsep) {
@@ -218,11 +211,11 @@ void Eybar_x_I(double* result, const double* sub_gauge_field, int T, int L,
 }
 void Ez_x_I(double* result, const double* sub_gauge_field, int T, int L,
 		int& t, int x, int y, int z, int dir, int rsep) {
-	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, z_rel_dir(3, dir));
+	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, dir);
 }
 void Ezbar_x_I(double* result, const double* sub_gauge_field, int T, int L,
 		int& t, int x, int y, int z, int dir, int rsep) {
-	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, z_rel_dir(3, dir), true);
+	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, dir, true);
 }
 void Bx_x_I(double* result, const double* sub_gauge_field, int T, int L,
 		int& t, int x, int y, int z, int dir, int rsep) {

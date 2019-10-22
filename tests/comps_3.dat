@@ -1,0 +1,17 @@
+thickness 1,2,1,2,3,1
+T1:x.x..x:		U_x_U
+T2:.x.x..:		UU_x_UU
+T3:....x.:		UU_x_UU U_x_U
+thickness T
+WL1:x.x...:3:3:		T1 T2
+WL2:.x....:3:3:		T2 T1
+WL3:....x.:3:3:		T3
+WL:x.x...:3:3:		T1 T2
+WL:.x....:3:3:		T2 T1
+WL:....x.:3:3:		T3
+WL4:x.....:4:4:		T1 T2 T1
+WL5:....x.:4:4:		T3 T1
+WL6:.....x:4:4:		T1 T1 T2
+WL:x.....:4:4:		T1 T2 T1
+WL:....x.:4:4:		T3 T1
+WL:.....x:4:4:		T1 T1 T2

@@ -1,15 +1,8 @@
-/*
- * T_field.cc
- *
- *  Created on: 13 Sep 2019
- *      Author: reisinger
- */
-
 #include <vector>
 #include <map>
 #include <set>
 #include <utility>
-#include <exception>
+#include <stdexcept>
 
 #include <global_defs.hh>
 #include <geometry.hh>

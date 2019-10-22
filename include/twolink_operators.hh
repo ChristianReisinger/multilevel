@@ -1,10 +1,3 @@
-/*
- * twolink_operators.hh
- *
- *  Created on: 6 Aug 2019
- *      Author: reisinger
- */
-
 #ifndef INCLUDE_TWOLINK_OPERATORS_HH_
 #define INCLUDE_TWOLINK_OPERATORS_HH_
 

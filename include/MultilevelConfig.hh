@@ -1,10 +1,3 @@
-/*
- * MultilevelConfig.hh
- *
- *  Created on: 28 Aug 2019
- *      Author: reisinger
- */
-
 #include <string>
 #include <vector>
 #include <chrono>
@@ -20,7 +13,7 @@ class MultilevelConfig {
 public:
 
 	MultilevelConfig(const std::string& filename_prefix, int top_level_id, int T, int L,
-			const std::vector<int>& level_thickness, const std::vector<int>& level_config_num,
+			const std::vector<std::vector<int> >& level_thickness, const std::vector<int>& level_config_num,
 			double beta = 0, int seed = 0, std::vector<int> level_updates = { }, bool save = false);
 
 	~MultilevelConfig();
@@ -33,8 +26,8 @@ public:
 
 	const int T, L;
 	std::string config_filename() const;
-	int thickness(int level) const;
 	int config_num(int level) const;
+	std::vector<int> thickness(int level) const;
 	void get(double*& gauge_field) const;
 	int milliseconds_spent_generating() const;
 
@@ -45,7 +38,7 @@ private:
 	void write_config() const;
 
 	const std::string filename_prefix;
-	const std::vector<int> level_thickness;
+	const std::vector<std::vector<int> > level_thickness;
 	const std::vector<int> level_config_num;
 
 	const bool generate_configs;

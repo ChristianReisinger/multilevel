@@ -1,10 +1,3 @@
-/*
- * sublattice_algebra.hh
- *
- *  Created on: 24 Jul 2019
- *      Author: reisinger
- */
-
 #include <global_defs.hh>
 #include <linear_algebra.hh>
 
