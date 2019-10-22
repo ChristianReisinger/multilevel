@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <regex>
 #include <memory>
+#include <numeric>
 
 #include <fields.hh>
 #include <io.hh>
@@ -152,17 +153,22 @@ void handle_GNU_options(int argc, char**& argv,
 	argv = argv + optind - 1;
 }
 
-double memory_used(const std::vector<std::map<std::string, std::vector<bool> > >& level_operator_timeslice_defined,
+double memory_used(const std::vector<std::vector<int> >& level_thickness,
+		const std::vector<std::map<std::string, std::vector<bool> > >& level_operator_timeslice_defined,
 		int T, int L, int num_R) {
 	const double gauge_field_bytes = T * L * L * L * 4 * SUN_elems * sizeof(double);
 	const double bytes_per_timeslice = L * L * L * 3 * SO_elems * sizeof(double);
 
 	double timeslice_num = 0.0;
-	for (const auto& level : level_operator_timeslice_defined)
-		for (const auto& operator_tsl : level)
+	for (int level = 0; level < level_thickness.size(); ++level) {
+		int curr_level_tsl_num = 0;
+		for (const auto& operator_tsl : level_operator_timeslice_defined.at(level))
 			for (bool is_defined : operator_tsl.second)
 				if (is_defined)
-					timeslice_num += 1.0;
+					curr_level_tsl_num += 1.0;
+		curr_level_tsl_num *= ((double) T) / std::accumulate(level_thickness[level].begin(), level_thickness[level].end(), 0);
+		timeslice_num += curr_level_tsl_num;
+	}
 
 	return num_R * timeslice_num * bytes_per_timeslice + 3 * gauge_field_bytes;
 }
@@ -450,7 +456,7 @@ int main(int argc, char** argv) {
 
 	if (show_mem) {
 		cout << "This computation uses "
-				<< memory_used(level_operator_timeslice_defined, T, L, WL_Rs.size()) / 1000000.0
+				<< memory_used(level_thickness, level_operator_timeslice_defined, T, L, WL_Rs.size()) / 1000000.0
 				<< " MB memory.\n";
 		return 0;
 	}
