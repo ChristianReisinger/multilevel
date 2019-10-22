@@ -161,12 +161,15 @@ double memory_used(const std::vector<std::vector<int> >& level_thickness,
 
 	double timeslice_num = 0.0;
 	for (int level = 0; level < level_thickness.size(); ++level) {
+
 		int curr_level_tsl_num = 0;
 		for (const auto& operator_tsl : level_operator_timeslice_defined.at(level))
 			for (bool is_defined : operator_tsl.second)
 				if (is_defined)
 					curr_level_tsl_num += 1.0;
-		curr_level_tsl_num *= ((double) T) / std::accumulate(level_thickness[level].begin(), level_thickness[level].end(), 0);
+
+		const auto& tsl_sizes = level_thickness.at(level == 0 ? 1 : level);
+		curr_level_tsl_num *= ((double) T) / std::accumulate(tsl_sizes.begin(), tsl_sizes.end(), 0);
 		timeslice_num += curr_level_tsl_num;
 	}
 
