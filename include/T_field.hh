@@ -5,8 +5,8 @@
 
 #include <sublattice_algebra.hh>
 
-#ifndef INCLUDE_T_FIELD_HH_
-#define INCLUDE_T_FIELD_HH_
+#ifndef INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_T_FIELD_HH_
+#define INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_T_FIELD_HH_
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {
