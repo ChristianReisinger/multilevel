@@ -79,13 +79,11 @@ void MultilevelAnalyzer::compute_sublattice_fields(const int level) {
 			compute_sublattice_fields(level + 1);
 		}
 
-		//TODO free or zero before computing on next config at same level
-
 		auto start_time = std::chrono::steady_clock::now();
 		for (auto& op : LevelAccess::operators(*m_levels[level])) {
 			for (const int WL_R : m_WL_Rs) {
 				try {
-					for (int t : op.defined_ts(WL_R)) {
+					for (const int t : op.defined_ts(WL_R)) {
 						for (int x = 0; x < m_config->L; ++x) {
 							for (int y = 0; y < m_config->L; ++y) {
 								for (int z = 0; z < m_config->L; ++z) {
@@ -117,6 +115,9 @@ void MultilevelAnalyzer::compute_sublattice_fields(const int level) {
 			}
 		}
 		time_spent_computing_operators += std::chrono::steady_clock::now() - start_time;
+
+		if (!is_lowest)
+			LevelAccess::free_operators(*m_levels[level + 1]);
 	}
 	for (auto& op : LevelAccess::operators(*m_levels[level]))
 		for (const int WL_R : m_WL_Rs)

@@ -20,6 +20,9 @@ private:
 	inline static void alloc_operators(LevelDef& level, const std::set<int>& WL_Rs, int T, int L) {
 		level.alloc_operators(WL_Rs, T, L);
 	}
+	inline static void free_operators(LevelDef& level) {
+		level.free_operators();
+	}
 	inline static void set_levels(MultilevelConfig& config, std::vector<LevelDef*> levels) {
 		config.set_levels(levels);
 	}

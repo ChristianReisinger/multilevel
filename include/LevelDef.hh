@@ -29,6 +29,7 @@ public:
 
 private:
 	void alloc_operators(const std::set<int>& WL_Rs, int T, int L);
+	void free_operators();
 
 	int m_config_num = 1, m_update_num = 0;
 	std::vector<int> m_timeslice_sizes;

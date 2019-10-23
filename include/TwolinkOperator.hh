@@ -33,6 +33,7 @@ public:
 
 private:
 	void alloc_T_fields(const std::set<int>& WL_Rs, const std::vector<int>& timeslice_sizes, int T, int L);
+	void free_T_fields();
 
 	const std::string m_name;
 	const std::vector<bool> m_timeslice_isdefined;

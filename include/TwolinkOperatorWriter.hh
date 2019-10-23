@@ -16,6 +16,9 @@ private:
 			const std::vector<int>& timeslice_sizes, int T, int L) {
 		op.alloc_T_fields(WL_Rs, timeslice_sizes, T, L);
 	}
+	inline static void free_T_fields(TwolinkOperator& op) {
+		op.free_T_fields();
+	}
 	inline static T_field& field(TwolinkOperator& op, int WL_R) {
 		return op.m_r_fields.at(WL_R);
 	}

@@ -81,6 +81,10 @@ void TwolinkOperator::alloc_T_fields(const std::set<int>& WL_Rs,
 		m_r_fields.emplace(WL_R, T_field(timeslice_size_defined, T, L));
 }
 
+void TwolinkOperator::free_T_fields() {
+	m_r_fields.clear();
+}
+
 bool TwolinkOperator::valid_timeslice_def() {
 	bool valid = false;
 	for (bool b : m_timeslice_isdefined)

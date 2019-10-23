@@ -63,6 +63,11 @@ void LevelDef::alloc_operators(const std::set<int>& WL_Rs, int T, int L) {
 		TwolinkOperatorWriter::alloc_T_fields(op, WL_Rs, m_timeslice_sizes, T, L);
 }
 
+void LevelDef::free_operators() {
+	for(auto& op : m_operators)
+		TwolinkOperatorWriter::free_T_fields(op);
+}
+
 }
 }
 }
