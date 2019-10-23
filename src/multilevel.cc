@@ -228,7 +228,7 @@ std::vector<bool> parse_timeslice_defined(const std::string& timeslice_def_str) 
 	return timeslice_defined;
 }
 
-std::pair<bool, std::sregex_iterator> make_operators_it(const std::string& operators_str) {
+std::pair<bool, std::sregex_iterator> make_operator_parse_iterator(const std::string& operators_str) {
 	const std::string name_tsldef_regex = "(\\S+?):([.x]+):";
 	const std::string descr_T_regex = "(.*):(\\d+):"; //TODO T is not needed anymore .. computed automatically in TwolinkOperator class
 	const std::string factors_regex = "((?:(?: |\t)+\\S+)+)\n";
@@ -245,7 +245,7 @@ std::pair<bool, std::sregex_iterator> make_operators_it(const std::string& opera
 template<typename T>
 void parse_operators(LevelDef& level, const std::vector<T>& available_operators, const std::string& operators_str) {
 
-	auto istop_it = make_operators_it(operators_str);
+	auto istop_it = make_operator_parse_iterator(operators_str);
 	for (auto operator_it = istop_it.second; operator_it != std::sregex_iterator(); ++operator_it) {
 
 		const std::string operator_name = operator_it->str(1);
