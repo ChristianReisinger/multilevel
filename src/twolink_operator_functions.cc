@@ -3,7 +3,7 @@
 #include <LinkPath.hh>
 #include <linear_algebra.hh>
 #include <sublattice_algebra.hh>
-#include <twolink_operators.hh>
+#include <twolink_operator_functions.hh>
 #include <iostream>
 
 namespace de_uni_frankfurt_itp {
@@ -39,7 +39,7 @@ void clover(double* result, const double* sub_gauge_field, int T, int L,
 }
 
 void C_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep, int mu, int nu, bool bar) {
+		int t, int x, int y, int z, int dir, int rsep, int mu, int nu, bool bar) {
 	double clov[SUN_elems];
 	clover(clov, sub_gauge_field, T, L, { t, x, y, z }, mu, nu, bar);
 
@@ -50,7 +50,7 @@ void C_x_I(double* result, const double* sub_gauge_field, int T, int L,
 }
 
 void I_x_C(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep, int mu, int nu, bool bar) {
+		int t, int x, int y, int z, int dir, int rsep, int mu, int nu, bool bar) {
 	double clov[SUN_elems];
 	std::array<int, 4> n_clov = { t, x, y, z };
 	n_clov[dir] += rsep;
@@ -63,31 +63,29 @@ void I_x_C(double* result, const double* sub_gauge_field, int T, int L,
 }
 
 void U_x_U(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true);
 
 	LinkPath TR(sub_gauge_field, T, L, { t, x, y, z });
 	TR.move(dir, rsep)(0, true);
 
-	t += 1;
 	so_eq_cm_x_cm(result, T0.path, TR.path);
 }
 
 void UU_x_UU(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
 
 	LinkPath TR(sub_gauge_field, T, L, { t, x, y, z });
 	TR.move(dir, rsep)(0, true)(0, true);
 
-	t += 2;
 	so_eq_cm_x_cm(result, T0.path, TR.path);
 }
 
 void UU_x_UUEzlow(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
 
@@ -111,12 +109,11 @@ void UU_x_UUEzlow(double* result, const double* sub_gauge_field, int T, int L,
 
 	cm_eq_cm_ti_cm(U, TR.path, clov);
 
-	t += 2;
 	so_eq_cm_x_cm(result, T0.path, U);
 }
 
 void UU_x_EzuppUU(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t, x, y, z });
 	T0(0, true)(0, true);
 
@@ -140,116 +137,114 @@ void UU_x_EzuppUU(double* result, const double* sub_gauge_field, int T, int L,
 
 	cm_eq_cm_ti_cm(U, clov, TR.path);
 
-	t += 2;
 	so_eq_cm_x_cm(result, T0.path, U);
 }
 
 void I_x_Ex(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, z_rel_dir(1, dir));
 }
 void I_x_Exbar(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, z_rel_dir(1, dir), true);
 }
 void I_x_Ey(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, z_rel_dir(2, dir));
 }
 void I_x_Eybar(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, z_rel_dir(2, dir), true);
 }
 void I_x_Ez(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, dir);
 }
 void I_x_Ezbar(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, dir, true);
 }
 void I_x_Bx(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, z_rel_dir(2, dir), z_rel_dir(3, dir));
 }
 void I_x_Bxbar(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, z_rel_dir(2, dir), z_rel_dir(3, dir), true);
 }
 void I_x_By(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, z_rel_dir(3, dir), z_rel_dir(1, dir));
 }
 void I_x_Bybar(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, z_rel_dir(3, dir), z_rel_dir(1, dir), true);
 }
 void I_x_Bz(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, z_rel_dir(1, dir), z_rel_dir(2, dir));
 }
 void I_x_Bzbar(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	I_x_C(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, z_rel_dir(1, dir), z_rel_dir(2, dir), true);
 }
 
 void Ex_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, z_rel_dir(1, dir));
 }
 void Exbar_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, z_rel_dir(1, dir), true);
 }
 void Ey_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, z_rel_dir(2, dir));
 }
 void Eybar_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, z_rel_dir(2, dir), true);
 }
 void Ez_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, dir);
 }
 void Ezbar_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, 0, dir, true);
 }
 void Bx_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, z_rel_dir(2, dir), z_rel_dir(3, dir));
 }
 void Bxbar_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, z_rel_dir(2, dir), z_rel_dir(3, dir), true);
 }
 void By_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, z_rel_dir(3, dir), z_rel_dir(1, dir));
 }
 void Bybar_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, z_rel_dir(3, dir), z_rel_dir(1, dir), true);
 }
 void Bz_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, z_rel_dir(1, dir), z_rel_dir(2, dir));
 }
 void Bzbar_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	C_x_I(result, sub_gauge_field, T, L, t, x, y, z, dir, rsep, z_rel_dir(1, dir), z_rel_dir(2, dir), true);
 }
 
 void IU_x_IU(double* result, const double* sub_gauge_field, int T, int L,
-		int& t, int x, int y, int z, int dir, int rsep) {
+		int t, int x, int y, int z, int dir, int rsep) {
 	LinkPath T0(sub_gauge_field, T, L, { t + 1, x, y, z });
 	T0(0, true);
 	LinkPath TR(sub_gauge_field, T, L, { t + 1, x, y, z });
 	TR.move(dir, rsep)(0, true);
 
-	t += 2;
 	so_eq_cm_x_cm(result, T0.path, TR.path);
 }
 

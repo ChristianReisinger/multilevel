@@ -8,18 +8,21 @@
 #include <string>
 #include <chrono>
 #include <stdexcept>
+#include <algorithm>
 
 #include <fields.hh>
 #include <io.hh>
 #include <ranlux.hh>
 #include <heatbath.hh>
-
 #include <global_defs.hh>
 
 #include <sublattice_algebra.hh>
 #include <T_field.hh>
-
+#include <LevelDef.hh>
+#include <LevelAccess.hh>
+#include <TwolinkOperatorWriter.hh>
 #include <MultilevelConfig.hh>
+
 #include <MultilevelAnalyzer.hh>
 
 namespace de_uni_frankfurt_itp {
@@ -28,120 +31,97 @@ namespace multilevel_0819 {
 
 //public
 
-MultilevelAnalyzer::MultilevelAnalyzer(MultilevelConfig& multilevel_config, std::set<int> WL_Rs,
-		std::vector<std::map<std::string, std::vector<std::string> > > level_operator_factors,
-		std::vector<std::map<std::string, std::vector<bool> > > level_operator_timeslice_defined,
-		std::map<std::string, void (*)(double*, const double*, int, int, int&, int, int, int, int, int)> lowest_level_functions) :
-		config(&multilevel_config), WL_Rs(WL_Rs),
-				level_operator_factors(level_operator_factors), level_operator_timeslice_defined(level_operator_timeslice_defined),
-				lowest_level_functions(lowest_level_functions),
-				time_spent_computing_operators(0) {
+MultilevelAnalyzer::MultilevelAnalyzer(std::vector<LevelDef>& levels, MultilevelConfig& multilevel_config, std::set<int> WL_Rs) :
+		m_config(&multilevel_config), m_WL_Rs(WL_Rs) {
+
+	auto is_negative = [](int i) {
+		return i < 0;
+	};
+	if (valid_levels() || WL_Rs.empty() || std::count_if(WL_Rs.begin(), WL_Rs.end(), is_negative))
+		throw std::invalid_argument("invalid MultilevelAnalyzer");
+
+	for (auto& level : levels)
+		m_levels.push_back(&level);
+
+	LevelAccess::set_levels(multilevel_config, m_levels);
 }
 
-std::map<std::string, std::map<int, T_field> > MultilevelAnalyzer::compute_T_fields() {
-	std::map<std::string, std::map<int, T_field> > T_fields;
-	alloc_T_fields(T_fields, 0);
-	compute_sublattice_fields(T_fields, 0);
-	config->update(0);
-	return T_fields;
+void MultilevelAnalyzer::compute_T_fields() {
+	LevelAccess::alloc_operators(*m_levels[0], m_WL_Rs, m_config->T, m_config->L);
+	compute_sublattice_fields(0);
+	LevelAccess::update(*m_config, 0);
 }
 
-int MultilevelAnalyzer::milliseconds_spent_computing() {
+int MultilevelAnalyzer::milliseconds_spent_computing() const {
 	return std::chrono::duration_cast<std::chrono::milliseconds>(time_spent_computing_operators).count();
 }
 
 //private
 
-void MultilevelAnalyzer::compute_sublattice_fields(std::map<std::string, std::map<int, T_field> >& T_fields, const int level) {
-	const bool is_lowest = (level == level_operator_factors.size() - 1);
-	const int config_num = (level == 0 ? 1 : config->config_num(level));
+bool MultilevelAnalyzer::valid_levels() const {
+	return m_levels.size() > 1;
+}
+
+void MultilevelAnalyzer::compute_sublattice_fields(const int level) {
+	const bool is_lowest = (level == m_levels.size() - 1);
+	const int config_num = (level == 0 ? 1 : m_levels[level]->config_num());
 
 	for (int conf = 1; conf <= config_num; ++conf) {
-		config->update(level);
+		LevelAccess::update(*m_config, level);
 
-		std::remove_reference<decltype(T_fields)>::type	lower_level_fields;
 		double* lowest_level_gauge_field;
 		if (is_lowest)
-			config->get(lowest_level_gauge_field);
+			m_config->get(lowest_level_gauge_field);
 		else {
-			std::cerr << "Allocating sublattice fields on config '" << config->config_filename() << "' ... ";
-			alloc_T_fields(lower_level_fields, level + 1);
+			std::cerr << "Allocating sublattice fields on config '" << m_config->config_filename() << "' ... ";
+			LevelAccess::alloc_operators(*m_levels[level + 1], m_WL_Rs, m_config->T, m_config->L);
 			std::cerr << "ok\n";
-			compute_sublattice_fields(lower_level_fields, level + 1);
+			compute_sublattice_fields(level + 1);
 		}
 
 		auto start_time = std::chrono::steady_clock::now();
-		for (auto& name_rfields : T_fields) {
-			const std::string& name = name_rfields.first;
-			for (auto& r_fields : name_rfields.second) {
-				int WL_R = r_fields.first;
-				const T_field& field = r_fields.second;
+		for (auto& op : LevelAccess::operators(*m_levels[level])) {
+			for (const int WL_R : m_WL_Rs) {
 				try {
-					for (int t : field.defined_ts()) {
-						for (int x = 0; x < config->L; ++x) {
-							for (int y = 0; y < config->L; ++y) {
-								for (int z = 0; z < config->L; ++z) {
+					for (const int t : op.defined_ts(WL_R)) {
+						for (int x = 0; x < m_config->L; ++x) {
+							for (int y = 0; y < m_config->L; ++y) {
+								for (int z = 0; z < m_config->L; ++z) {
 									for (int i = 1; i < 4; ++i) {
 										double curr_operator[SO_elems];
 										so_eq_id(curr_operator);
 										int curr_t = t;
 
-										for (const std::string& factor_name : level_operator_factors.at(level).at(name)) {
-											double* factor;
-											if (is_lowest) {
-												factor = new double[SO_elems];
-												lowest_level_functions.at(factor_name)(
-														factor, lowest_level_gauge_field, config->T, config->L, curr_t, x, y, z, i, WL_R);
-												//curr_t is incremented by lowest_level_functions
-											} else {
-												factor = lower_level_fields.at(factor_name).at(WL_R).T_at(curr_t, x, y, z, i);
-												curr_t += lower_level_fields.at(factor_name).at(WL_R).timeslice_thickness();
-											}
+										for (const auto& factor : op.factors) {
+											double T_factor[SO_elems];
+											factor->at(T_factor, curr_t, x, y, z, i, WL_R,
+													lowest_level_gauge_field, m_config->T, m_config->L);
+											curr_t += factor->t_extent();
 
-											double Ttemp[SO_elems];
-											so_eq_so_ti_so(Ttemp, curr_operator, factor);
-											if (is_lowest)
-												delete[] factor;
-
-											so_eq_so(curr_operator, Ttemp);
+											double T_temp[SO_elems];
+											so_eq_so_ti_so(T_temp, curr_operator, T_factor);
+											so_eq_so(curr_operator, T_temp);
 										}
 
-										so_pl_eq_so(field.T_at(t, x, y, z, i), curr_operator);
+										so_pl_eq_so(TwolinkOperatorWriter::field(op, WL_R).T_at(t, x, y, z, i), curr_operator);
 									}
-
 								}
 							}
 						}
 					}
 				} catch (std::out_of_range& e) {
-					throw std::runtime_error("invalid definition of operator '" + name + "'");
+					throw std::runtime_error("invalid definition of operator '" + op.name() + "'");
 				}
-
 			}
 		}
 		time_spent_computing_operators += std::chrono::steady_clock::now() - start_time;
+
+		if (!is_lowest)
+			LevelAccess::free_operators(*m_levels[level + 1]);
 	}
-	for (auto& name_rfields : T_fields)
-		for (auto& r_field : name_rfields.second)
-			r_field.second /= config_num;
-}
-
-void MultilevelAnalyzer::alloc_T_fields(std::map<std::string, std::map<int, T_field> >& T_fields, const int level) {
-	for (const auto& fieldname_factors : level_operator_factors.at(level)) {
-		const std::string& name = fieldname_factors.first;
-		const std::vector<int> level_thickness = config->thickness(level == 0 ? 1 : level);
-
-		std::vector<std::pair<int, bool> > thickness_defined;
-		for (int i = 0; i < level_thickness.size(); ++i)
-			thickness_defined.push_back( { level_thickness.at(i),
-					level_operator_timeslice_defined.at(level).at(name).at(i) });
-
-		std::map<int, T_field> r_fields;
-		for (int WL_R : WL_Rs)
-			r_fields.insert( { WL_R, T_field(thickness_defined, config->T, config->L) });
-
-		T_fields.insert( { name, r_fields });
-	}
+	for (auto& op : LevelAccess::operators(*m_levels[level]))
+		for (const int WL_R : m_WL_Rs)
+			TwolinkOperatorWriter::field(op, WL_R) /= config_num;
 }
 
 }
