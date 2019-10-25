@@ -265,7 +265,7 @@ int main(int argc, char** argv) {
 		if (level_config_num.size() != levels.size()
 				|| (generate && level_updates.size() != levels.size()))
 			throw invalid_argument("invalid <level_config_num> or <level_updates>");
-		for (int lv_i = 0; lv_i <= levels.size(); ++lv_i) {
+		for (int lv_i = 0; lv_i < levels.size(); ++lv_i) {
 			levels[lv_i].config_num(level_config_num[lv_i]);
 			if (generate)
 				levels[lv_i].update_num(level_updates[lv_i]);
@@ -296,7 +296,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	double* gauge_field, * smeared_gauge_field;
+	double* gauge_field, *smeared_gauge_field;
 	multilevel_config.get(gauge_field);
 	Gauge_Field_Alloc_silent(&smeared_gauge_field, T, L);
 	Gauge_Field_Copy(smeared_gauge_field, gauge_field, T, L);
@@ -339,7 +339,7 @@ int main(int argc, char** argv) {
 				}
 
 				co_di_eq_re(&WL_avg, 3.0 * L * L * L);
-				const string filename = op.name();
+				const string filename = op.name() + "." + outfile_extension;
 				const string params = to_string(NAPE) + " " + to_string(WL_R) + " " + op.descr();
 				results[filename][params].emplace_back(ts.size(), WL_avg);
 			}
