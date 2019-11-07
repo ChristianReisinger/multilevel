@@ -1,7 +1,7 @@
 #include <string>
 #include <stdexcept>
 
-#include <OperatorFactor.hh>
+#include <FactorInterface.hh>
 #include <twolink_operator_functions.hh>
 
 #ifndef INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_TWOLINKCOMPUTER_HH_
@@ -11,7 +11,7 @@ namespace de_uni_frankfurt_itp {
 namespace reisinger {
 namespace multilevel_0819 {
 
-class TwolinkComputer: public OperatorFactor {
+class TwolinkComputer: public FactorInterface {
 public:
 	TwolinkComputer(std::string name, twolink_operator_sig (*computes_twolink), int t_extent);
 

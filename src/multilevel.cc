@@ -30,7 +30,7 @@
 #include <MultilevelAnalyzer.hh>
 #include <LevelDef.hh>
 #include <twolink_operator_functions.hh>
-#include <OperatorFactor.hh>
+#include <FactorInterface.hh>
 #include <TwolinkOperator.hh>
 #include <TwolinkComputer.hh>
 #include <parse_parameters.hh>

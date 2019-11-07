@@ -7,8 +7,9 @@
 #include <linear_algebra.hh>
 #include <helper_functions.hh>
 
-#include <TwolinkComputer.hh>
 #include <LevelDef.hh>
+#include <FactorInterface.hh>
+#include <TwolinkComputer.hh>
 #include <TwolinkOperator.hh>
 
 #include <parse_parameters.hh>
@@ -38,8 +39,8 @@ static const std::regex operator_format(name_tsldef_format + factors_regex);
 static const std::regex operator_format_top(name_tsldef_format + descr_T_format + factors_regex);
 
 template<typename T>
-std::vector<const OperatorFactor*> parse_operator_factors(const std::vector<T>& available_operators, const std::string& factor_str) {
-	std::vector<const OperatorFactor*> factors;
+std::vector<const FactorInterface*> parse_operator_factors(const std::vector<T>& available_operators, const std::string& factor_str) {
+	std::vector<const FactorInterface*> factors;
 	static const std::regex factor_format("(\\S+)");
 	for (std::sregex_iterator factor_it(factor_str.begin(), factor_str.end(), factor_format);
 			factor_it != std::sregex_iterator(); ++factor_it) {
@@ -50,7 +51,7 @@ std::vector<const OperatorFactor*> parse_operator_factors(const std::vector<T>& 
 		});
 
 		if (requested_factor_it != available_operators.end()) {
-			const OperatorFactor* f = &*requested_factor_it;
+			const FactorInterface* f = &*requested_factor_it;
 			factors.push_back(f);
 		} else
 			throw std::invalid_argument("Twolink operator '" + requested_factor_name + "' does not exist");

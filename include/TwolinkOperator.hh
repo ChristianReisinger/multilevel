@@ -4,7 +4,7 @@
 #include <set>
 #include <memory>
 
-#include <OperatorFactor.hh>
+#include <FactorInterface.hh>
 #include <T_field.hh>
 
 #ifndef INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_TWOLINKOPERATOR_HH_
@@ -14,9 +14,9 @@ namespace de_uni_frankfurt_itp {
 namespace reisinger {
 namespace multilevel_0819 {
 
-class TwolinkOperator: public OperatorFactor {
+class TwolinkOperator: public FactorInterface {
 public:
-	TwolinkOperator(std::string name, std::vector<bool> timeslice_isdefined, std::vector<const OperatorFactor*> factors);
+	TwolinkOperator(std::string name, std::vector<bool> timeslice_isdefined, std::vector<const FactorInterface*> factors);
 
 	int timeslice_num_per_cycle() const;
 	std::string descr() const;
@@ -29,7 +29,7 @@ public:
 	int timeslice_num() const;
 	std::set<int> defined_ts(int WL_R) const;
 
-	const std::vector<const OperatorFactor*> factors;
+	const std::vector<const FactorInterface*> factors;
 
 private:
 	void alloc_T_fields(const std::set<int>& WL_Rs, const std::vector<int>& timeslice_sizes, int T, int L);

@@ -6,7 +6,7 @@
 #include <global_defs.hh>
 #include <linear_algebra.hh>
 
-#include <OperatorFactor.hh>
+#include <FactorInterface.hh>
 #include <T_field.hh>
 #include <sublattice_algebra.hh>
 
@@ -17,13 +17,13 @@ namespace reisinger {
 namespace multilevel_0819 {
 
 TwolinkOperator::TwolinkOperator(std::string name, std::vector<bool> timeslice_isdefined,
-		std::vector<const OperatorFactor*> factors) :
+		std::vector<const FactorInterface*> factors) :
 		m_name(name), m_timeslice_isdefined(timeslice_isdefined), factors(factors), m_t_extent(0) {
 
 	if (name.empty() || factors.empty() || !valid_timeslice_def())
 		throw std::invalid_argument("invalid TwolinkOperator");
 
-	for (const OperatorFactor* def : factors)
+	for (const FactorInterface* def : factors)
 		m_t_extent += def->t_extent();
 
 }

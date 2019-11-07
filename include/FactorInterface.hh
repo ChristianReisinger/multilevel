@@ -9,15 +9,18 @@ namespace de_uni_frankfurt_itp {
 namespace reisinger {
 namespace multilevel_0819 {
 
-class OperatorFactor {
+class FactorInterface {
 public:
+	FactorInterface(const FactorInterface&) = delete;
+	FactorInterface(FactorInterface&&) = delete;
+	FactorInterface& operator=(const FactorInterface&) = delete;
+	FactorInterface& operator=(FactorInterface&&) = delete;
+	virtual ~FactorInterface() = default;
+
 	virtual std::string name() const = 0;
 	virtual int t_extent() const = 0;
 	virtual void at(double* result, int t, int x, int y, int z, int dir, int rsep,
 			const double* sub_gauge_field = nullptr, int T = 0, int L = 0) const = 0;
-
-protected:
-	virtual ~OperatorFactor() = default;
 };
 
 }
