@@ -11,10 +11,6 @@ namespace multilevel_0819 {
 
 class FactorInterface {
 public:
-	FactorInterface(const FactorInterface&) = delete;
-	FactorInterface(FactorInterface&&) = delete;
-	FactorInterface& operator=(const FactorInterface&) = delete;
-	FactorInterface& operator=(FactorInterface&&) = delete;
 	virtual ~FactorInterface() = default;
 
 	virtual std::string name() const = 0;
