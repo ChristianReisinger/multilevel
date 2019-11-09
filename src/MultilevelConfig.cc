@@ -34,8 +34,8 @@ MultilevelConfig::MultilevelConfig(const std::string& filestem, int top_level_id
 	if (filestem.empty() || top_level_id < 0)
 		throw std::invalid_argument("invalid MultilevelConfig");
 
-	Gauge_Field_Alloc(m_top_level_conf, T, L);
-	Gauge_Field_Alloc(m_config_buf, T, L);
+	latticetools_0719::Gauge_Field_Alloc(m_top_level_conf, T, L);
+	latticetools_0719::Gauge_Field_Alloc(m_config_buf, T, L);
 
 #if __SUN_N__ == 2
 	m_SUN_interface = tools::helper::make_unique<latticetools_0719::MCSU2Interface>(T, L, seed, beta);
@@ -47,8 +47,8 @@ MultilevelConfig::MultilevelConfig(const std::string& filestem, int top_level_id
 }
 
 MultilevelConfig::~MultilevelConfig() {
-	Gauge_Field_Free(m_config_buf);
-	Gauge_Field_Free(m_top_level_conf);
+	latticetools_0719::Gauge_Field_Free(m_config_buf);
+	latticetools_0719::Gauge_Field_Free(m_top_level_conf);
 }
 
 void MultilevelConfig::get(double*& gauge_field) const {
@@ -90,7 +90,7 @@ void MultilevelConfig::set_levels(std::vector<LevelDef*> levels) {
 void MultilevelConfig::update(int level) {
 	next_tag(level);
 	if (level == 0) {
-		Gauge_Field_Copy(m_config_buf, m_top_level_conf, get_T(), get_L());
+		latticetools_0719::Gauge_Field_Copy(m_config_buf, m_top_level_conf, get_T(), get_L());
 	} else if (m_generate) {
 		std::cerr << "Generating config '" << config_filename() << "' ... ";
 		auto start_time = std::chrono::steady_clock::now();
