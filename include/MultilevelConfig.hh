@@ -1,8 +1,10 @@
 #include <string>
 #include <vector>
 #include <chrono>
+#include <memory>
 
 #include <global_defs.hh>
+#include <SUNInterface.hh>
 
 #include <LevelDef.hh>
 
@@ -29,7 +31,8 @@ public:
 	void get(double*& gauge_field) const;
 	int milliseconds_spent_generating() const;
 
-	const int T, L;
+	int get_T() const;
+	int get_L() const;
 
 private:
 	void set_levels(std::vector<LevelDef*> levels);
@@ -50,6 +53,8 @@ private:
 	std::vector<int> m_tag;
 	double* m_top_level_conf;
 	double* m_config_buf;
+
+	std::unique_ptr<latticetools_0719::SUNInterface> m_SUN_interface;
 
 	std::chrono::steady_clock::duration m_time_spent_generating { 0 };
 
