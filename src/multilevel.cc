@@ -214,11 +214,12 @@ void open_outfiles(std::map<std::string, std::unique_ptr<std::ofstream> >& outfi
 
 int main(int argc, char** argv) {
 	using namespace std;
-	using de_uni_frankfurt_itp::reisinger::latticetools_0719::LinkPath;
-	using de_uni_frankfurt_itp::reisinger::tools::helper::parse_unsigned_int_list;
-	using de_uni_frankfurt_itp::reisinger::tools::io_tools::file_exists;
-	using de_uni_frankfurt_itp::reisinger::tools::helper::make_unique;
-	using namespace de_uni_frankfurt_itp::reisinger::multilevel_0819;
+	using namespace de_uni_frankfurt_itp::reisinger;
+	using namespace latticetools_0719;
+	using namespace multilevel_0819;
+	using tools::helper::parse_unsigned_int_list;
+	using tools::io_tools::file_exists;
+	using tools::helper::make_unique;
 
 	auto start_time = chrono::steady_clock::now();
 
