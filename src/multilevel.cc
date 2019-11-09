@@ -14,15 +14,13 @@
 #include <numeric>
 #include <algorithm>
 
-#include <fields.hh>
 #include <io.hh>
-#include <heatbath.hh>	//indirect dependency artifact ..
 #include <smearing_techniques.hh>
+#include <linear_algebra.hh>
 #include <geometry2.hh>
 #include <LinkPath.hh>
 #include <io_tools.hh>
 #include <helper_functions.hh>
-#include <linear_algebra.hh>
 
 #include <sublattice_algebra.hh>
 #include <T_field.hh>
@@ -298,7 +296,7 @@ int main(int argc, char** argv) {
 
 	double* gauge_field, *smeared_gauge_field;
 	multilevel_config.get(gauge_field);
-	Gauge_Field_Alloc_silent(&smeared_gauge_field, T, L);
+	Gauge_Field_Alloc(smeared_gauge_field, T, L);
 	Gauge_Field_Copy(smeared_gauge_field, gauge_field, T, L);
 
 //	***************************************************************************************************************************************
@@ -374,7 +372,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	Gauge_Field_Free(&smeared_gauge_field);
+	Gauge_Field_Free(smeared_gauge_field);
 
 	cout << "\nComputation time\n"
 			"\tfull program : " << chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start_time).count() << " s\n"

@@ -3,7 +3,6 @@
 #include <chrono>
 #include <memory>
 
-#include <global_defs.hh>
 #include <SUNInterface.hh>
 
 #include <LevelDef.hh>

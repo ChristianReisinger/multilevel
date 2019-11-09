@@ -9,10 +9,6 @@
 #include <stdexcept>
 
 #include <global_defs.hh>
-#include <fields.hh>
-#include <io.hh>
-#include <ranlux.hh>
-#include <heatbath.hh>
 #include <helper_functions.hh>
 #if __SUN_N__ == 2
 #include <MCSU2Interface.hh>
@@ -38,8 +34,8 @@ MultilevelConfig::MultilevelConfig(const std::string& filestem, int top_level_id
 	if (filestem.empty() || top_level_id < 0)
 		throw std::invalid_argument("invalid MultilevelConfig");
 
-	Gauge_Field_Alloc_silent(&m_top_level_conf, T, L);
-	Gauge_Field_Alloc_silent(&m_config_buf, T, L);
+	Gauge_Field_Alloc(m_top_level_conf, T, L);
+	Gauge_Field_Alloc(m_config_buf, T, L);
 
 #if __SUN_N__ == 2
 	m_SUN_interface = tools::helper::make_unique<latticetools_0719::MCSU2Interface>(T, L, seed, beta);
@@ -51,8 +47,8 @@ MultilevelConfig::MultilevelConfig(const std::string& filestem, int top_level_id
 }
 
 MultilevelConfig::~MultilevelConfig() {
-	Gauge_Field_Free(&m_config_buf);
-	Gauge_Field_Free(&m_top_level_conf);
+	Gauge_Field_Free(m_config_buf);
+	Gauge_Field_Free(m_top_level_conf);
 }
 
 void MultilevelConfig::get(double*& gauge_field) const {
