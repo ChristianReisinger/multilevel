@@ -12,21 +12,21 @@ endif()
 add_library(SUN_O OBJECT IMPORTED)
 if(NC EQUAL 2)
 	set_property(TARGET SUN_O PROPERTY IMPORTED_OBJECTS
-		"${SUN_PACKAGE}/io.o"
-		"${SUN_PACKAGE}/ranlxs.o"
-		"${SUN_PACKAGE}/ranlxd.o"
-		"${SUN_PACKAGE}/ranlux.o"
-		"${SUN_PACKAGE}/heatbath.o"
-		"${SUN_PACKAGE}/smearing_techniques.o"
+		"${LatticeTools_DIR}/lib/MCSU2Interface.o"
 		"${LatticeTools_DIR}/lib/LinkPath.o"
-		"${LatticeTools_DIR}/lib/MCSU2Inteferace.o"
+		"${SU2_PACKAGE}/io.o"
+		"${SU2_PACKAGE}/heatbath.o"
+		"${SU2_PACKAGE}/smearing_techniques.o"
+		"${SU2_PACKAGE}/ranlxs.o"
+		"${SU2_PACKAGE}/ranlxd.o"
+		"${SU2_PACKAGE}/ranlux.o"
 	)
 	set(SUN_PACKAGE "${SU2_PACKAGE}")
 elseif(NC EQUAL 3)
 	set_property(TARGET SUN_O PROPERTY IMPORTED_OBJECTS
-#		... CL2QCD libs ...
-		"${LatticeTools_DIR}/lib/LinkPath.o"
 		"${LatticeTools_DIR}/lib/CL2QCDInterface.o"
+		"${LatticeTools_DIR}/lib/LinkPath.o"
+#		... CL2QCD libs ...
 	)
 	set(SUN_PACKAGE "${SU3_PACKAGE}")
 endif()
@@ -44,26 +44,26 @@ find_library(HELPER_LIB helper_functions "${Tools_DIR}/lib")
 find_library(IOTOOLS_LIB io_tools "${Tools_DIR}/lib")
 
 add_library(mlvl
-	src/sublattice_algebra.cc
-	src/twolink_operator_functions.cc
-	src/T_field.cc
-	src/TwolinkComputer.cc
-	src/TwolinkOperator.cc
-	src/LevelDef.cc
-	src/MultilevelConfig.cc
 	src/MultilevelAnalyzer.cc
+	src/MultilevelConfig.cc
+	src/LevelDef.cc
+	src/TwolinkOperator.cc
+	src/TwolinkComputer.cc
+	src/T_field.cc
+	src/twolink_operator_functions.cc
+	src/sublattice_algebra.cc
 )
 target_compile_definitions(mlvl
 	PUBLIC __SUN_N__=${NC}
 )
 
 add_executable(multilevel
-	src/parse_parameters.cc
 	src/multilevel.cc
+	src/parse_parameters.cc
 )
 target_link_libraries(multilevel
+	mlvl
+	SUN_LIB
 	"${HELPER_LIB}"
 	"${IOTOOLS_LIB}"
-	SUN_LIB
-	mlvl
 )
