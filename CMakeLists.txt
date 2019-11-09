@@ -9,13 +9,29 @@ if(NOT NC MATCHES "^[23]$")
 	message(FATAL_ERROR "NC must be 2 or 3")
 endif()
 
+add_library(SUN_O OBJECT IMPORTED)
 if(NC EQUAL 2)
+	set_property(TARGET SUN_O PROPERTY IMPORTED_OBJECTS
+		"${SUN_PACKAGE}/io.o"
+		"${SUN_PACKAGE}/ranlxs.o"
+		"${SUN_PACKAGE}/ranlxd.o"
+		"${SUN_PACKAGE}/ranlux.o"
+		"${SUN_PACKAGE}/heatbath.o"
+		"${SUN_PACKAGE}/smearing_techniques.o"
+		"${LatticeTools_DIR}/lib/LinkPath.o"
+		"${LatticeTools_DIR}/lib/MCSU2Inteferace.o"
+	)
 	set(SUN_PACKAGE "${SU2_PACKAGE}")
-	set(SUN_INTERFACE_OBJ "${SU2Interface_OBJ}")
 elseif(NC EQUAL 3)
+	set_property(TARGET SUN_O PROPERTY IMPORTED_OBJECTS
+#		... CL2QCD libs ...
+		"${LatticeTools_DIR}/lib/LinkPath.o"
+		"${LatticeTools_DIR}/lib/CL2QCDInterface.o"
+	)
 	set(SUN_PACKAGE "${SU3_PACKAGE}")
-	set(SUN_INTERFACE_OBJ "${SU3Interface_OBJ}")
 endif()
+add_library(SUN_LIB $<TARGET_OBJECTS:SUN_O>)
+set_target_properties(SUN_LIB PROPERTIES LINKER_LANGUAGE CXX)
 
 include_directories(
 	"${Tools_DIR}/include"
@@ -26,14 +42,6 @@ include_directories(
 
 find_library(HELPER_LIB helper_functions "${Tools_DIR}/lib")
 find_library(IOTOOLS_LIB io_tools "${Tools_DIR}/lib")
-add_library(SUN_O OBJECT IMPORTED)
-set_property(TARGET SUN_O PROPERTY IMPORTED_OBJECTS
-	"${SUN_PACKAGE}/smearing_techniques.o"
-	"${LatticeTools_DIR}/lib/LinkPath.o"
-	"${SUN_INTERFACE_OBJ}"
-)
-add_library(SUN_LIB $<TARGET_OBJECTS:SUN_O>)
-set_target_properties(SUN_LIB PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(mlvl
 	src/sublattice_algebra.cc
