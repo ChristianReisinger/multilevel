@@ -27,17 +27,15 @@ include_directories(
 find_library(HELPER_LIB helper_functions "${Tools_DIR}/lib")
 find_library(IOTOOS_LIB io_tools "${Tools_DIR}/lib")
 add_library(SUN_O OBJECT IMPORTED)
-set_property(TARGET SUN_O IMPORTED_OBJECTS
+set_property(TARGET SUN_O PROPERTY IMPORTED_OBJECTS
 	"${SUN_PACKAGE}/smearing_techniques.o"
 	"${LatticeTools_DIR}/lib/LinkPath.o"
 	"${SUN_INTERFACE}"
 )
 add_library(SUN_LIB $<TARGET_OBJECTS:SUN_O>)
-set_target_properties(SUN_O LINKER_LANGUAGE CXX)
+set_target_properties(SUN_LIB PROPERTIES LINKER_LANGUAGE CXX)
 
 add_library(mlvl
-	"${HELPER_LIB}"
-	SUN_LIB
 	src/sublattice_algebra.cc
 	src/twolink_operator_functions.cc
 	src/T_field.cc
@@ -50,12 +48,17 @@ add_library(mlvl
 target_compile_definitions(mlvl
 	PUBLIC __SUN_N__=${NC}
 )
-
-add_library(multilevel
-	"${IOTOOLS_LIB}"
+target_link_libraries(mlvl
+	"${HELPER_LIB}"
 	SUN_LIB
-	parse_parameters.cc
-	multilevel.cc
+)
+
+add_executable(multilevel
+	src/parse_parameters.cc
+	src/multilevel.cc
 )
 target_link_libraries(multilevel
-
+	"${IOTOOLS_LIB}"
+	SUN_LIB
+	mlvl
+)
