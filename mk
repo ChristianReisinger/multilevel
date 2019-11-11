@@ -8,7 +8,7 @@ elif [ "$1" == clear ]; then
 elif [ "$1" == clean ]; then
 	(cd build
 	make clean)
-else if [ "$1" == "" ]; then
+elif [ "$1" == "" ]; then
 	(cd build
 	make)
 else
