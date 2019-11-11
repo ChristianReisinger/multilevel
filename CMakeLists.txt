@@ -26,7 +26,7 @@ elseif(NC EQUAL 3)
 	set_property(TARGET SUN_O PROPERTY IMPORTED_OBJECTS
 		"${LatticeTools_DIR}/lib/LinkPath.o"
 		"${LatticeTools_DIR}/lib/CL2QCDInterface.o"
-		
+		"${SU3_ROOT}/smearing_techniques.o"
 	)
 	set(SUN_ROOT "${SU3_ROOT}")
 endif()
@@ -39,6 +39,22 @@ include_directories(
 	"${SUN_ROOT}"
 	include
 )
+
+if(NC EQUAL 3)
+	target_include_directories(SUN_LIB PRIVATE
+		"${CL2QCD_ROOT}/build/meta"
+		"${CL2QCD_ROOT}/build/interfaceImplementations"
+		"${CL2QCD_ROOT}/build/hardware"
+		"${CL2QCD_ROOT}/build/physics"
+		"${CL2QCD_ROOT}/build/physics/lattices"
+		"${CL2QCD_ROOT}/build/physics/algorithms"
+	)
+	
+	find_library(PHYSICS_LIB physics "${CL2QCD_ROOT}/build/physics")
+	target_link_libraries(SUN_LIB PRIVATE
+		"${PHYSICS_LIB}"
+	)
+endif()
 
 find_library(HELPER_LIB helper_functions "${Tools_DIR}/lib")
 find_library(IOTOOLS_LIB io_tools "${Tools_DIR}/lib")
