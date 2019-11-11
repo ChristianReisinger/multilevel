@@ -10,10 +10,6 @@
 #include <stdexcept>
 #include <algorithm>
 
-#include <fields.hh>
-#include <io.hh>
-#include <ranlux.hh>
-#include <heatbath.hh>
 #include <global_defs.hh>
 
 #include <sublattice_algebra.hh>

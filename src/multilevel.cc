@@ -14,7 +14,6 @@
 #include <numeric>
 #include <algorithm>
 
-#include <io.hh>
 #include <smearing_techniques.hh>
 #include <linear_algebra.hh>
 #include <geometry2.hh>
