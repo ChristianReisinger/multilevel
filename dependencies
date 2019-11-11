@@ -1,4 +1,0 @@
-Tools_DIR=/home/reisinger/programs/Tools
-LatticeTools_DIR=/home/reisinger/programs/LatticeTools
-SU2_PACKAGE=/home/reisinger/programs/MC_heatbath_SU2/include
-SU3_PACKAGE=/home/reisinger/programs/ContractionCode_new

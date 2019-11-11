@@ -12,23 +12,23 @@ endif()
 add_library(SUN_O OBJECT IMPORTED)
 if(NC EQUAL 2)
 	set_property(TARGET SUN_O PROPERTY IMPORTED_OBJECTS
-		"${LatticeTools_DIR}/lib/MCSU2Interface.o"
 		"${LatticeTools_DIR}/lib/LinkPath.o"
-		"${SU2_PACKAGE}/io.o"
-		"${SU2_PACKAGE}/heatbath.o"
-		"${SU2_PACKAGE}/smearing_techniques.o"
-		"${SU2_PACKAGE}/ranlxs.o"
-		"${SU2_PACKAGE}/ranlxd.o"
-		"${SU2_PACKAGE}/ranlux.o"
+		"${LatticeTools_DIR}/lib/MCSU2Interface.o"
+		"${SU2_ROOT}/io.o"
+		"${SU2_ROOT}/heatbath.o"
+		"${SU2_ROOT}/smearing_techniques.o"
+		"${SU2_ROOT}/ranlxs.o"
+		"${SU2_ROOT}/ranlxd.o"
+		"${SU2_ROOT}/ranlux.o"
 	)
-	set(SUN_PACKAGE "${SU2_PACKAGE}")
+	set(SUN_ROOT "${SU2_ROOT}")
 elseif(NC EQUAL 3)
 	set_property(TARGET SUN_O PROPERTY IMPORTED_OBJECTS
-		"${LatticeTools_DIR}/lib/CL2QCDInterface.o"
 		"${LatticeTools_DIR}/lib/LinkPath.o"
-#		... CL2QCD libs ...
+		"${LatticeTools_DIR}/lib/CL2QCDInterface.o"
+		
 	)
-	set(SUN_PACKAGE "${SU3_PACKAGE}")
+	set(SUN_ROOT "${SU3_ROOT}")
 endif()
 add_library(SUN_LIB $<TARGET_OBJECTS:SUN_O>)
 set_target_properties(SUN_LIB PROPERTIES LINKER_LANGUAGE CXX)
@@ -36,7 +36,7 @@ set_target_properties(SUN_LIB PROPERTIES LINKER_LANGUAGE CXX)
 include_directories(
 	"${Tools_DIR}/include"
 	"${LatticeTools_DIR}/include"
-	"${SUN_PACKAGE}"
+	"${SUN_ROOT}"
 	include
 )
 
