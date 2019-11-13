@@ -11,8 +11,9 @@ elif [ "$1" == clear ]; then
 	rm -rf ../build/* ../bin/*
 elif [ "$1" == clean ]; then
 	make clean
+	rm -rf ../bin/*
 elif [ "$1" == "" ]; then
-	make
+	make install
 else
 	echo "Invalid target '$1'"
 fi
