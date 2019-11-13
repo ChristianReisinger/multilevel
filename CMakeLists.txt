@@ -6,26 +6,20 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++11")
 set(NC 2 CACHE STRING "number of colors for SU(NC)")
 
 if(NC EQUAL 2)
-	find_library(SUN_INTERFACE_LIB MCSU2Interface "${LatticeTools_ROOT}/lib/")
-	add_library(SUN_LIB 
+	find_library(SUN_INTERFACE_LIB MCSU2Interface "${LatticeTools_ROOT}/lib")
+	add_library(SU2_LIB 
 		"${SU2_ROOT}/io.o"
 		"${SU2_ROOT}/heatbath.o"
 		"${SU2_ROOT}/ranlxs.o"
 		"${SU2_ROOT}/ranlxd.o"
 		"${SU2_ROOT}/ranlux.o"
 	)
-	set_target_properties(SUN_LIB PROPERTIES LINKER_LANGUAGE CXX)
+	set_target_properties(SU2_LIB PROPERTIES LINKER_LANGUAGE CXX)
+	set(SUN_LIB SU2_LIB)
 	set(SUN_ROOT "${SU2_ROOT}")
 	
 elseif(NC EQUAL 3)
-	include_directories(
-		"${CL2QCD_ROOT}/build/meta"
-		"${CL2QCD_ROOT}/build/interfaceImplementations"
-		"${CL2QCD_ROOT}/build/hardware"
-		"${CL2QCD_ROOT}/build/physics"
-		"${CL2QCD_ROOT}/build/physics/lattices"
-		"${CL2QCD_ROOT}/build/physics/algorithms"
-	)
+	find_library(SUN_INTERFACE_LIB CL2QCDInterface "${LatticeTools_ROOT}/lib")
 	
 	find_library(RANLUX ranlux "${CL2QCD_ROOT}/build/ranlux")
 	find_library(META meta "${CL2QCD_ROOT}/build/meta")
@@ -133,7 +127,7 @@ target_link_libraries(multilevel
 	mlvl
 	"${SUN_INTERFACE_LIB}"
 	"${LINKPATH_LIB}"
-	SUN_LIB
+	"${SUN_LIB}"
 	SMEARING_LIB
 	"${HELPER_LIB}"
 	"${IOTOOLS_LIB}"
