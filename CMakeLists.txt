@@ -21,67 +21,73 @@ if(NC EQUAL 2)
 elseif(NC EQUAL 3)
 	find_library(SUN_INTERFACE_LIB CL2QCDInterface "${LatticeTools_ROOT}/lib")
 	
-	find_library(RANLUX ranlux "${CL2QCD_ROOT}/build/ranlux")
-	find_library(META meta "${CL2QCD_ROOT}/build/meta")
-	find_library(PHYSICS physics "${CL2QCD_ROOT}/build/physics")
 	find_library(PHYSICS_ALGORITHMS algorithms "${CL2QCD_ROOT}/build/physics/algorithms")
-	find_library(PHYSICS_ALGORITHMS_SOLVERS solvers "${CL2QCD_ROOT}/build/physics/algorithms/solvers")
-	find_library(PHYSICS_OBSERVABLES_1 observables "${CL2QCD_ROOT}/build/physics/observables")
-	find_library(PHYSICS_OBSERVABLES_2 gaugeObservables "${CL2QCD_ROOT}/build/physics/observables")
-	find_library(PHYSICS_FERMIONMATRIX fermionmatrix "${CL2QCD_ROOT}/build/physics/fermionmatrix")
-	find_library(PHYSICS_LATTICES_1 gaugefield "${CL2QCD_ROOT}/build/physics/lattices")
-	find_library(PHYSICS_LATTICES_2 lattices "${CL2QCD_ROOT}/build/physics/lattices")
-	find_library(PHYSICS prng "${CL2QCD_ROOT}/build/physics")
-	find_library(KLEPSYDRA klepsydra "${CL2QCD_ROOT}/build")
-	find_library(CRYPTO crypto "${CL2QCD_ROOT}/build/crypto")
-	find_library(HOST_FUNCTIONALITY_1 logger "${CL2QCD_ROOT}/build/host_functionality")
-	find_library(HOST_FUNCTIONALITY_2 host_functionality "${CL2QCD_ROOT}/build/host_functionality")
-	find_library(EXECUTABLES_1 executables "${CL2QCD_ROOT}/build/executables")
-	find_library(EXECUTABLES_2 exceptions "${CL2QCD_ROOT}/build/executables")
-	find_library(ILDG_IO_LIME lime "${CL2QCD_ROOT}/build/ildg_io/lime")
-	find_library(ILDG_IO_SOURCEFILEPARAMETERS sourcefileParameters "${CL2QCD_ROOT}/build/ildg_io/sourcefileParameters")
-	find_library(ILDG_IO ildg_io "${CL2QCD_ROOT}/build/ildg_io")
-	find_library(EINHARD einhard "${CL2QCD_ROOT}/build/einhard")
-	find_library(OPTIMAL optimal "${CL2QCD_ROOT}/build")
-	find_library(HARDWARE_BUFFERS buffers "${CL2QCD_ROOT}/build/hardware/buffers")
-	find_library(HARDWARE_1 hardwareTestUtilities "${CL2QCD_ROOT}/build/hardware")
-	find_library(HARDWARE_CODE_1 code "${CL2QCD_ROOT}/build/hardware/code")
-	find_library(HARDWARE_CODE_2 kernelTestUtilities "${CL2QCD_ROOT}/build/hardware/code")
-	find_library(HARDWARE_2 hardware "${CL2QCD_ROOT}/build/hardware")
+	find_library(PHYSICS_GAUGEFIELD gaugefield "${CL2QCD_ROOT}/build/physics/lattices")
+	find_library(PHYSICS_PRNG prng "${CL2QCD_ROOT}/build/physics")
+	find_library(META meta "${CL2QCD_ROOT}/build/meta")
+	find_library(HARDWARE hardware "${CL2QCD_ROOT}/build/hardware")
+	find_library(EXCEPTIONS exceptions "${CL2QCD_ROOT}/build/executables")
 	find_library(HARDWARE_LATTICES hardware_lattices "${CL2QCD_ROOT}/build/hardware/lattices")
-	find_library(HARDWARE_TRANSFER transfer "${CL2QCD_ROOT}/build/hardware/transfer")
+	find_library(ILDG_IO ildg_io "${CL2QCD_ROOT}/build/ildg_io")
+	find_library(CONTRACTIONCODE_IO contractioncode_io "${CL2QCD_ROOT}/build/contractioncode_io")
+	find_library(LOGGER logger "${CL2QCD_ROOT}/build/host_functionality")
+	find_library(EINHARD einhard "${CL2QCD_ROOT}/build/einhard")
+	find_library(HOST_FUNCTIONALITY host_functionality "${CL2QCD_ROOT}/build/host_functionality")
 	find_library(GEOMETRY geometry "${CL2QCD_ROOT}/build/geometry")
+	find_library(HARDWARE_CODE code "${CL2QCD_ROOT}/build/hardware/code")
+	find_library(HARDWARE_TRANSFER transfer "${CL2QCD_ROOT}/build/hardware/transfer")
+	find_library(HARDWARE_BUFFERS buffers "${CL2QCD_ROOT}/build/hardware/buffers")
+	find_library(RANLUX ranlux "${CL2QCD_ROOT}/build/ranlux")
+	find_library(CRYPTO crypto "${CL2QCD_ROOT}/build/crypto" NO_DEFAULT_PATH)
+	find_library(ILDG_IO_LIME lime "${CL2QCD_ROOT}/build/ildg_io/lime" NO_DEFAULT_PATH)
+	find_library(ILDG_IO_SOURCEFILEPARAMETERS sourcefileParameters "${CL2QCD_ROOT}/build/ildg_io/sourcefileParameters")
+
+	find_package(Boost 1.59.0 REQUIRED COMPONENTS regex filesystem system program_options unit_test_framework)
+	find_package(OpenCL REQUIRED)
+	find_package(LibXml2 REQUIRED)
+	list(APPEND CMAKE_MODULE_PATH "${CL2QCD_ROOT}/cmake")
+	find_package(Nettle REQUIRED)
+	find_package(LIME REQUIRED)
+	find_package(LAPACK REQUIRED)
+
+	include_directories(SYSTEM
+		${Boost_INCLUDE_DIRS}
+		${OPENCL_INCLUDE_DIRS}
+		${LIBXML2_INCLUDE_DIR}
+		${Nettle_INCLUDE_DIR}
+		${LIME_INCLUDE_DIR}
+		${LAPACK_INCLUDE_DIR}
+	)
+
 	set(SUN_LIB
-		"${RANLUX}"
-		"${META}"
-		"${PHYSICS}"
 		"${PHYSICS_ALGORITHMS}"
-		"${PHYSICS_ALGORITHMS_SOLVERS}"
-		"${PHYSICS_OBSERVABLES_1}"
-		"${PHYSICS_OBSERVABLES_2}"
-		"${PHYSICS_FERMIONMATRIX}"
-		"${PHYSICS_LATTICES_1}"
-		"${PHYSICS_LATTICES_2}"
-		"${PHYSICS}"
-		"${KLEPSYDRA}"
+		"${PHYSICS_GAUGEFIELD}"
+		"${PHYSICS_PRNG}"
+		"${META}"
+		"${HARDWARE}"
+		"${EXCEPTIONS}"
+		"${HARDWARE_LATTICES}"
+		"${ILDG_IO}"
+		"${CONTRACTIONCODE_IO}"
+		"${LOGGER}"
+		"${EINHARD}"
+		"${HOST_FUNCTIONALITY}"
+		"${GEOMETRY}"
+		"${HARDWARE_CODE}"
+		"${HARDWARE_TRANSFER}"
+		"${HARDWARE_BUFFERS}"
+		"${RANLUX}"
 		"${CRYPTO}"
-		"${HOST_FUNCTIONALITY_1}"
-		"${HOST_FUNCTIONALITY_2}"
-		"${EXECUTABLES_1}"
-		"${EXECUTABLES_2}"
 		"${ILDG_IO_LIME}"
 		"${ILDG_IO_SOURCEFILEPARAMETERS}"
-		"${ILDG_IO}"
-		"${EINHARD}"
-		"${OPTIMAL}"
-		"${HARDWARE_BUFFERS}"
-		"${HARDWARE_1}"
-		"${HARDWARE_CODE_1}"
-		"${HARDWARE_CODE_2}"
-		"${HARDWARE_2}"
-		"${HARDWARE_LATTICES}"
-		"${HARDWARE_TRANSFER}"
-		"${GEOMETRY}"
+#
+		"${SU3_ROOT}/fields.o"
+		"${Boost_LIBRARIES}"
+		"${OPENCL_LIBRARIES}"
+		"${LIBXML2_LIBRARIES}"
+		"${Nettle_LIBRARIES}"
+		"${LIME_LIBRARIES}"
+		"${LAPACK_LIBRARIES}"
 	)
 
 	set(SUN_ROOT "${SU3_ROOT}")
@@ -115,8 +121,9 @@ add_library(mlvl
 	src/twolink_operator_functions.cc
 	src/sublattice_algebra.cc
 )
-target_compile_definitions(mlvl
-	PUBLIC __SUN_N__=${NC}
+target_compile_definitions(mlvl PUBLIC
+	__SUN_N__=${NC}
+	F_
 )
 
 add_executable(multilevel
