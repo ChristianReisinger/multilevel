@@ -3,7 +3,7 @@
 #include <chrono>
 #include <memory>
 
-#include <SUNInterface.hh>
+#include <SUNGaugefield.hh>
 
 #include <LevelDef.hh>
 
@@ -53,7 +53,7 @@ private:
 	double* m_top_level_conf;
 	double* m_config_buf;
 
-	std::unique_ptr<latticetools_0719::SUNInterface> m_SUN_interface;
+	std::unique_ptr<latticetools_0719::SUNGaugefield> m_SUN_gaugefield;
 
 	std::chrono::steady_clock::duration m_time_spent_generating { 0 };
 

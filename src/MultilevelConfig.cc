@@ -11,9 +11,9 @@
 #include <global_defs.hh>
 #include <helper_functions.hh>
 #if __SUN_N__ == 2
-#include <MCSU2Interface.hh>
+#include <MCSU2Gaugefield.hh>
 #elif __SUN_N__ == 3
-#include <CL2QCDInterface.hh>
+#include <CL2QCDGaugefield.hh>
 #else
 #	error INVALID NC
 #endif
@@ -38,10 +38,10 @@ MultilevelConfig::MultilevelConfig(const std::string& filestem, int top_level_id
 	latticetools_0719::Gauge_Field_Alloc(m_config_buf, T, L);
 
 #if __SUN_N__ == 2
-	m_SUN_interface = tools::helper::make_unique<latticetools_0719::MCSU2Interface>(T, L, seed, beta);
+	m_SUN_gaugefield = tools::helper::make_unique<latticetools_0719::MCSU2Gaugefield>(T, L, seed, beta);
 #elif __SUN_N__ == 3
 	const int overrelax_steps = 0; //TODO
-	m_SUN_interface = tools::helper::make_unique<latticetools_0719::CL2QCDInterface>(T, L, seed, beta, overrelax_steps);
+	m_SUN_gaugefield = tools::helper::make_unique<latticetools_0719::CL2QCDGaugefield>(T, L, seed, beta, overrelax_steps);
 #endif
 
 }
@@ -64,11 +64,11 @@ int MultilevelConfig::milliseconds_spent_generating() const {
 }
 
 int MultilevelConfig::get_T() const {
-	return m_SUN_interface->get_T();
+	return m_SUN_gaugefield->get_T();
 }
 
 int MultilevelConfig::get_L() const {
-	return m_SUN_interface->get_L();
+	return m_SUN_gaugefield->get_L();
 }
 
 // private
@@ -82,7 +82,7 @@ void MultilevelConfig::set_levels(std::vector<LevelDef*> levels) {
 	if (m_generate) {
 		std::cerr << "Updating top level config ... ";
 		for (int i_swp = 0; i_swp < m_levels[0]->update_num(); ++i_swp)
-			m_SUN_interface->do_sweep(m_top_level_conf);
+			m_SUN_gaugefield->do_sweep(m_top_level_conf);
 		std::cerr << "ok\n";
 	}
 }
@@ -104,13 +104,13 @@ void MultilevelConfig::update(int level) {
 			}
 		}
 		for (int i_swp = 0; i_swp < m_levels.at(level)->update_num(); ++i_swp)
-			m_SUN_interface->do_sweep(m_config_buf, fixed_timeslices);
+			m_SUN_gaugefield->do_sweep(m_config_buf, fixed_timeslices);
 
 		m_time_spent_generating += std::chrono::steady_clock::now() - start_time;
 		std::cerr << "ok\n";
 	} else if (level == m_levels.size() - 1) {
-		std::cerr << "Reading config '" << config_filename() << "' ... ";
-		m_SUN_interface->read_gauge_field(m_config_buf, config_filename());
+		std::cerr << "Reading config '" << config_filepath() << "' ... ";
+		m_SUN_gaugefield->read_gauge_field(m_config_buf, config_filepath());
 		std::cerr << "ok\n";
 	}
 
@@ -145,7 +145,7 @@ void MultilevelConfig::write_config() const {
 			<< m_SUN_interface->get_beta() << " "
 			<< get_T() << " "
 			<< get_L();
-	m_SUN_interface->write_gauge_field(m_config_buf, config_filename, header_oss.str());
+	m_SUN_gaugefield->write_gauge_field(m_config_buf, config_filename, header_oss.str());
 }
 
 }
