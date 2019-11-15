@@ -65,7 +65,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const int level) {
 	for (int conf = 1; conf <= config_num; ++conf) {
 		LevelAccess::update(*m_config, level);
 
-		double* lowest_level_gauge_field;
+		const double* lowest_level_gauge_field;
 		if (is_lowest)
 			lowest_level_gauge_field = m_config->get();
 		else {
