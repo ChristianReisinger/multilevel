@@ -51,7 +51,6 @@ private:
 
 	std::vector<int> m_tag;
 	double* m_top_level_conf;
-	double* m_config_buf;
 
 	std::unique_ptr<latticetools_0719::SUNGaugefield> m_SUN_gaugefield;
 
