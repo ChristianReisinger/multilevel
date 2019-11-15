@@ -55,7 +55,7 @@ const double* MultilevelConfig::get() const {
 	return m_SUN_gaugefield->get();
 }
 
-std::string MultilevelConfig::config_filename() const {
+std::string MultilevelConfig::config_filepath() const {
 	return m_filestem + tag_to_string();
 }
 

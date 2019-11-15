@@ -26,7 +26,7 @@ public:
 	MultilevelConfig& operator=(const MultilevelConfig&) = delete;
 	MultilevelConfig& operator=(MultilevelConfig&&) = delete;
 
-	std::string config_filename() const;
+	std::string config_filepath() const;
 	const double* get() const;
 	int milliseconds_spent_generating() const;
 
