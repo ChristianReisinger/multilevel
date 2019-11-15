@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++11")
 set(NC 2 CACHE STRING "number of colors for SU(NC)")
 
 if(NC EQUAL 2)
-	find_library(SUN_INTERFACE_LIB MCSU2Interface "${LatticeTools_ROOT}/lib")
+	find_library(SUN_INTERFACE_LIB MCSU2Gaugefield "${LatticeTools_ROOT}/lib")
 	add_library(SU2_LIB 
 		"${SU2_ROOT}/io.o"
 		"${SU2_ROOT}/heatbath.o"
@@ -19,7 +19,7 @@ if(NC EQUAL 2)
 	set(SUN_ROOT "${SU2_ROOT}")
 	
 elseif(NC EQUAL 3)
-	find_library(SUN_INTERFACE_LIB CL2QCDInterface "${LatticeTools_ROOT}/lib")
+	find_library(SUN_INTERFACE_LIB CL2QCDGaugefield "${LatticeTools_ROOT}/lib")
 	
 	find_library(PHYSICS_ALGORITHMS algorithms "${CL2QCD_ROOT}/build/physics/algorithms")
 	find_library(PHYSICS_GAUGEFIELD gaugefield "${CL2QCD_ROOT}/build/physics/lattices")
