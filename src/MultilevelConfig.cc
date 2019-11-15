@@ -11,9 +11,9 @@
 #include <global_defs.hh>
 #include <helper_functions.hh>
 #if __SUN_N__ == 2
-#include <MCSU2Gaugefield.hh>
+#include <MCSU2Interface.hh>
 #elif __SUN_N__ == 3
-#include <CL2QCDGaugefield.hh>
+#include <CL2QCDInterface.hh>
 #else
 #	error INVALID NC
 #endif
@@ -38,13 +38,12 @@ MultilevelConfig::MultilevelConfig(const std::string& filestem, int top_level_id
 	latticetools_0719::Gauge_Field_Alloc(m_config_buf, T, L);
 
 #if __SUN_N__ == 2
-	m_SUN_interface = tools::helper::make_unique<latticetools_0719::MCSU2Gaugefield>(T, L, seed, beta);
+	m_SUN_interface = tools::helper::make_unique<latticetools_0719::MCSU2Interface>(T, L, seed, beta);
 #elif __SUN_N__ == 3
 	const int overrelax_steps = 0; //TODO
 	m_SUN_interface = tools::helper::make_unique<latticetools_0719::CL2QCDInterface>(T, L, seed, beta, overrelax_steps);
 #endif
 
-	m_SUN_interface->read_gauge_field(m_top_level_conf, config_filename());
 }
 
 MultilevelConfig::~MultilevelConfig() {
@@ -52,8 +51,8 @@ MultilevelConfig::~MultilevelConfig() {
 	latticetools_0719::Gauge_Field_Free(m_top_level_conf);
 }
 
-void MultilevelConfig::get(double*& gauge_field) const {
-	gauge_field = m_config_buf;
+const double* MultilevelConfig::get() const {
+	return m_SUN_gaugefield->get();
 }
 
 std::string MultilevelConfig::config_filename() const {
@@ -77,6 +76,8 @@ int MultilevelConfig::get_L() const {
 void MultilevelConfig::set_levels(std::vector<LevelDef*> levels) {
 	for (const auto* level : levels)
 		m_levels.push_back(level);
+
+	m_SUN_interface->read_gauge_field(m_top_level_conf, config_filename());
 
 	if (m_generate) {
 		std::cerr << "Updating top level config ... ";

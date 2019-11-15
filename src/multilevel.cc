@@ -294,8 +294,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	double* gauge_field, *smeared_gauge_field;
-	multilevel_config.get(gauge_field);
+	double* gauge_field = multilevel_config.get(), *smeared_gauge_field;
 	Gauge_Field_Alloc(smeared_gauge_field, T, L);
 	Gauge_Field_Copy(smeared_gauge_field, gauge_field, T, L);
 

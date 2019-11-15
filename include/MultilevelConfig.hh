@@ -27,7 +27,7 @@ public:
 	MultilevelConfig& operator=(MultilevelConfig&&) = delete;
 
 	std::string config_filename() const;
-	void get(double*& gauge_field) const;
+	const double* get() const;
 	int milliseconds_spent_generating() const;
 
 	int get_T() const;

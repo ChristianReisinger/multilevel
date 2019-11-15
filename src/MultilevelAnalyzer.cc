@@ -67,7 +67,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const int level) {
 
 		double* lowest_level_gauge_field;
 		if (is_lowest)
-			m_config->get(lowest_level_gauge_field);
+			lowest_level_gauge_field = m_config->get();
 		else {
 			std::cerr << "Allocating sublattice fields on config '" << m_config->config_filename() << "' ... ";
 			LevelAccess::alloc_operators(*m_levels[level + 1], m_WL_Rs, m_config->get_T(), m_config->get_L());
