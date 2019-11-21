@@ -23,7 +23,7 @@ public:
 private:
 	std::string m_name;
 	int m_t_extent;
-	twolink_operator_sig (*m_computes_twolink);
+	twolink_operator_sig *m_computes_twolink;
 };
 
 }

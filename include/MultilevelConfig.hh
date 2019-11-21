@@ -44,10 +44,10 @@ private:
 	const std::string m_filestem;
 	std::vector<const LevelDef*> m_levels { };
 
-	const bool m_generate;
 	const double m_beta;
 	const int m_seed;
 	const bool m_write;
+	const bool m_generate;
 
 	std::vector<int> m_tag;
 	double* m_top_level_conf;

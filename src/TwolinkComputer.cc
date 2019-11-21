@@ -8,7 +8,7 @@ namespace reisinger {
 namespace multilevel_0819 {
 
 TwolinkComputer::TwolinkComputer(std::string name, twolink_operator_sig (*computes_twolink), int t_extent) :
-		m_name(name), m_computes_twolink(computes_twolink), m_t_extent(t_extent) {
+		m_name(name), m_t_extent(t_extent), m_computes_twolink(computes_twolink) {
 	if (name.empty() || computes_twolink == nullptr || t_extent < 0)
 		throw std::invalid_argument("invalid TwolinkComputer");
 }
