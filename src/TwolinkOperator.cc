@@ -74,7 +74,7 @@ void TwolinkOperator::alloc_T_fields(const std::set<int>& WL_Rs,
 	std::vector<std::pair<int, bool> > timeslice_size_defined;
 	if (timeslice_sizes.size() != m_timeslice_isdefined.size())
 		throw std::invalid_argument("invalid timeslice definitions");
-	for (int tsl = 0; tsl < timeslice_sizes.size(); ++tsl)
+	for (size_t tsl = 0; tsl < timeslice_sizes.size(); ++tsl)
 		timeslice_size_defined.emplace_back(timeslice_sizes[tsl], m_timeslice_isdefined[tsl]);
 
 	for (int WL_R : WL_Rs)
