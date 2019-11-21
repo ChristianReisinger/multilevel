@@ -3,6 +3,7 @@
 .settings
 bin/
 build/
+lib/
 dependencies
 *.diff
 tests/su*

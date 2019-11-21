@@ -119,8 +119,12 @@ add_library(mlvl
 	src/TwolinkComputer.cc
 	src/T_field.cc
 	src/twolink_operator_functions.cc
+)
+
+add_library(sublattice_algebra SHARED
 	src/sublattice_algebra.cc
 )
+
 target_compile_definitions(mlvl PUBLIC
 	__SUN_N__=${NC}
 	F_
@@ -132,6 +136,7 @@ add_executable(multilevel
 )
 target_link_libraries(multilevel
 	mlvl
+	sublattice_algebra
 	"${SUN_INTERFACE_LIB}"
 	"${LINKPATH_LIB}"
 	"${SUN_LIB}"
@@ -140,4 +145,5 @@ target_link_libraries(multilevel
 	"${IOTOOLS_LIB}"
 )
 
+install(TARGETS sublattice_algebra DESTINATION "${CMAKE_SOURCE_DIR}/lib")
 install(TARGETS multilevel DESTINATION "${CMAKE_SOURCE_DIR}/bin")
