@@ -58,7 +58,7 @@ bool MultilevelAnalyzer::valid_levels() const {
 	return m_levels.size() > 1;
 }
 
-void MultilevelAnalyzer::compute_sublattice_fields(const int level) {
+void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 	const bool is_lowest = (level == m_levels.size() - 1);
 	const int config_num = (level == 0 ? 1 : m_levels[level]->config_num());
 

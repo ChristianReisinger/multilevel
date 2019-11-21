@@ -35,9 +35,9 @@ public:
 
 private:
 	void set_levels(std::vector<LevelDef*> levels);
-	void update(int level);
+	void update(size_t level);
 
-	void next_tag(int level);
+	void next_tag(size_t level);
 	std::string tag_to_string() const;
 	void write_config() const;
 

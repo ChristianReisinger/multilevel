@@ -30,7 +30,7 @@ public:
 private:
 
 	bool valid_levels() const;
-	void compute_sublattice_fields(const int level);
+	void compute_sublattice_fields(const size_t level);
 
 	std::vector<LevelDef*> m_levels;
 	MultilevelConfig* const m_config;

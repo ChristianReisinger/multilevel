@@ -84,7 +84,7 @@ void MultilevelConfig::set_levels(std::vector<LevelDef*> levels) {
 	latticetools_0719::Gauge_Field_Copy(m_top_level_conf, m_SUN_gaugefield->get(), get_T(), get_L());
 }
 
-void MultilevelConfig::update(int level) {
+void MultilevelConfig::update(size_t level) {
 	next_tag(level);
 	if (level == 0) {
 		m_SUN_gaugefield->set(m_top_level_conf);
@@ -115,7 +115,7 @@ void MultilevelConfig::update(int level) {
 		write_config();
 }
 
-void MultilevelConfig::next_tag(int level) {
+void MultilevelConfig::next_tag(size_t level) {
 	if (level == 0)
 		m_tag = std::vector<int> { m_tag.at(0) };
 	else if (level == m_tag.size() - 1)
@@ -130,7 +130,7 @@ void MultilevelConfig::next_tag(int level) {
 
 std::string MultilevelConfig::tag_to_string() const {
 	std::ostringstream tag_oss;
-	for (int level = 0; level < m_tag.size(); ++level)
+	for (size_t level = 0; level < m_tag.size(); ++level)
 		tag_oss << "." << std::setfill('0') << std::setw(log10(m_levels.at(level)->config_num()) + 1) << m_tag.at(level);
 	return tag_oss.str();
 }
