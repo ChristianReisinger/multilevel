@@ -39,7 +39,7 @@ void clover(double* result, const double* sub_gauge_field, int T, int L,
 }
 
 void C_x_I(double* result, const double* sub_gauge_field, int T, int L,
-		int t, int x, int y, int z, int dir, int rsep, int mu, int nu, bool bar) {
+		int t, int x, int y, int z, int, int, int mu, int nu, bool bar) {
 	double clov[SUN_elems];
 	clover(clov, sub_gauge_field, T, L, { t, x, y, z }, mu, nu, bar);
 
