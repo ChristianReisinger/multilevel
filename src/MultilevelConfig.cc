@@ -131,7 +131,7 @@ void MultilevelConfig::next_tag(size_t level) {
 std::string MultilevelConfig::tag_to_string() const {
 	std::ostringstream tag_oss;
 	for (size_t level = 0; level < m_tag.size(); ++level)
-		tag_oss << "." << std::setfill('0') << std::setw(log10(m_levels.at(level)->config_num()) + 1) << m_tag.at(level);
+		tag_oss << "." << m_tag.at(level);
 	return tag_oss.str();
 }
 
