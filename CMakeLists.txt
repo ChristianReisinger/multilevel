@@ -5,6 +5,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++11")
 
 set(NC 2 CACHE STRING "number of colors for SU(NC)")
 
+add_definitions(-D__SUN_N__=${NC})
+
 if(NC EQUAL 2)
 	find_library(SUN_INTERFACE_LIB MCSU2Gaugefield "${LatticeTools_ROOT}/lib")
 	add_library(SU2_LIB 
@@ -126,7 +128,6 @@ add_library(sublattice_algebra SHARED
 )
 
 target_compile_definitions(mlvl PUBLIC
-	__SUN_N__=${NC}
 	F_
 )
 
