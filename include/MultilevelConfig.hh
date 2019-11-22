@@ -34,7 +34,7 @@ public:
 	int get_L() const;
 
 private:
-	void set_levels(std::vector<LevelDef*> levels);
+	void set_levels(const std::vector<LevelDef*>& levels);
 	void update(size_t level);
 
 	void next_tag(size_t level);

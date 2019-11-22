@@ -71,9 +71,8 @@ int MultilevelConfig::get_L() const {
 
 // private
 
-void MultilevelConfig::set_levels(std::vector<LevelDef*> levels) {
-	for (const auto* level : levels)
-		m_levels.push_back(level);
+void MultilevelConfig::set_levels(const std::vector<LevelDef*>& levels) {
+	m_levels = std::vector<const LevelDef*>(levels.begin(), levels.end());
 
 	if (m_generate) {
 		std::cerr << "Updating top level config ... ";
