@@ -32,7 +32,7 @@ void I_x_C(double* result, const double* sub_gauge_field, int T, int L,
  */
 
 twolink_operator_sig U_x_U;
-twolink_operator_sig  UU_x_UU;
+twolink_operator_sig UU_x_UU;
 
 twolink_operator_sig UU_x_UUEzlow;
 twolink_operator_sig UU_x_EzuppUU;
