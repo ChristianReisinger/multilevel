@@ -33,7 +33,7 @@ MultilevelAnalyzer::MultilevelAnalyzer(std::vector<LevelDef>& levels, Multilevel
 	auto is_negative = [](int i) {
 		return i < 0;
 	};
-	if (valid_levels() || WL_Rs.empty() || std::count_if(WL_Rs.begin(), WL_Rs.end(), is_negative))
+	if (levels.size() < 1 || WL_Rs.empty() || std::count_if(WL_Rs.begin(), WL_Rs.end(), is_negative))
 		throw std::invalid_argument("invalid MultilevelAnalyzer");
 
 	for (auto& level : levels)
@@ -53,10 +53,6 @@ int MultilevelAnalyzer::milliseconds_spent_computing() const {
 }
 
 //private
-
-bool MultilevelAnalyzer::valid_levels() const {
-	return m_levels.size() > 1;
-}
 
 void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 	const bool is_lowest = (level == m_levels.size() - 1);
