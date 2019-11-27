@@ -263,6 +263,8 @@ int main(int argc, char** argv) {
 		if (level_config_num.size() != levels.size()
 				|| (generate && level_updates.size() != levels.size()))
 			throw invalid_argument("invalid <level_config_num> or <level_updates>");
+		if(level_config_num.at(0) != 1)
+			throw invalid_argument("number of configs at level 0 must be 1");
 		for (size_t lv_i = 0; lv_i < levels.size(); ++lv_i) {
 			levels[lv_i].config_num(level_config_num[lv_i]);
 			if (generate)
