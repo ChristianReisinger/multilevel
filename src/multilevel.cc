@@ -85,7 +85,7 @@ void print_help(char* argv0) {
 					"\t\t\tU_x_U, UU_x_UU, Ex_x_I, ex_x_I, Ey_x_I, ..., Bx_x_I, ..., I_x_Ex, ... .\n"
 					"\n"
 					"\t<config_prefix>\n"
-					"\t\tGauge config filename without id extension (.01, .01.01, etc.)\n"
+					"\t\tGauge config filename without id extension (.1, .1.1, etc.)\n"
 					"\n"
 					"\t<config_id>\n"
 					"\t\tID of the top-level config\n"
