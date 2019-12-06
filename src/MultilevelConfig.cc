@@ -29,7 +29,7 @@ namespace multilevel_0819 {
 MultilevelConfig::MultilevelConfig(const std::string& filestem, int top_level_id, int T, int L,
 		double beta, int seed, bool write) :
 		m_filestem(filestem),
-				m_beta(beta), m_seed(seed), m_write(write), m_generate(beta > 0 && seed > 0),
+				m_beta(beta), m_seed(seed), m_write(write), m_generate(beta > 0 && seed > 1),
 				m_tag( { top_level_id }) {
 
 	if (filestem.empty() || top_level_id < 0)
