@@ -27,7 +27,7 @@ namespace reisinger {
 namespace multilevel_0819 {
 
 MultilevelConfig::MultilevelConfig(const std::string& filestem, int top_level_id, int T, int L,
-		double beta, int seed, bool write) :
+		double beta, int seed, int overrelax_steps, bool write) :
 		m_filestem(filestem),
 				m_beta(beta), m_seed(seed), m_write(write), m_generate(beta > 0 && seed > 1),
 				m_tag( { top_level_id }) {
@@ -38,7 +38,6 @@ MultilevelConfig::MultilevelConfig(const std::string& filestem, int top_level_id
 #if __SUN_N__ == 2
 	m_SUN_gaugefield = tools::helper::make_unique<latticetools_0719::MCSU2Gaugefield>(T, L, seed, beta, config_filepath());
 #elif __SUN_N__ == 3
-	const int overrelax_steps = 0; //TODO
 	m_SUN_gaugefield = tools::helper::make_unique<latticetools_0719::CL2QCDGaugefield>(T, L, seed, beta, overrelax_steps, config_filepath());
 #endif
 

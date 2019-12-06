@@ -18,7 +18,7 @@ class MultilevelConfig {
 public:
 
 	MultilevelConfig(const std::string& filestem, int top_level_id, int T, int L,
-			double beta = 0, int seed = 0, bool write = false);
+			double beta = 0, int seed = 1, int overrelax_steps = 0, bool write = false);
 
 	~MultilevelConfig();
 	MultilevelConfig(const MultilevelConfig&) = delete;
