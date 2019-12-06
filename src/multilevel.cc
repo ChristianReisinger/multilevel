@@ -231,7 +231,7 @@ int main(int argc, char** argv) {
 
 //	Parameters ****************************************************************************************************************************
 
-	int T, L, config_lv0_id, seed = 0;
+	int T, L, config_lv0_id, seed = 1;
 	double beta = 0.0;
 	bool show_mem = false, generate = false, write = false;
 	set<int> WL_Rs, NAPEs;
@@ -241,7 +241,7 @@ int main(int argc, char** argv) {
 	try {
 		vector<int> level_updates;
 		handle_GNU_options(argc, argv, show_mem, generate, write, beta, seed, level_updates, outfile_extension);
-		if (generate && (beta <= 0.0 || seed <= 0))
+		if (generate && (beta <= 0.0 || seed <= 1))
 			throw invalid_argument("invalid <beta> or <seed>");
 
 		T = stoi(argv[1]);
