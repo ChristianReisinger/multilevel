@@ -246,6 +246,7 @@ int main(int argc, char** argv) {
 	string outfile_extension = "";
 	vector<LevelDef> levels;
 
+	cout << "Initializing multilevel algorithm ... \n";
 	try {
 		vector<int> level_updates;
 		handle_GNU_options(argc, argv, show_mem, generate, write, beta, seed, level_updates, overrelax_steps, outfile_extension);
@@ -297,13 +298,15 @@ int main(int argc, char** argv) {
 	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, beta, seed, overrelax_steps, write);
 	MultilevelAnalyzer multilevel(levels, multilevel_config, WL_Rs);
 
+	cout << "Computing temporal transporters ... \n";
 	try {
 		multilevel.compute_T_fields();
 	} catch (runtime_error& e) {
-		cout << "Error: " << e.what() << "\n";
+		cerr << "Error: " << e.what() << "\n";
 		return 1;
 	}
 
+	cout << "Computing Wilson loops ... \n";
 	double* smeared_gauge_field;
 	Gauge_Field_Alloc(smeared_gauge_field, T, L);
 	Gauge_Field_Copy(smeared_gauge_field, multilevel_config.get(), T, L);
@@ -355,6 +358,7 @@ int main(int argc, char** argv) {
 
 //	***************************************************************************************************************************************
 
+	cout << "Writing results to file ...\n";
 	map<string, unique_ptr<ofstream> > outfiles;
 	try {
 		set<string> filenames;
