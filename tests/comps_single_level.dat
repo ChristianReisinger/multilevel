@@ -1,0 +1,9 @@
+sizes T
+WL:xxxxxxxxxxxxxxxxxxxx:2:2:	UU_x_UU
+WL:xxxxxxxxxxxxxxxxxxxx:3:3:	UU_x_UU U_x_U
+WL:xxxxxxxxxxxxxxxxxxxx:4:4:	UU_x_UU UU_x_UU
+WL:xxxxxxxxxxxxxxxxxxxx:5:5:	UU_x_UU UU_x_UU U_x_U
+WL:xxxxxxxxxxxxxxxxxxxx:6:6:	UU_x_UU UU_x_UU UU_x_UU
+WL:xxxxxxxxxxxxxxxxxxxx:7:7:	UU_x_UU UU_x_UU UU_x_UU U_x_U
+WL:xxxxxxxxxxxxxxxxxxxx:8:8:	UU_x_UU UU_x_UU UU_x_UU UU_x_UU
+WL:xxxxxxxxxxxxxxxxxxxx:9:9:	UU_x_UU UU_x_UU UU_x_UU UU_x_UU U_x_U
