@@ -12,7 +12,7 @@ namespace reisinger {
 namespace multilevel_0819 {
 
 namespace parse_parameters {
-	std::vector<LevelDef> levels(const std::vector<TwolinkComputer>& twolink_computers, const std::string& compstr);
+	std::vector<LevelDef> levels(const std::vector<TwolinkComputer>& twolink_computers, const std::string& compstr, const int T);
 }
 
 }

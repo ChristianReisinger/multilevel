@@ -24,7 +24,7 @@ namespace {
 
 static const std::regex format(""
 		"(thickness \\d+(,\\d+)*\n+"
-		"((?!thickness)\\S+?:[.x]+:(( |\t)+\\S+)+\n+)+)+"
+		"((?!thickness)\\S+?:[.x]+:(( |\t)+\\S+)+\n+)+)*"
 		"thickness T\n+"
 		"((?!thickness)\\S+?:[.x]+:.*:\\d+:(( |\t)+\\S+)+\n+)+", std::regex::nosubs);
 
@@ -133,22 +133,24 @@ bool verify_timeslice_sizes(const std::vector<LevelDef>& levels) {
 
 }
 
-std::vector<LevelDef> levels(const std::vector<TwolinkComputer>& twolink_computers, const std::string& compstr) {
+std::vector<LevelDef> levels(const std::vector<TwolinkComputer>& twolink_computers, const std::string& compstr, const int T) {
 	std::vector<LevelDef> levels;
 	if (!std::regex_match(compstr, format))
 		throw std::runtime_error("invalid composition format");
 
 	const std::sregex_iterator level_begin(compstr.begin(), compstr.end(), level_format);
-	if (std::distance(level_begin, std::sregex_iterator()) < 2)
-		throw std::invalid_argument("less than 2 levels");
 
 	for (auto level_it = level_begin; level_it != std::sregex_iterator(); ++level_it) {
 
 		std::vector<int> timeslice_sizes;
 		const std::string size_str = level_it->str(1);
-		if (size_str == "T")
-			timeslice_sizes = levels[0].timeslice_sizes();
-		else
+		if (size_str == "T") {
+			if (levels.empty())
+				//single/only-top level case (not a real multilevel setup)
+				timeslice_sizes = std::vector<int>(T, 1);
+			else
+				timeslice_sizes = levels[0].timeslice_sizes();
+		} else
 			timeslice_sizes = tools::helper::parse_unsigned_int_list(size_str.c_str());
 		levels.insert(levels.begin(), LevelDef(timeslice_sizes));
 

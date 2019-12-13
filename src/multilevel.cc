@@ -267,7 +267,7 @@ int main(int argc, char** argv) {
 		ifstream compositions_ifs(argv[6]);
 		ostringstream compstr_oss;
 		compstr_oss << compositions_ifs.rdbuf();
-		levels = parse_parameters::levels(twolink_computers, compstr_oss.str());
+		levels = parse_parameters::levels(twolink_computers, compstr_oss.str(), T);
 
 		if (level_config_num.size() != levels.size()
 				|| (generate && level_updates.size() != levels.size()))
