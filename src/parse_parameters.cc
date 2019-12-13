@@ -23,14 +23,14 @@ namespace parse_parameters {
 namespace {
 
 static const std::regex format(""
-		"(thickness \\d+(,\\d+)*\n+"
-		"((?!thickness)\\S+?:[.x]+:(( |\t)+\\S+)+\n+)+)*"
-		"thickness T\n+"
-		"((?!thickness)\\S+?:[.x]+:.*:\\d+:(( |\t)+\\S+)+\n+)+", std::regex::nosubs);
+		"(sizes \\d+(,\\d+)*\n+"
+		"((?!sizes)\\S+?:[.x]+:(( |\t)+\\S+)+\n+)+)*"
+		"sizes T\n+"
+		"((?!sizes)\\S+?:[.x]+:.*:\\d+:(( |\t)+\\S+)+\n+)+", std::regex::nosubs);
 
 static const std::regex level_format(""
-		"thickness (\\d+(?:,\\d+)*|T)\n+"
-		"((?:(?!thickness)\\S+?:[.x]+(?::.*:\\d+)?:(?:(?: |\t)+\\S+)+\n+)+)");
+		"sizes (\\d+(?:,\\d+)*|T)\n+"
+		"((?:(?!sizes)\\S+?:[.x]+(?::.*:\\d+)?:(?:(?: |\t)+\\S+)+\n+)+)");
 
 static const std::string name_tsldef_format = "(\\S+?):([.x]+):";
 static const std::string descr_T_format = "(.*):(\\d+):"; //TODO T is not needed anymore .. computed automatically in TwolinkOperator class
