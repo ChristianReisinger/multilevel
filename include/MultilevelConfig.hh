@@ -1,8 +1,9 @@
 #include <string>
 #include <vector>
 #include <chrono>
+#include <memory>
 
-#include <global_defs.hh>
+#include <SUNGaugefield.hh>
 
 #include <LevelDef.hh>
 
@@ -17,7 +18,7 @@ class MultilevelConfig {
 public:
 
 	MultilevelConfig(const std::string& filestem, int top_level_id, int T, int L,
-			double beta = 0, int seed = 0, bool write = false);
+			double beta = 0, int seed = 1, int overrelax_steps = 0, bool write = false);
 
 	~MultilevelConfig();
 	MultilevelConfig(const MultilevelConfig&) = delete;
@@ -25,31 +26,33 @@ public:
 	MultilevelConfig& operator=(const MultilevelConfig&) = delete;
 	MultilevelConfig& operator=(MultilevelConfig&&) = delete;
 
-	std::string config_filename() const;
-	void get(double*& gauge_field) const;
+	std::string config_filepath() const;
+	const double* get() const;
 	int milliseconds_spent_generating() const;
 
-	const int T, L;
+	int get_T() const;
+	int get_L() const;
 
 private:
-	void set_levels(std::vector<LevelDef*> levels);
-	void update(int level);
+	void set_levels(const std::vector<LevelDef*>& levels);
+	void update(size_t level);
 
-	void next_tag(int level);
+	void next_tag(size_t level);
 	std::string tag_to_string() const;
 	void write_config() const;
 
 	const std::string m_filestem;
 	std::vector<const LevelDef*> m_levels { };
 
-	const bool m_generate;
 	const double m_beta;
 	const int m_seed;
 	const bool m_write;
+	const bool m_generate;
 
 	std::vector<int> m_tag;
 	double* m_top_level_conf;
-	double* m_config_buf;
+
+	std::unique_ptr<latticetools_0719::SUNGaugefield> m_SUN_gaugefield;
 
 	std::chrono::steady_clock::duration m_time_spent_generating { 0 };
 

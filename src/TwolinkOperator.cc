@@ -18,7 +18,7 @@ namespace multilevel_0819 {
 
 TwolinkOperator::TwolinkOperator(std::string name, std::vector<bool> timeslice_isdefined,
 		std::vector<const FactorInterface*> factors) :
-		m_name(name), m_timeslice_isdefined(timeslice_isdefined), factors(factors), m_t_extent(0) {
+		factors(factors), m_name(name), m_timeslice_isdefined(timeslice_isdefined), m_t_extent(0) {
 
 	if (name.empty() || factors.empty() || !valid_timeslice_def())
 		throw std::invalid_argument("invalid TwolinkOperator");
@@ -49,8 +49,7 @@ int TwolinkOperator::t_extent() const {
 }
 
 void TwolinkOperator::at(double* result, int t, int x, int y, int z, int dir, int rsep,
-		const double* sub_gauge_field, int T, int L) const {
-
+		const double*, int, int) const {
 	so_eq_so(result, m_r_fields.at(rsep).T_at(t, x, y, z, dir));
 }
 
@@ -74,7 +73,7 @@ void TwolinkOperator::alloc_T_fields(const std::set<int>& WL_Rs,
 	std::vector<std::pair<int, bool> > timeslice_size_defined;
 	if (timeslice_sizes.size() != m_timeslice_isdefined.size())
 		throw std::invalid_argument("invalid timeslice definitions");
-	for (int tsl = 0; tsl < timeslice_sizes.size(); ++tsl)
+	for (size_t tsl = 0; tsl < timeslice_sizes.size(); ++tsl)
 		timeslice_size_defined.emplace_back(timeslice_sizes[tsl], m_timeslice_isdefined[tsl]);
 
 	for (int WL_R : WL_Rs)

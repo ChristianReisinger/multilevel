@@ -14,15 +14,12 @@
 #include <numeric>
 #include <algorithm>
 
-#include <fields.hh>
-#include <io.hh>
-#include <heatbath.hh>	//indirect dependency artifact ..
 #include <smearing_techniques.hh>
+#include <linear_algebra.hh>
 #include <geometry2.hh>
 #include <LinkPath.hh>
 #include <io_tools.hh>
 #include <helper_functions.hh>
-#include <linear_algebra.hh>
 
 #include <sublattice_algebra.hh>
 #include <T_field.hh>
@@ -42,91 +39,95 @@ namespace multilevel_0819 {
 using latticetools_0719::SUN_elems;
 
 void print_help(char* argv0) {
-	std::cout << "Usage: " << argv0
-			<< " [-m] [-e <ext>] [-b <beta> -s <seed> -u <level_updates> [-w]] <T> <L> <WL_Rs> <NAPEs> <level_config_num> <composition_file> <config_prefix> <config_id>\n"
-					"\n"
-					"Parameters\n"
-					"\n"
-					"\t<T> <L>\n"
-					"\t\tlattice dimensions\n"
-					"\n"
-					"\t<WL_Rs>\n"
-					"\t\tspatial Wilson loop sizes\n"
-					"\n"
-					"\t<NAPEs>\n"
-					"\t\tlist of number of APE smearing steps. Spatial Wilson lines are smeared after computing temporal lines on\n"
-					"\t\tunsmeared gauge field with multilevel\n"
-					"\n"
-					"\t<level_config_num>\n"
-					"\t\tComma separated list of the number of configs at each level\n"
-					"\n"
-					"\t<composition_file>\n"
-					"\t\tFile containing operator composition definitions at each level, format:\n"
-					"\t\t\t(thickness <th>\n"
-					"\t\t\t(<name>:<timeslice_def>: <factor> ...\n"
-					"\t\t\t)...\n"
-					"\t\t\t)...\n"
-					"\t\t\tthickness T\n"
-					"\t\t\t(<file>:<timeslice_def>:<line_prefix>:<T>: <factors> ...\n"
-					"\t\t\t)...\n"
-					"\t\twhere levels are defined in order from lowest to highest and the top level is indicated by <th> = 'T'\n"
-					"\t\t('thickness T').\n"
-					"\t\t<th> is a comma separated list of timeslice thicknesses. If the total thickness does not fill the\n"
-					"\t\t\tlattice, the pattern is repeated periodically. Each level must define a partition of each timeslice\n"
-					"\t\t\tdefined at the next-lowest level.\n"
-					"\t\t<timeslice_def> is a string of '.' or 'x', with length equal to the number of entries in <th>, where the\n"
-					"\t\t\tn-th character 'x' / '.' indicates that the operator is / is not defined at the n-th timeslice. At top\n"
-					"\t\tlevel (level 0), <timeslice_def> corresponds to entries in <th> at level 1 instead.\n"
-					"\t\tOperators named <name> are defined as product of <factor>'s on the same line, where <factor> is one of\n"
-					"\t\t\tthe <name>'s defined at the next-lowest level.\n"
-					"\t\tAt top level, '<file>.<ext>' (or '<file>' if <ext> is empty) is the output file into which final results\n"
-					"\t\t\tare written.\n"
-					"\t\t<T> is the temporal size of the Wilson loop for each operator.\n"
-					"\t\t<line_prefix> (can be empty): output files have columns '<NAPE> <WL_R> <line_prefix> <re> <im>'.\n"
-					"\t\tResults for entries with equal <file> and <line_prefix> are averaged over.\n"
-					"\t\tPossible <name>'s at the lowest level are\n"
-					"\t\t\tU_x_U, UU_x_UU, Ex_x_I, ex_x_I, Ey_x_I, ..., Bx_x_I, ..., I_x_Ex, ... .\n"
-					"\n"
-					"\t<config_prefix>\n"
-					"\t\tGauge config filename without id extension (.01, .01.01, etc.)\n"
-					"\n"
-					"\t<config_id>\n"
-					"\t\tID of the top-level config\n"
-					"\n"
-					"\t<outfile>\n"
-					"\t\tOutput filename\n"
-					"\n"
-					"Options\n"
-					"\n"
-					"\t-m\n"
-					"\t\tshow required memory and exit\n"
-					"\n"
-					"\t-e <ext>\n"
-					"\t\tappend '.<ext>' to all output file names\n"
-					"\n"
-					"\t-b <beta> -s <seed> -u <level_updates> [-w]\n"
-					"\t\tThese options must be used together. When used, configs are generated during the multilevel algorithm\n"
-					"\t\tvia heatbath with <beta>, <seed> and <level_updates>. <level_updates> is a comma separated list of the\n"
-					"\t\tnumber of updates at each level in order from highest to lowest level; updates at level 0 are applied\n"
-					"\t\tonce to the initial config from file before computing observables.\n"
-					"\t\tWhen using also -w, generated configs are written to file with '.multilevel' appended to filenames.\n";
+	std::cout << "Usage: " << argv0 << ""
+			"\t[-m] [-e <ext>]\n"
+			"\t[-b <beta> -s <seed> -u <level_updates> [-r <overrelax_steps>] [-w]]\n"
+			"\t<T> <L> <WL_Rs> <NAPEs> <level_config_num> <composition_file> <config_prefix> <config_id>\n"
+			"\n"
+			"Parameters\n"
+			"\n"
+			"\t<T> <L>\n"
+			"\t\tlattice dimensions\n"
+			"\n"
+			"\t<WL_Rs>\n"
+			"\t\tspatial Wilson loop sizes\n"
+			"\n"
+			"\t<NAPEs>\n"
+			"\t\tlist of number of APE smearing steps. Spatial Wilson lines are smeared after computing temporal lines on\n"
+			"\t\tunsmeared gauge field with multilevel\n"
+			"\n"
+			"\t<level_config_num>\n"
+			"\t\tComma separated list of the number of configs at each level\n"
+			"\n"
+			"\t<composition_file>\n"
+			"\t\tFile containing operator composition definitions at each level, format:\n"
+			"\t\t\t(thickness <th>\n"
+			"\t\t\t(<name>:<timeslice_def>: <factor> ...\n"
+			"\t\t\t)...\n"
+			"\t\t\t)...\n"
+			"\t\t\tthickness T\n"
+			"\t\t\t(<file>:<timeslice_def>:<line_prefix>:<T>: <factors> ...\n"
+			"\t\t\t)...\n"
+			"\t\twhere levels are defined in order from lowest to highest and the top level is indicated by <th> = 'T'\n"
+			"\t\t('thickness T').\n"
+			"\t\t<th> is a comma separated list of timeslice thicknesses. If the total thickness does not fill the\n"
+			"\t\t\tlattice, the pattern is repeated periodically. Each level must define a partition of each timeslice\n"
+			"\t\t\tdefined at the next-lowest level.\n"
+			"\t\t<timeslice_def> is a string of '.' or 'x', with length equal to the number of entries in <th>, where the\n"
+			"\t\t\tn-th character 'x' / '.' indicates that the operator is / is not defined at the n-th timeslice. At top\n"
+			"\t\tlevel (level 0), <timeslice_def> corresponds to entries in <th> at level 1 instead.\n"
+			"\t\tOperators named <name> are defined as product of <factor>'s on the same line, where <factor> is one of\n"
+			"\t\t\tthe <name>'s defined at the next-lowest level.\n"
+			"\t\tAt top level, '<file>.<ext>' (or '<file>' if <ext> is empty) is the output file into which final results\n"
+			"\t\t\tare written.\n"
+			"\t\t<T> is the temporal size of the Wilson loop for each operator.\n"
+			"\t\t<line_prefix> (can be empty): output files have columns '<NAPE> <WL_R> <line_prefix> <re> <im>'.\n"
+			"\t\tResults for entries with equal <file> and <line_prefix> are averaged over.\n"
+			"\t\tPossible <name>'s at the lowest level are\n"
+			"\t\t\tU_x_U, UU_x_UU, Ex_x_I, ex_x_I, Ey_x_I, ..., Bx_x_I, ..., I_x_Ex, ... .\n"
+			"\n"
+			"\t<config_prefix>\n"
+			"\t\tGauge config filename without id extension (.1, .1.1, etc.)\n"
+			"\n"
+			"\t<config_id>\n"
+			"\t\tID of the top-level config\n"
+			"\n"
+			"\t<outfile>\n"
+			"\t\tOutput filename\n"
+			"\n"
+			"Options\n"
+			"\n"
+			"\t-m\n"
+			"\t\tshow required memory and exit\n"
+			"\n"
+			"\t-e <ext>\n"
+			"\t\tappend '.<ext>' to all output file names\n"
+			"\n"
+			"\t-b <beta> -s <seed> -u <level_updates> [-w] [-r <overrelax_steps>]\n"
+			"\t\tThese options must be used together. When used, configs are generated during the multilevel algorithm\n"
+			"\t\tvia heatbath with <beta>, <seed> and <level_updates>. <level_updates> is a comma separated list of the\n"
+			"\t\tnumber of updates at each level in order from highest to lowest level; updates at level 0 are applied\n"
+			"\t\tonce to the initial config from file before computing observables.\n"
+			"\t\tSet number of overrelaxation steps with -r (default is 0), has no effect for SU(2) build.\n"
+			"\t\tWhen using also -w, generated configs are written to file with '.multilevel' appended to filenames.\n";
 }
 
 void handle_GNU_options(int argc, char**& argv, bool& show_mem,
-		bool& generate, bool& write, double& beta, int& seed, std::vector<int>& level_updates,
+		bool& generate, bool& write, double& beta, int& seed, std::vector<int>& level_updates, int& overrelax_steps,
 		std::string& extension) {
 	static struct option long_opts[] = {
 			{ "mem", no_argument, 0, 'm' },
 			{ "beta", required_argument, 0, 'b' },
 			{ "seed", required_argument, 0, 's' },
 			{ "updates", required_argument, 0, 'u' },
+			{ "overrelax", required_argument, 0, 'r' },
 			{ "write", no_argument, 0, 'w' },
 			{ "extension", no_argument, 0, 'e' },
 			{ 0, 0, 0, 0 }
 	};
 
 	int opt = -1, long_opts_i = 0;
-	while ((opt = getopt_long(argc, argv, "mb:s:u:we:", long_opts, &long_opts_i)) != -1) {
+	while ((opt = getopt_long(argc, argv, "mb:s:u:r:we:", long_opts, &long_opts_i)) != -1) {
 		switch (opt) {
 			case 'm':
 				show_mem = true;
@@ -142,6 +143,10 @@ void handle_GNU_options(int argc, char**& argv, bool& show_mem,
 			case 'u':
 				generate = true;
 				level_updates = tools::helper::parse_unsigned_int_list(optarg);
+			break;
+			case 'r':
+				generate = true;
+				overrelax_steps = std::stoi(optarg);
 			break;
 			case 'w':
 				generate = true;
@@ -216,11 +221,12 @@ void open_outfiles(std::map<std::string, std::unique_ptr<std::ofstream> >& outfi
 
 int main(int argc, char** argv) {
 	using namespace std;
-	using de_uni_frankfurt_itp::reisinger::latticetools_0719::LinkPath;
-	using de_uni_frankfurt_itp::reisinger::tools::helper::parse_unsigned_int_list;
-	using de_uni_frankfurt_itp::reisinger::tools::io_tools::file_exists;
-	using de_uni_frankfurt_itp::reisinger::tools::helper::make_unique;
-	using namespace de_uni_frankfurt_itp::reisinger::multilevel_0819;
+	using namespace de_uni_frankfurt_itp::reisinger;
+	using namespace latticetools_0719;
+	using namespace multilevel_0819;
+	using tools::helper::parse_unsigned_int_list;
+	using tools::io_tools::file_exists;
+	using tools::helper::make_unique;
 
 	auto start_time = chrono::steady_clock::now();
 
@@ -233,17 +239,18 @@ int main(int argc, char** argv) {
 
 //	Parameters ****************************************************************************************************************************
 
-	int T, L, config_lv0_id, seed = 0;
+	int T, L, config_lv0_id, seed = 1, overrelax_steps = 0;
 	double beta = 0.0;
 	bool show_mem = false, generate = false, write = false;
 	set<int> WL_Rs, NAPEs;
 	string outfile_extension = "";
 	vector<LevelDef> levels;
 
+	cout << "Initializing multilevel algorithm ... \n";
 	try {
 		vector<int> level_updates;
-		handle_GNU_options(argc, argv, show_mem, generate, write, beta, seed, level_updates, outfile_extension);
-		if (generate && (beta <= 0.0 || seed <= 0))
+		handle_GNU_options(argc, argv, show_mem, generate, write, beta, seed, level_updates, overrelax_steps, outfile_extension);
+		if (generate && (beta <= 0.0 || seed <= 1))
 			throw invalid_argument("invalid <beta> or <seed>");
 
 		T = stoi(argv[1]);
@@ -265,7 +272,9 @@ int main(int argc, char** argv) {
 		if (level_config_num.size() != levels.size()
 				|| (generate && level_updates.size() != levels.size()))
 			throw invalid_argument("invalid <level_config_num> or <level_updates>");
-		for (int lv_i = 0; lv_i < levels.size(); ++lv_i) {
+		if (level_config_num.at(0) != 1)
+			throw invalid_argument("number of configs at level 0 must be 1");
+		for (size_t lv_i = 0; lv_i < levels.size(); ++lv_i) {
 			levels[lv_i].config_num(level_config_num[lv_i]);
 			if (generate)
 				levels[lv_i].update_num(level_updates[lv_i]);
@@ -286,20 +295,21 @@ int main(int argc, char** argv) {
 
 //	***************************************************************************************************************************************
 
-	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, beta, seed, write);
+	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, beta, seed, overrelax_steps, write);
 	MultilevelAnalyzer multilevel(levels, multilevel_config, WL_Rs);
 
+	cout << "Computing temporal transporters ... \n";
 	try {
 		multilevel.compute_T_fields();
 	} catch (runtime_error& e) {
-		cout << "Error: " << e.what() << "\n";
+		cerr << "Error: " << e.what() << "\n";
 		return 1;
 	}
 
-	double* gauge_field, *smeared_gauge_field;
-	multilevel_config.get(gauge_field);
-	Gauge_Field_Alloc_silent(&smeared_gauge_field, T, L);
-	Gauge_Field_Copy(smeared_gauge_field, gauge_field, T, L);
+	cout << "Computing Wilson loops ... \n";
+	double* smeared_gauge_field;
+	Gauge_Field_Alloc(smeared_gauge_field, T, L);
+	Gauge_Field_Copy(smeared_gauge_field, multilevel_config.get(), T, L);
 
 //	***************************************************************************************************************************************
 
@@ -348,6 +358,7 @@ int main(int argc, char** argv) {
 
 //	***************************************************************************************************************************************
 
+	cout << "Writing results to file ...\n";
 	map<string, unique_ptr<ofstream> > outfiles;
 	try {
 		set<string> filenames;
@@ -374,7 +385,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	Gauge_Field_Free(&smeared_gauge_field);
+	Gauge_Field_Free(smeared_gauge_field);
 
 	cout << "\nComputation time\n"
 			"\tfull program : " << chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start_time).count() << " s\n"

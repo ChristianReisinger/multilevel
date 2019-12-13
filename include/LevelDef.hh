@@ -2,9 +2,7 @@
 #include <set>
 
 #include <global_defs.hh>
-#include <linear_algebra.hh>
 
-#include <sublattice_algebra.hh>
 #include <TwolinkOperator.hh>
 
 #ifndef INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_LEVELDEF_HH_

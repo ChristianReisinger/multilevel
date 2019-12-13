@@ -23,10 +23,10 @@ private:
 	inline static void free_operators(LevelDef& level) {
 		level.free_operators();
 	}
-	inline static void set_levels(MultilevelConfig& config, std::vector<LevelDef*> levels) {
+	inline static void set_levels(MultilevelConfig& config, const std::vector<LevelDef*>& levels) {
 		config.set_levels(levels);
 	}
-	inline static void update(MultilevelConfig& config, int level) {
+	inline static void update(MultilevelConfig& config, size_t level) {
 		config.update(level);
 	}
 

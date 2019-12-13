@@ -10,10 +10,6 @@
 #include <stdexcept>
 #include <algorithm>
 
-#include <fields.hh>
-#include <io.hh>
-#include <ranlux.hh>
-#include <heatbath.hh>
 #include <global_defs.hh>
 
 #include <sublattice_algebra.hh>
@@ -37,7 +33,7 @@ MultilevelAnalyzer::MultilevelAnalyzer(std::vector<LevelDef>& levels, Multilevel
 	auto is_negative = [](int i) {
 		return i < 0;
 	};
-	if (valid_levels() || WL_Rs.empty() || std::count_if(WL_Rs.begin(), WL_Rs.end(), is_negative))
+	if (levels.size() < 1 || WL_Rs.empty() || std::count_if(WL_Rs.begin(), WL_Rs.end(), is_negative))
 		throw std::invalid_argument("invalid MultilevelAnalyzer");
 
 	for (auto& level : levels)
@@ -47,7 +43,7 @@ MultilevelAnalyzer::MultilevelAnalyzer(std::vector<LevelDef>& levels, Multilevel
 }
 
 void MultilevelAnalyzer::compute_T_fields() {
-	LevelAccess::alloc_operators(*m_levels[0], m_WL_Rs, m_config->T, m_config->L);
+	LevelAccess::alloc_operators(*m_levels[0], m_WL_Rs, m_config->get_T(), m_config->get_L());
 	compute_sublattice_fields(0);
 	LevelAccess::update(*m_config, 0);
 }
@@ -58,23 +54,19 @@ int MultilevelAnalyzer::milliseconds_spent_computing() const {
 
 //private
 
-bool MultilevelAnalyzer::valid_levels() const {
-	return m_levels.size() > 1;
-}
-
-void MultilevelAnalyzer::compute_sublattice_fields(const int level) {
+void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 	const bool is_lowest = (level == m_levels.size() - 1);
 	const int config_num = (level == 0 ? 1 : m_levels[level]->config_num());
 
 	for (int conf = 1; conf <= config_num; ++conf) {
 		LevelAccess::update(*m_config, level);
 
-		double* lowest_level_gauge_field;
+		const double* lowest_level_gauge_field = nullptr;
 		if (is_lowest)
-			m_config->get(lowest_level_gauge_field);
+			lowest_level_gauge_field = m_config->get();
 		else {
-			std::cerr << "Allocating sublattice fields on config '" << m_config->config_filename() << "' ... ";
-			LevelAccess::alloc_operators(*m_levels[level + 1], m_WL_Rs, m_config->T, m_config->L);
+			std::cerr << "Allocating sublattice fields on config '" << m_config->config_filepath() << "' ... ";
+			LevelAccess::alloc_operators(*m_levels[level + 1], m_WL_Rs, m_config->get_T(), m_config->get_L());
 			std::cerr << "ok\n";
 			compute_sublattice_fields(level + 1);
 		}
@@ -84,9 +76,9 @@ void MultilevelAnalyzer::compute_sublattice_fields(const int level) {
 			for (const int WL_R : m_WL_Rs) {
 				try {
 					for (const int t : op.defined_ts(WL_R)) {
-						for (int x = 0; x < m_config->L; ++x) {
-							for (int y = 0; y < m_config->L; ++y) {
-								for (int z = 0; z < m_config->L; ++z) {
+						for (int x = 0; x < m_config->get_L(); ++x) {
+							for (int y = 0; y < m_config->get_L(); ++y) {
+								for (int z = 0; z < m_config->get_L(); ++z) {
 									for (int i = 1; i < 4; ++i) {
 										double curr_operator[SO_elems];
 										so_eq_id(curr_operator);
@@ -95,7 +87,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const int level) {
 										for (const auto& factor : op.factors) {
 											double T_factor[SO_elems];
 											factor->at(T_factor, curr_t, x, y, z, i, WL_R,
-													lowest_level_gauge_field, m_config->T, m_config->L);
+													lowest_level_gauge_field, m_config->get_T(), m_config->get_L());
 											curr_t += factor->t_extent();
 
 											double T_temp[SO_elems];

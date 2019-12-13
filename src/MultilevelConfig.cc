@@ -9,10 +9,14 @@
 #include <stdexcept>
 
 #include <global_defs.hh>
-#include <fields.hh>
-#include <io.hh>
-#include <ranlux.hh>
-#include <heatbath.hh>
+#include <helper_functions.hh>
+#if __SUN_N__ == 2
+#include <MCSU2Gaugefield.hh>
+#elif __SUN_N__ == 3
+#include <CL2QCDGaugefield.hh>
+#else
+#	error INVALID NC
+#endif
 
 #include <LevelDef.hh>
 
@@ -23,27 +27,32 @@ namespace reisinger {
 namespace multilevel_0819 {
 
 MultilevelConfig::MultilevelConfig(const std::string& filestem, int top_level_id, int T, int L,
-		double beta, int seed, bool write) :
-		m_filestem(filestem), m_tag( { top_level_id }), T(T), L(L),
-				m_beta(beta), m_seed(seed), m_write(write), m_generate(beta > 0 && seed > 0) {
+		double beta, int seed, int overrelax_steps, bool write) :
+		m_filestem(filestem),
+				m_beta(beta), m_seed(seed), m_write(write), m_generate(beta > 0 && seed > 1),
+				m_tag( { top_level_id }) {
 
 	if (filestem.empty() || top_level_id < 0)
 		throw std::invalid_argument("invalid MultilevelConfig");
 
-	Gauge_Field_Alloc_silent(&m_top_level_conf, T, L);
-	Gauge_Field_Alloc_silent(&m_config_buf, T, L);
+#if __SUN_N__ == 2
+	m_SUN_gaugefield = tools::helper::make_unique<latticetools_0719::MCSU2Gaugefield>(T, L, seed, beta, config_filepath());
+#elif __SUN_N__ == 3
+	m_SUN_gaugefield = tools::helper::make_unique<latticetools_0719::CL2QCDGaugefield>(T, L, seed, beta, overrelax_steps, config_filepath());
+#endif
+
+	latticetools_0719::Gauge_Field_Alloc(m_top_level_conf, T, L);
 }
 
 MultilevelConfig::~MultilevelConfig() {
-	Gauge_Field_Free(&m_config_buf);
-	Gauge_Field_Free(&m_top_level_conf);
+	latticetools_0719::Gauge_Field_Free(m_top_level_conf);
 }
 
-void MultilevelConfig::get(double*& gauge_field) const {
-	gauge_field = m_config_buf;
+const double* MultilevelConfig::get() const {
+	return m_SUN_gaugefield->get();
 }
 
-std::string MultilevelConfig::config_filename() const {
+std::string MultilevelConfig::config_filepath() const {
 	return m_filestem + tag_to_string();
 }
 
@@ -51,47 +60,52 @@ int MultilevelConfig::milliseconds_spent_generating() const {
 	return std::chrono::duration_cast<std::chrono::milliseconds>(m_time_spent_generating).count();
 }
 
-// private
-
-void MultilevelConfig::set_levels(std::vector<LevelDef*> levels) {
-	for (const auto* level : levels)
-		m_levels.push_back(level);
-
-	read_gauge_field(m_top_level_conf, config_filename().c_str(), T, L);
-
-	if (m_generate) {
-		InitializeRand(m_seed);
-		std::cerr << "Updating top level config ... ";
-		for (int i_swp = 0; i_swp < m_levels[0]->update_num(); ++i_swp)
-			do_sweep(m_top_level_conf, T, L, m_beta);
-		std::cerr << "ok\n";
-	}
+int MultilevelConfig::get_T() const {
+	return m_SUN_gaugefield->get_T();
 }
 
-void MultilevelConfig::update(int level) {
+int MultilevelConfig::get_L() const {
+	return m_SUN_gaugefield->get_L();
+}
+
+// private
+
+void MultilevelConfig::set_levels(const std::vector<LevelDef*>& levels) {
+	m_levels = std::vector<const LevelDef*>(levels.begin(), levels.end());
+
+	if (m_generate) {
+		std::cerr << "Updating top level config ... ";
+		for (int i_swp = 0; i_swp < m_levels[0]->update_num(); ++i_swp)
+			m_SUN_gaugefield->do_sweep();
+		std::cerr << "ok\n";
+	}
+	latticetools_0719::Gauge_Field_Copy(m_top_level_conf, m_SUN_gaugefield->get(), get_T(), get_L());
+}
+
+void MultilevelConfig::update(size_t level) {
 	next_tag(level);
 	if (level == 0) {
-		Gauge_Field_Copy(m_config_buf, m_top_level_conf, T, L);
+		m_SUN_gaugefield->set(m_top_level_conf);
 	} else if (m_generate) {
-		std::cerr << "Generating config '" << config_filename() << "' ... ";
+		std::cerr << "Generating config '" << config_filepath() << "' ... ";
 		auto start_time = std::chrono::steady_clock::now();
 
-		std::set<int> boundary_ts;
+		std::set<int> fixed_timeslices;
 		int boundary_t = 0;
-		while (boundary_t < T) {
+		while (boundary_t < get_T()) {
 			for (int timeslice_size : m_levels.at(level)->timeslice_sizes()) {
-				boundary_ts.insert(boundary_t);
+				fixed_timeslices.insert(boundary_t);
 				boundary_t += timeslice_size;
 			}
 		}
 		for (int i_swp = 0; i_swp < m_levels.at(level)->update_num(); ++i_swp)
-			do_sweep(m_config_buf, T, L, m_beta, boundary_ts);
+			m_SUN_gaugefield->do_sweep(fixed_timeslices);
 
 		m_time_spent_generating += std::chrono::steady_clock::now() - start_time;
 		std::cerr << "ok\n";
 	} else if (level == m_levels.size() - 1) {
-		std::cerr << "Reading config '" << config_filename() << "' ... ";
-		read_gauge_field(m_config_buf, config_filename().c_str(), T, L);
+		std::cerr << "Reading config '" << config_filepath() << "' ... ";
+		m_SUN_gaugefield->read(config_filepath());
 		std::cerr << "ok\n";
 	}
 
@@ -99,7 +113,7 @@ void MultilevelConfig::update(int level) {
 		write_config();
 }
 
-void MultilevelConfig::next_tag(int level) {
+void MultilevelConfig::next_tag(size_t level) {
 	if (level == 0)
 		m_tag = std::vector<int> { m_tag.at(0) };
 	else if (level == m_tag.size() - 1)
@@ -114,16 +128,14 @@ void MultilevelConfig::next_tag(int level) {
 
 std::string MultilevelConfig::tag_to_string() const {
 	std::ostringstream tag_oss;
-	for (int level = 0; level < m_tag.size(); ++level)
-		tag_oss << "." << std::setfill('0') << std::setw(log10(m_levels.at(level)->config_num()) + 1) << m_tag.at(level);
+	for (size_t level = 0; level < m_tag.size(); ++level)
+		tag_oss << "." << m_tag.at(level);
 	return tag_oss.str();
 }
 
 void MultilevelConfig::write_config() const {
 	std::string config_filename = m_filestem + ".multilevel" + tag_to_string();
-	std::ostringstream header_oss;
-	header_oss << "generated during multilevel : " << m_beta << " " << T << " " << L;
-	write_gauge_field(m_config_buf, config_filename.c_str(), T, L, header_oss.str().c_str());
+	m_SUN_gaugefield->write(config_filename);
 }
 
 }
