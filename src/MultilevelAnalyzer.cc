@@ -9,6 +9,7 @@
 #include <chrono>
 #include <stdexcept>
 #include <algorithm>
+#include <omp.h>
 
 #include <global_defs.hh>
 
@@ -76,6 +77,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 			for (const int WL_R : m_WL_Rs) {
 				try {
 					for (const int t : op.defined_ts(WL_R)) {
+#pragma omp parallel for collapse(3)
 						for (int x = 0; x < m_config->get_L(); ++x) {
 							for (int y = 0; y < m_config->get_L(); ++y) {
 								for (int z = 0; z < m_config->get_L(); ++z) {

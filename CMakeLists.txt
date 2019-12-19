@@ -113,6 +113,8 @@ find_library(HELPER_LIB helper_functions "${Tools_ROOT}/lib")
 find_library(IOTOOLS_LIB io_tools "${Tools_ROOT}/lib")
 find_library(LINKPATH_LIB LinkPath "${LatticeTools_ROOT}/lib")
 
+find_package(OpenMP REQUIRED)
+
 add_library(mlvl
 	src/MultilevelAnalyzer.cc
 	src/MultilevelConfig.cc
@@ -144,6 +146,7 @@ target_link_libraries(multilevel
 	SMEARING_LIB
 	"${HELPER_LIB}"
 	"${IOTOOLS_LIB}"
+	OpenMP::OpenMP_CXX
 )
 
 install(TARGETS sublattice_algebra DESTINATION "${CMAKE_SOURCE_DIR}/lib")

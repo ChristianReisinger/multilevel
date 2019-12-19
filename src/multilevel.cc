@@ -13,6 +13,7 @@
 #include <memory>
 #include <numeric>
 #include <algorithm>
+#include <omp.h>
 
 #include <smearing_techniques.hh>
 #include <linear_algebra.hh>
@@ -327,6 +328,7 @@ int main(int argc, char** argv) {
 
 				const auto& ts = op.defined_ts(WL_R);
 				for (int t : ts) {
+#pragma omp parallel for collapse(3)
 					for (int x = 0; x < L; ++x) {
 						for (int y = 0; y < L; ++y) {
 							for (int z = 0; z < L; ++z) {
@@ -341,6 +343,7 @@ int main(int argc, char** argv) {
 									double T_op[SO_elems];
 									op.at(T_op, t, x, y, z, i, WL_R);
 									close_Wilson_loop(&curr_WL, T_op, S0.path, ST.path);
+#pragma omp critical
 									co_pl_eq_co(&WL_avg, &curr_WL);
 								}
 							}
