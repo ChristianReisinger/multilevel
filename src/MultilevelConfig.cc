@@ -74,10 +74,10 @@ void MultilevelConfig::set_levels(const std::vector<LevelDef*>& levels) {
 	m_levels = std::vector<const LevelDef*>(levels.begin(), levels.end());
 
 	if (m_generate) {
-		std::cerr << "Updating top level config ... ";
+		std::cout << "Updating top level config ... ";
 		for (int i_swp = 0; i_swp < m_levels[0]->update_num(); ++i_swp)
 			m_SUN_gaugefield->do_sweep();
-		std::cerr << "ok\n";
+		std::cout << "ok\n";
 	}
 	latticetools_0719::Gauge_Field_Copy(m_top_level_conf, m_SUN_gaugefield->get(), get_T(), get_L());
 }
@@ -89,7 +89,7 @@ void MultilevelConfig::update(size_t level) {
 	if (level == 0) {
 		m_SUN_gaugefield->set(m_top_level_conf);
 	} else if (m_generate) {
-		std::cerr << "Generating config '" << config_filepath() << "' ... " << std::flush;
+		std::cout << "Generating config '" << config_filepath() << "' ... " << std::flush;
 
 		std::set<int> fixed_timeslices;
 		int boundary_t = 0;
@@ -102,11 +102,11 @@ void MultilevelConfig::update(size_t level) {
 		for (int i_swp = 0; i_swp < m_levels.at(level)->update_num(); ++i_swp)
 			m_SUN_gaugefield->do_sweep(fixed_timeslices);
 
-		std::cerr << "ok\n";
+		std::cout << "ok\n";
 	} else if (level == m_levels.size() - 1) {
-		std::cerr << "Reading config '" << config_filepath() << "' ... ";
+		std::cout << "Reading config '" << config_filepath() << "' ... ";
 		m_SUN_gaugefield->read(config_filepath());
-		std::cerr << "ok\n";
+		std::cout << "ok\n";
 	}
 
 	if (m_generate && m_write)

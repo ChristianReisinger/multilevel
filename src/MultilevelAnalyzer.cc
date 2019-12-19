@@ -66,14 +66,14 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 		if (is_lowest)
 			lowest_level_gauge_field = m_config->get();
 		else {
-			std::cerr << "Allocating sublattice fields on config '" << m_config->config_filepath() << "' ... ";
+			std::cout << "Allocating sublattice fields on config '" << m_config->config_filepath() << "' ... ";
 			LevelAccess::alloc_operators(*m_levels[level + 1], m_WL_Rs, m_config->get_T(), m_config->get_L());
-			std::cerr << "ok\n";
+			std::cout << "ok\n";
 			compute_sublattice_fields(level + 1);
 		}
 
 		auto start_time = std::chrono::steady_clock::now();
-		std::cerr << "Computing observables on config '" << m_config->config_filepath() << "' ... " << std::flush;
+		std::cout << "Computing observables on config '" << m_config->config_filepath() << "' ... " << std::endl;
 		for (auto& op : LevelAccess::operators(*m_levels[level])) {
 			for (const int WL_R : m_WL_Rs) {
 				try {
@@ -109,7 +109,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 				}
 			}
 		}
-		std::cerr << "o.k.\n";
+		std::cout << "o.k.\n";
 		time_spent_computing_operators += std::chrono::steady_clock::now() - start_time;
 
 		if (!is_lowest)
