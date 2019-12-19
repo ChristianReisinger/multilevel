@@ -123,6 +123,7 @@ add_library(mlvl
 	src/TwolinkComputer.cc
 	src/T_field.cc
 	src/twolink_operator_functions.cc
+	src/logger.cc
 )
 
 add_library(sublattice_algebra SHARED

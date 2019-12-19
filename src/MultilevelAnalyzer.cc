@@ -19,6 +19,7 @@
 #include <LevelAccess.hh>
 #include <TwolinkOperatorWriter.hh>
 #include <MultilevelConfig.hh>
+#include <logger.hh>
 
 #include <MultilevelAnalyzer.hh>
 
@@ -66,6 +67,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 		if (is_lowest)
 			lowest_level_gauge_field = m_config->get();
 		else {
+			logger::print_timestamp();
 			std::cout << "Allocating sublattice fields on config '" << m_config->config_filepath() << "' ... ";
 			LevelAccess::alloc_operators(*m_levels[level + 1], m_WL_Rs, m_config->get_T(), m_config->get_L());
 			std::cout << "ok\n";
@@ -73,6 +75,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 		}
 
 		auto start_time = std::chrono::steady_clock::now();
+		logger::print_timestamp();
 		std::cout << "Computing observables on config '" << m_config->config_filepath() << "' ... " << std::endl;
 		for (auto& op : LevelAccess::operators(*m_levels[level])) {
 			for (const int WL_R : m_WL_Rs) {
@@ -109,6 +112,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 				}
 			}
 		}
+		logger::print_timestamp();
 		std::cout << "o.k.\n";
 		time_spent_computing_operators += std::chrono::steady_clock::now() - start_time;
 

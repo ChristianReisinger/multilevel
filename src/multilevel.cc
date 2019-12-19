@@ -32,6 +32,7 @@
 #include <TwolinkOperator.hh>
 #include <TwolinkComputer.hh>
 #include <parse_parameters.hh>
+#include <logger.hh>
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {
@@ -247,6 +248,7 @@ int main(int argc, char** argv) {
 	string outfile_extension = "";
 	vector<LevelDef> levels;
 
+	logger::print_timestamp();
 	cout << "Initializing multilevel algorithm ... \n";
 	try {
 		vector<int> level_updates;
@@ -299,6 +301,7 @@ int main(int argc, char** argv) {
 	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, beta, seed, overrelax_steps, write);
 	MultilevelAnalyzer multilevel(levels, multilevel_config, WL_Rs);
 
+	logger::print_timestamp();
 	cout << "Computing temporal transporters ... " << std::endl;
 	try {
 		multilevel.compute_T_fields();
@@ -308,6 +311,7 @@ int main(int argc, char** argv) {
 	}
 
 	auto wilson_loop_compute_start_time = chrono::steady_clock::now();
+	logger::print_timestamp();
 	cout << "Computing Wilson loops ... " << std::endl;
 	double* smeared_gauge_field;
 	Gauge_Field_Alloc(smeared_gauge_field, T, L);
@@ -365,6 +369,7 @@ int main(int argc, char** argv) {
 
 //	***************************************************************************************************************************************
 
+	logger::print_timestamp();
 	cout << "Writing results to file ... " << std::endl;
 	map<string, unique_ptr<ofstream> > outfiles;
 	try {
@@ -394,6 +399,7 @@ int main(int argc, char** argv) {
 
 	Gauge_Field_Free(smeared_gauge_field);
 
+	logger::print_timestamp();
 	cout << "\nComputation time\n"
 			"\tfull program : " << chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start_time).count() << " ms\n"
 			"\tupdating configs : " << multilevel_config.milliseconds_spent_updating() << " ms\n"
