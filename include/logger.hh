@@ -7,6 +7,7 @@ namespace multilevel_0819 {
 namespace logger {
 
 void print_timestamp();
+unsigned long get_ms_since_and_reset(std::chrono::steady_clock::time_point& time);
 
 }
 }

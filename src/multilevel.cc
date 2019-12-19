@@ -231,11 +231,14 @@ int main(int argc, char** argv) {
 	using tools::helper::make_unique;
 
 	auto start_time = chrono::steady_clock::now();
-
 	if (argc < 8) {
 		print_help(argv[0]);
 		return 1;
 	}
+
+	auto intermediate_time = chrono::steady_clock::now();
+	logger::print_timestamp();
+	cout << "(I) Initializing multilevel algorithm ... \n";
 
 	const auto twolink_computers = make_twolink_computers();
 
@@ -248,8 +251,6 @@ int main(int argc, char** argv) {
 	string outfile_extension = "";
 	vector<LevelDef> levels;
 
-	logger::print_timestamp();
-	cout << "Initializing multilevel algorithm ... \n";
 	try {
 		vector<int> level_updates;
 		handle_GNU_options(argc, argv, show_mem, generate, write, beta, seed, level_updates, overrelax_steps, outfile_extension);
@@ -302,17 +303,21 @@ int main(int argc, char** argv) {
 	MultilevelAnalyzer multilevel(levels, multilevel_config, WL_Rs);
 
 	logger::print_timestamp();
-	cout << "Computing temporal transporters ... " << std::endl;
+	cout << "(I) finished in " << logger::get_ms_since_and_reset(intermediate_time) << "ms\n";
+
+	logger::print_timestamp();
+	cout << "(II) Computing temporal transporters ... " << std::endl;
 	try {
 		multilevel.compute_T_fields();
 	} catch (runtime_error& e) {
 		cerr << "Error: " << e.what() << "\n";
 		return 1;
 	}
-
-	auto wilson_loop_compute_start_time = chrono::steady_clock::now();
 	logger::print_timestamp();
-	cout << "Computing Wilson loops ... " << std::endl;
+	cout << "(II) finished in " << logger::get_ms_since_and_reset(intermediate_time) << "ms\n";
+
+	logger::print_timestamp();
+	cout << "(III) Computing Wilson loops ... " << std::endl;
 	double* smeared_gauge_field;
 	Gauge_Field_Alloc(smeared_gauge_field, T, L);
 	Gauge_Field_Copy(smeared_gauge_field, multilevel_config.get(), T, L);
@@ -363,14 +368,13 @@ int main(int argc, char** argv) {
 			}
 		}
 	}
-	cout << "\tfinished in "
-			<< chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - wilson_loop_compute_start_time).count()
-			<< "ms\n";
+	logger::print_timestamp();
+	cout << "(III) finished in " << logger::get_ms_since_and_reset(intermediate_time) << "ms\n";
 
 //	***************************************************************************************************************************************
 
 	logger::print_timestamp();
-	cout << "Writing results to file ... " << std::endl;
+	cout << "(IV) Writing results to file ... " << std::endl;
 	map<string, unique_ptr<ofstream> > outfiles;
 	try {
 		set<string> filenames;
@@ -396,6 +400,9 @@ int main(int argc, char** argv) {
 			*outfiles.at(filename) << params << " " << showpos << avg.re << " " << avg.im << noshowpos << "\n";
 		}
 	}
+
+	logger::print_timestamp();
+	cout << "(IV) finished in " << logger::get_ms_since_and_reset(intermediate_time) << "ms\n";
 
 	Gauge_Field_Free(smeared_gauge_field);
 
