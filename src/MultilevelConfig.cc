@@ -56,8 +56,8 @@ std::string MultilevelConfig::config_filepath() const {
 	return m_filestem + tag_to_string();
 }
 
-int MultilevelConfig::milliseconds_spent_generating() const {
-	return std::chrono::duration_cast<std::chrono::milliseconds>(m_time_spent_generating).count();
+int MultilevelConfig::milliseconds_spent_updating() const {
+	return std::chrono::duration_cast<std::chrono::milliseconds>(m_time_spent_updating).count();
 }
 
 int MultilevelConfig::get_T() const {
@@ -83,12 +83,13 @@ void MultilevelConfig::set_levels(const std::vector<LevelDef*>& levels) {
 }
 
 void MultilevelConfig::update(size_t level) {
+	auto start_time = std::chrono::steady_clock::now();
+
 	next_tag(level);
 	if (level == 0) {
 		m_SUN_gaugefield->set(m_top_level_conf);
 	} else if (m_generate) {
 		std::cerr << "Generating config '" << config_filepath() << "' ... ";
-		auto start_time = std::chrono::steady_clock::now();
 
 		std::set<int> fixed_timeslices;
 		int boundary_t = 0;
@@ -101,7 +102,6 @@ void MultilevelConfig::update(size_t level) {
 		for (int i_swp = 0; i_swp < m_levels.at(level)->update_num(); ++i_swp)
 			m_SUN_gaugefield->do_sweep(fixed_timeslices);
 
-		m_time_spent_generating += std::chrono::steady_clock::now() - start_time;
 		std::cerr << "ok\n";
 	} else if (level == m_levels.size() - 1) {
 		std::cerr << "Reading config '" << config_filepath() << "' ... ";
@@ -111,6 +111,8 @@ void MultilevelConfig::update(size_t level) {
 
 	if (m_generate && m_write)
 		write_config();
+
+	m_time_spent_updating += std::chrono::steady_clock::now() - start_time;
 }
 
 void MultilevelConfig::next_tag(size_t level) {

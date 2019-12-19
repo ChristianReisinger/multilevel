@@ -28,7 +28,7 @@ public:
 
 	std::string config_filepath() const;
 	const double* get() const;
-	int milliseconds_spent_generating() const;
+	int milliseconds_spent_updating() const;
 
 	int get_T() const;
 	int get_L() const;
@@ -54,7 +54,7 @@ private:
 
 	std::unique_ptr<latticetools_0719::SUNGaugefield> m_SUN_gaugefield;
 
-	std::chrono::steady_clock::duration m_time_spent_generating { 0 };
+	std::chrono::steady_clock::duration m_time_spent_updating { 0 };
 
 	friend class LevelAccess;
 };

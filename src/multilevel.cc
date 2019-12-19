@@ -392,7 +392,7 @@ int main(int argc, char** argv) {
 
 	cout << "\nComputation time\n"
 			"\tfull program : " << chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start_time).count() << " s\n"
-			"\tgenerating configs : " << multilevel_config.milliseconds_spent_generating() / 1000 << " s\n"
+			"\tupdating configs : " << multilevel_config.milliseconds_spent_updating() / 1000 << " s\n"
 			"\tcomputing observables : " << multilevel.milliseconds_spent_computing() / 1000 << " s\n";
 
 	return 0;
