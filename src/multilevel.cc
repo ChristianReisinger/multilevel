@@ -391,9 +391,9 @@ int main(int argc, char** argv) {
 	Gauge_Field_Free(smeared_gauge_field);
 
 	cout << "\nComputation time\n"
-			"\tfull program : " << chrono::duration_cast<chrono::seconds>(chrono::steady_clock::now() - start_time).count() << " s\n"
-			"\tupdating configs : " << multilevel_config.milliseconds_spent_updating() / 1000 << " s\n"
-			"\tcomputing observables : " << multilevel.milliseconds_spent_computing() / 1000 << " s\n";
+			"\tfull program : " << chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start_time).count() << " ms\n"
+			"\tupdating configs : " << multilevel_config.milliseconds_spent_updating() << " ms\n"
+			"\tcomputing observables : " << multilevel.milliseconds_spent_computing() << " ms\n";
 
 	return 0;
 }
