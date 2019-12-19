@@ -360,7 +360,7 @@ int main(int argc, char** argv) {
 		}
 	}
 	cout << "\tfinished in "
-			<< chrono::duration_cast<chrono::milliseconds>(wilson_loop_compute_start_time - chrono::steady_clock::now()).count()
+			<< chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - wilson_loop_compute_start_time).count()
 			<< "ms\n";
 
 //	***************************************************************************************************************************************
