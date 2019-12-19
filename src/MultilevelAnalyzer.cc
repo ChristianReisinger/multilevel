@@ -73,6 +73,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 		}
 
 		auto start_time = std::chrono::steady_clock::now();
+		std::cerr << "Computing observables on config '" << m_config->config_filepath() << "' ... " << std::flush;
 		for (auto& op : LevelAccess::operators(*m_levels[level])) {
 			for (const int WL_R : m_WL_Rs) {
 				try {
@@ -108,6 +109,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 				}
 			}
 		}
+		std::cerr << "o.k.\n";
 		time_spent_computing_operators += std::chrono::steady_clock::now() - start_time;
 
 		if (!is_lowest)

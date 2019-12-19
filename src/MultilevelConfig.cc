@@ -89,7 +89,7 @@ void MultilevelConfig::update(size_t level) {
 	if (level == 0) {
 		m_SUN_gaugefield->set(m_top_level_conf);
 	} else if (m_generate) {
-		std::cerr << "Generating config '" << config_filepath() << "' ... ";
+		std::cerr << "Generating config '" << config_filepath() << "' ... " << std::flush;
 
 		std::set<int> fixed_timeslices;
 		int boundary_t = 0;

@@ -299,7 +299,7 @@ int main(int argc, char** argv) {
 	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, beta, seed, overrelax_steps, write);
 	MultilevelAnalyzer multilevel(levels, multilevel_config, WL_Rs);
 
-	cout << "Computing temporal transporters ... \n";
+	cout << "Computing temporal transporters ... " << std::endl;
 	try {
 		multilevel.compute_T_fields();
 	} catch (runtime_error& e) {
@@ -307,7 +307,8 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	cout << "Computing Wilson loops ... \n";
+	auto wilson_loop_compute_start_time = chrono::steady_clock::now();
+	cout << "Computing Wilson loops ... " << std::endl;
 	double* smeared_gauge_field;
 	Gauge_Field_Alloc(smeared_gauge_field, T, L);
 	Gauge_Field_Copy(smeared_gauge_field, multilevel_config.get(), T, L);
@@ -358,10 +359,13 @@ int main(int argc, char** argv) {
 			}
 		}
 	}
+	cout << "\tfinished in "
+			<< chrono::duration_cast<chrono::milliseconds>(wilson_loop_compute_start_time - chrono::steady_clock::now()).count()
+			<< "ms\n";
 
 //	***************************************************************************************************************************************
 
-	cout << "Writing results to file ...\n";
+	cout << "Writing results to file ... " << std::endl;
 	map<string, unique_ptr<ofstream> > outfiles;
 	try {
 		set<string> filenames;
