@@ -40,12 +40,15 @@ namespace multilevel_0819 {
 
 using latticetools_0719::SUN_elems;
 
-void print_help(char* argv0) {
+void print_syntax_help(char* argv0) {
 	std::cout << "Usage: " << argv0 << ""
-			"\t[-m] [-e <ext>]\n"
-			"\t[-b <beta> -s <seed> -u <level_updates> [-r <overrelax_steps>] [-w]]\n"
-			"\t<T> <L> <WL_Rs> <NAPEs> <level_config_num> <composition_file> <config_prefix> <config_id>\n"
-			"\n"
+			"\t[--help] [--mem] [--extension <ext>]\n"
+			"\t[--beta <beta> --seed <seed> --updates <level_updates> [--overrelax <overrelax_steps>] [--write]]\n"
+			"\t<T> <L> <WL_Rs> <NAPEs> <level_config_num> <composition_file> <config_prefix> <config_id>\n";
+}
+
+void print_option_help() {
+	std::cout << "\n"
 			"Parameters\n"
 			"\n"
 			"\t<T> <L>\n"
@@ -99,13 +102,17 @@ void print_help(char* argv0) {
 			"\n"
 			"Options\n"
 			"\n"
-			"\t-m\n"
+			"\t--memory | -m\n"
 			"\t\tshow required memory and exit\n"
 			"\n"
-			"\t-e <ext>\n"
+			"\t--extension -e <ext>\n"
 			"\t\tappend '.<ext>' to all output file names\n"
 			"\n"
-			"\t-b <beta> -s <seed> -u <level_updates> [-w] [-r <overrelax_steps>]\n"
+			"\t--beta <beta>, -b <beta>\n"
+			"\t--seed <seed>, -s <seed>\n"
+			"\t--updates <level_updates>, -u <level_updates>\n"
+			"\t[--write, -w]\n"
+			"\t[--overrelax, -r <overrelax_steps>]\n"
 			"\t\tThese options must be used together. When used, configs are generated during the multilevel algorithm\n"
 			"\t\tvia heatbath with <beta>, <seed> and <level_updates>. <level_updates> is a comma separated list of the\n"
 			"\t\tnumber of updates at each level in order from highest to lowest level; updates at level 0 are applied\n"
@@ -125,11 +132,12 @@ void handle_GNU_options(int argc, char**& argv, bool& show_mem,
 			{ "overrelax", required_argument, 0, 'r' },
 			{ "write", no_argument, 0, 'w' },
 			{ "extension", no_argument, 0, 'e' },
+			{ "help", no_argument, 0, 'h' },
 			{ 0, 0, 0, 0 }
 	};
 
 	int opt = -1, long_opts_i = 0;
-	while ((opt = getopt_long(argc, argv, "mb:s:u:r:we:", long_opts, &long_opts_i)) != -1) {
+	while ((opt = getopt_long(argc, argv, "mb:s:u:r:we:h", long_opts, &long_opts_i)) != -1) {
 		switch (opt) {
 			case 'm':
 				show_mem = true;
@@ -156,6 +164,10 @@ void handle_GNU_options(int argc, char**& argv, bool& show_mem,
 			break;
 			case 'e':
 				extension = optarg;
+			break;
+			case 'h':
+				print_syntax_help(argv[0]);
+				print_option_help();
 			break;
 		}
 	}
@@ -232,7 +244,7 @@ int main(int argc, char** argv) {
 
 	auto start_time = chrono::steady_clock::now();
 	if (argc < 8) {
-		print_help(argv[0]);
+		print_syntax_help(argv[0]);
 		return 1;
 	}
 
