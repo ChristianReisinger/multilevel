@@ -41,10 +41,10 @@ namespace multilevel_0819 {
 using latticetools_0719::SUN_elems;
 
 void print_syntax_help(char* argv0) {
-	std::cout << "Usage: " << argv0 << ""
+	std::cout << "\nUsage: " << argv0 << ""
 			"\t[--help] [--mem] [--extension <ext>]\n"
 			"\t[--beta <beta> --seed <seed> --updates <level_updates> [--overrelax <overrelax_steps>] [--write]]\n"
-			"\t<T> <L> <WL_Rs> <NAPEs> <level_config_num> <composition_file> <config_prefix> <config_id>\n";
+			"\t<T> <L> <WL_Rs> <NAPEs> <level_config_num> <composition_file> <config_prefix> <config_id>\n\n";
 }
 
 void print_option_help() {
