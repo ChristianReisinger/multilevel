@@ -175,12 +175,13 @@ bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 			break;
 		}
 	}
-	argv = argv + optind - 1;
 
-	if (argc - optind + 1 != 8) {
+	if (argc - optind != 8) {
 		print_syntax_help(argv[0]);
 		no_help_required = false;
 	}
+
+	argv = argv + optind - 1;
 
 	return no_help_required;
 }
