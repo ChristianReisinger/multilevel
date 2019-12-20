@@ -255,6 +255,8 @@ int main(int argc, char** argv) {
 	using tools::helper::make_unique;
 
 	auto start_time = chrono::steady_clock::now();
+	
+	const auto twolink_computers = make_twolink_computers();
 
 //	Parameters ****************************************************************************************************************************
 
@@ -287,7 +289,7 @@ int main(int argc, char** argv) {
 		ifstream compositions_ifs(argv[6]);
 		ostringstream compstr_oss;
 		compstr_oss << compositions_ifs.rdbuf();
-		levels = parse_parameters::levels(make_twolink_computers(), compstr_oss.str(), T);
+		levels = parse_parameters::levels(twolink_computers, compstr_oss.str(), T);
 
 		if (level_config_num.size() != levels.size()
 				|| (generate && level_updates.size() != levels.size()))
