@@ -303,7 +303,7 @@ int main(int argc, char** argv) {
 	MultilevelAnalyzer multilevel(levels, multilevel_config, WL_Rs);
 
 	logger::print_timestamp();
-	cout << "(I) finished in " << logger::get_ms_since_and_reset(intermediate_time) << "ms\n";
+	cout << "(I) finished in " << logger::get_ms_since_and_reset(intermediate_time) << " ms\n";
 
 	logger::print_timestamp();
 	cout << "(II) Computing temporal transporters ... " << std::endl;
@@ -314,7 +314,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	logger::print_timestamp();
-	cout << "(II) finished in " << logger::get_ms_since_and_reset(intermediate_time) << "ms\n";
+	cout << "(II) finished in " << logger::get_ms_since_and_reset(intermediate_time) << " ms\n";
 
 	logger::print_timestamp();
 	cout << "(III) Computing Wilson loops ... " << std::endl;
@@ -369,7 +369,7 @@ int main(int argc, char** argv) {
 		}
 	}
 	logger::print_timestamp();
-	cout << "(III) finished in " << logger::get_ms_since_and_reset(intermediate_time) << "ms\n";
+	cout << "(III) finished in " << logger::get_ms_since_and_reset(intermediate_time) << " ms\n";
 
 //	***************************************************************************************************************************************
 
@@ -402,7 +402,7 @@ int main(int argc, char** argv) {
 	}
 
 	logger::print_timestamp();
-	cout << "(IV) finished in " << logger::get_ms_since_and_reset(intermediate_time) << "ms\n";
+	cout << "(IV) finished in " << logger::get_ms_since_and_reset(intermediate_time) << " ms\n";
 
 	Gauge_Field_Free(smeared_gauge_field);
 
