@@ -254,10 +254,7 @@ int main(int argc, char** argv) {
 	using tools::helper::make_unique;
 
 	auto start_time = chrono::steady_clock::now();
-	auto intermediate_time = chrono::steady_clock::now();
-	logger::print_timestamp();
-	cout << "(I) Initializing multilevel algorithm ... \n";
-
+	
 	const auto twolink_computers = make_twolink_computers();
 
 //	Parameters ****************************************************************************************************************************
@@ -318,6 +315,10 @@ int main(int argc, char** argv) {
 	}
 
 //	***************************************************************************************************************************************
+
+	auto intermediate_time = chrono::steady_clock::now();
+	logger::print_timestamp();
+	cout << "(I) Initializing multilevel algorithm ... \n";
 
 	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, beta, seed, overrelax_steps, write);
 	MultilevelAnalyzer multilevel(levels, multilevel_config, WL_Rs);
