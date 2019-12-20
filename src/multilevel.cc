@@ -121,9 +121,12 @@ void print_option_help() {
 			"\t\tWhen using also -w, generated configs are written to file with '.multilevel' appended to filenames.\n";
 }
 
-void handle_GNU_options(int argc, char**& argv, bool& show_mem,
+bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 		bool& generate, bool& write, double& beta, int& seed, std::vector<int>& level_updates, int& overrelax_steps,
 		std::string& extension) {
+
+	bool no_help_required = true;
+
 	static struct option long_opts[] = {
 			{ "mem", no_argument, 0, 'm' },
 			{ "beta", required_argument, 0, 'b' },
@@ -168,10 +171,18 @@ void handle_GNU_options(int argc, char**& argv, bool& show_mem,
 			case 'h':
 				print_syntax_help(argv[0]);
 				print_option_help();
+				no_help_required = false;
 			break;
 		}
 	}
 	argv = argv + optind - 1;
+
+	if (argc - optind + 1 != 8) {
+		print_syntax_help(argv[0]);
+		no_help_required = false;
+	}
+
+	return no_help_required;
 }
 
 double memory_used(const std::vector<LevelDef>& levels, int T, int L, int num_R) {
@@ -243,11 +254,6 @@ int main(int argc, char** argv) {
 	using tools::helper::make_unique;
 
 	auto start_time = chrono::steady_clock::now();
-	if (argc < 8) {
-		print_syntax_help(argv[0]);
-		return 1;
-	}
-
 	auto intermediate_time = chrono::steady_clock::now();
 	logger::print_timestamp();
 	cout << "(I) Initializing multilevel algorithm ... \n";
@@ -265,7 +271,9 @@ int main(int argc, char** argv) {
 
 	try {
 		vector<int> level_updates;
-		handle_GNU_options(argc, argv, show_mem, generate, write, beta, seed, level_updates, overrelax_steps, outfile_extension);
+		if (!handle_GNU_options(argc, argv, show_mem, generate, write, beta, seed, level_updates, overrelax_steps, outfile_extension))
+			return 0;
+
 		if (generate && (beta <= 0.0 || seed <= 1))
 			throw invalid_argument("invalid <beta> or <seed>");
 
