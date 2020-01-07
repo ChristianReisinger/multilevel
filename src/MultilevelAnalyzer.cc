@@ -59,6 +59,8 @@ int MultilevelAnalyzer::milliseconds_spent_computing() const {
 void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 	const bool is_lowest = (level == m_levels.size() - 1);
 	const int config_num = (level == 0 ? 1 : m_levels[level]->config_num());
+	const int config_T = m_config->get_T();
+	const int config_L = m_config->get_L();
 
 	for (int conf = 1; conf <= config_num; ++conf) {
 		LevelAccess::update(*m_config, level);
@@ -70,7 +72,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 		else {
 			logger::print_timestamp();
 			std::cout << "Allocating sublattice fields on config '" << curr_config_filepath << "' ... ";
-			LevelAccess::alloc_operators(*m_levels[level + 1], m_WL_Rs, m_config->get_T(), m_config->get_L());
+			LevelAccess::alloc_operators(*m_levels[level + 1], m_WL_Rs, config_T, config_L);
 			std::cout << "ok\n";
 			compute_sublattice_fields(level + 1);
 		}
@@ -83,9 +85,9 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 				try {
 					for (const int t : op.defined_ts(WL_R)) {
 #pragma omp parallel for collapse(3)
-						for (int x = 0; x < m_config->get_L(); ++x) {
-							for (int y = 0; y < m_config->get_L(); ++y) {
-								for (int z = 0; z < m_config->get_L(); ++z) {
+						for (int x = 0; x < config_L; ++x) {
+							for (int y = 0; y < config_L; ++y) {
+								for (int z = 0; z < config_L; ++z) {
 									for (int i = 1; i < 4; ++i) {
 										double curr_operator[SO_elems];
 										so_eq_id(curr_operator);
@@ -94,7 +96,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 										for (const auto& factor : op.factors) {
 											double T_factor[SO_elems];
 											factor->at(T_factor, curr_t, x, y, z, i, WL_R,
-													lowest_level_gauge_field, m_config->get_T(), m_config->get_L());
+													lowest_level_gauge_field, config_T, config_L);
 											curr_t += factor->t_extent();
 
 											double T_temp[SO_elems];
