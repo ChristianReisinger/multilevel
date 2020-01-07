@@ -115,8 +115,15 @@ find_library(LINKPATH_LIB LinkPath "${LatticeTools_ROOT}/lib")
 
 find_package(OpenMP REQUIRED)
 
-add_library(mlvl
+add_library(mlvl_omp
 	src/MultilevelAnalyzer.cc
+)
+
+target_link_libraries(mlvl_omp
+	OpenMP::OpenMP_CXX
+)
+
+add_library(mlvl
 	src/MultilevelConfig.cc
 	src/LevelDef.cc
 	src/TwolinkOperator.cc
@@ -139,6 +146,7 @@ add_executable(multilevel
 	src/parse_parameters.cc
 )
 target_link_libraries(multilevel
+	mlvl_omp
 	mlvl
 	sublattice_algebra
 	"${SUN_INTERFACE_LIB}"
