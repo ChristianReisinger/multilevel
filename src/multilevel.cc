@@ -255,7 +255,7 @@ int main(int argc, char** argv) {
 	using tools::helper::make_unique;
 
 	auto start_time = chrono::steady_clock::now();
-	
+
 	const auto twolink_computers = make_twolink_computers();
 
 //	Parameters ****************************************************************************************************************************
@@ -360,6 +360,7 @@ int main(int argc, char** argv) {
 
 				const auto& ts = op.defined_ts(WL_R);
 				for (int t : ts) {
+					complex WLs_at_t[L * L * L * 3];
 #pragma omp parallel for collapse(3)
 					for (int x = 0; x < L; ++x) {
 						for (int y = 0; y < L; ++y) {
@@ -375,12 +376,13 @@ int main(int argc, char** argv) {
 									double T_op[SO_elems];
 									op.at(T_op, t, x, y, z, i, WL_R);
 									close_Wilson_loop(&curr_WL, T_op, S0.path, ST.path);
-#pragma omp critical
-									co_pl_eq_co(&WL_avg, &curr_WL);
+									WLs_at_t[i - 1 + 3 * (z + L * (y + L * x))] = curr_WL; //avoid critical region
 								}
 							}
 						}
 					}
+					for (int i = 0; i < L * L * L * 3; ++i)
+						co_pl_eq_co(&WL_avg, &WLs_at_t[i]);
 				}
 
 				co_di_eq_re(&WL_avg, 3.0 * L * L * L);
