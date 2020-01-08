@@ -80,7 +80,7 @@ void MultilevelConfig::set_levels(const std::vector<LevelDef*>& levels) {
 		for (int i_swp = 0; i_swp < m_levels[0]->update_num(); ++i_swp)
 			m_SUN_gaugefield->do_sweep();
 		logger::print_timestamp();
-		std::cout << "ok\n";
+		std::cout << "done\n";
 	}
 	latticetools_0719::Gauge_Field_Copy(m_top_level_conf, m_SUN_gaugefield->get(), get_T(), get_L());
 }
@@ -107,13 +107,13 @@ void MultilevelConfig::update(size_t level) {
 			m_SUN_gaugefield->do_sweep(fixed_timeslices);
 
 		logger::print_timestamp();
-		std::cout << "ok\n";
+		std::cout << "done\n";
 	} else if (level == m_levels.size() - 1) {
 		logger::print_timestamp();
 		std::cout << "Reading config '" << config_filepath() << "' ... " << std::endl;
 		m_SUN_gaugefield->read(config_filepath());
 		logger::print_timestamp();
-		std::cout << "ok\n";
+		std::cout << "done\n";
 	}
 
 	if (m_generate && m_write)

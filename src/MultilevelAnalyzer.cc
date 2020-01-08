@@ -73,7 +73,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 			logger::print_timestamp();
 			std::cout << "Allocating sublattice fields on config '" << curr_config_filepath << "' ... ";
 			LevelAccess::alloc_operators(*m_levels[level + 1], m_WL_Rs, config_T, config_L);
-			std::cout << "ok\n";
+			std::cout << "done\n";
 			compute_sublattice_fields(level + 1);
 		}
 
@@ -116,7 +116,7 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 			}
 		}
 		logger::print_timestamp();
-		std::cout << "o.k.\n";
+		std::cout << "done\n";
 		time_spent_computing_operators += std::chrono::steady_clock::now() - start_time;
 
 		if (!is_lowest)
