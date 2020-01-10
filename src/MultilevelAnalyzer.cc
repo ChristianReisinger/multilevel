@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <omp.h>
 
+#include <Stopwatch.hh>
 #include <global_defs.hh>
 
 #include <sublattice_algebra.hh>
@@ -50,8 +51,8 @@ void MultilevelAnalyzer::compute_T_fields() {
 	LevelAccess::update(*m_config, 0);
 }
 
-int MultilevelAnalyzer::milliseconds_spent_computing() const {
-	return std::chrono::duration_cast<std::chrono::milliseconds>(time_spent_computing_operators).count();
+std::chrono::milliseconds::rep MultilevelAnalyzer::milliseconds_spent_computing() const {
+	return time_spent_computing_operators.count();
 }
 
 //private
@@ -70,16 +71,14 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 		if (is_lowest)
 			lowest_level_gauge_field = m_config->get();
 		else {
-			logger::print_timestamp();
-			std::cout << "Allocating sublattice fields on config '" << curr_config_filepath << "' ... ";
+			std::cout << logger::timestamp() << "Allocating sublattice fields on config '" << curr_config_filepath << "' ... ";
 			LevelAccess::alloc_operators(*m_levels[level + 1], m_WL_Rs, config_T, config_L);
 			std::cout << "done\n";
 			compute_sublattice_fields(level + 1);
 		}
 
-		auto start_time = std::chrono::steady_clock::now();
-		logger::print_timestamp();
-		std::cout << "Computing observables on config '" << curr_config_filepath << "' ... " << std::endl;
+		tools::Stopwatch compute_watch;
+		std::cout << logger::timestamp() << "Computing observables on config '" << curr_config_filepath << "' ... " << std::endl;
 		for (auto& op : LevelAccess::operators(*m_levels[level])) {
 			for (const int WL_R : m_WL_Rs) {
 				try {
@@ -115,9 +114,8 @@ void MultilevelAnalyzer::compute_sublattice_fields(const size_t level) {
 				}
 			}
 		}
-		logger::print_timestamp();
-		std::cout << "done\n";
-		time_spent_computing_operators += std::chrono::steady_clock::now() - start_time;
+		std::cout << logger::timestamp() << "done\n";
+		time_spent_computing_operators += compute_watch.check();
 
 		if (!is_lowest)
 			LevelAccess::free_operators(*m_levels[level + 1]);

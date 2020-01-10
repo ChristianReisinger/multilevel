@@ -21,6 +21,7 @@
 #include <LinkPath.hh>
 #include <io_tools.hh>
 #include <helper_functions.hh>
+#include <Stopwatch.hh>
 
 #include <sublattice_algebra.hh>
 #include <T_field.hh>
@@ -253,8 +254,9 @@ int main(int argc, char** argv) {
 	using tools::helper::parse_unsigned_int_list;
 	using tools::io_tools::file_exists;
 	using tools::helper::make_unique;
+	using tools::Stopwatch;
 
-	auto start_time = chrono::steady_clock::now();
+	Stopwatch program_watch;
 
 	const auto twolink_computers = make_twolink_computers();
 
@@ -317,29 +319,24 @@ int main(int argc, char** argv) {
 
 //	***************************************************************************************************************************************
 
-	auto intermediate_time = chrono::steady_clock::now();
-	logger::print_timestamp();
-	cout << "(I) Initializing multilevel algorithm ... \n";
+	Stopwatch intermediate_watch;
+	cout << logger::timestamp() << "(I) Initializing multilevel algorithm ... \n";
 
 	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, beta, seed, overrelax_steps, write);
 	MultilevelAnalyzer multilevel(levels, multilevel_config, WL_Rs);
 
-	logger::print_timestamp();
-	cout << "(I) finished in " << logger::get_ms_since_and_reset(intermediate_time) << " ms\n";
+	cout << logger::timestamp() << "(I) finished in " << intermediate_watch.reset().count() << " ms\n";
 
-	logger::print_timestamp();
-	cout << "(II) Computing temporal transporters ... " << std::endl;
+	cout << logger::timestamp() << "(II) Computing temporal transporters ... " << std::endl;
 	try {
 		multilevel.compute_T_fields();
 	} catch (runtime_error& e) {
 		cerr << "Error: " << e.what() << "\n";
 		return 1;
 	}
-	logger::print_timestamp();
-	cout << "(II) finished in " << logger::get_ms_since_and_reset(intermediate_time) << " ms\n";
+	cout << logger::timestamp() << "(II) finished in " << intermediate_watch.reset().count() << " ms\n";
 
-	logger::print_timestamp();
-	cout << "(III) Computing Wilson loops ... " << std::endl;
+	cout << logger::timestamp() << "(III) Computing Wilson loops ... " << std::endl;
 	double* smeared_gauge_field;
 	Gauge_Field_Alloc(smeared_gauge_field, T, L);
 	Gauge_Field_Copy(smeared_gauge_field, multilevel_config.get(), T, L);
@@ -392,13 +389,11 @@ int main(int argc, char** argv) {
 			}
 		}
 	}
-	logger::print_timestamp();
-	cout << "(III) finished in " << logger::get_ms_since_and_reset(intermediate_time) << " ms\n";
+	cout << logger::timestamp() << "(III) finished in " << intermediate_watch.reset().count() << " ms\n";
 
 //	***************************************************************************************************************************************
 
-	logger::print_timestamp();
-	cout << "(IV) Writing results to file ... " << std::endl;
+	cout << logger::timestamp() << "(IV) Writing results to file ... " << std::endl;
 	map<string, unique_ptr<ofstream> > outfiles;
 	try {
 		set<string> filenames;
@@ -425,14 +420,12 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	logger::print_timestamp();
-	cout << "(IV) finished in " << logger::get_ms_since_and_reset(intermediate_time) << " ms\n";
+	cout << logger::timestamp() << "(IV) finished in " << intermediate_watch.reset().count() << " ms\n";
 
 	Gauge_Field_Free(smeared_gauge_field);
 
-	logger::print_timestamp();
-	cout << "\nComputation time\n"
-			"\tfull program : " << chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start_time).count() << " ms\n"
+	cout << logger::timestamp() << "\nComputation time\n"
+			"\tfull program : " << program_watch.check().count() << " ms\n"
 			"\tupdating configs : " << multilevel_config.milliseconds_spent_updating() << " ms\n"
 			"\tcomputing observables : " << multilevel.milliseconds_spent_computing() << " ms\n";
 

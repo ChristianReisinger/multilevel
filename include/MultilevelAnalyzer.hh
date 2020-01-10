@@ -25,7 +25,7 @@ public:
 	MultilevelAnalyzer& operator=(MultilevelAnalyzer&&) = delete;
 
 	void compute_T_fields();
-	int milliseconds_spent_computing() const;
+	std::chrono::milliseconds::rep milliseconds_spent_computing() const;
 
 private:
 
@@ -35,7 +35,7 @@ private:
 	MultilevelConfig* const m_config;
 	const std::set<int> m_WL_Rs;
 
-	std::chrono::steady_clock::duration time_spent_computing_operators { 0 };
+	std::chrono::milliseconds time_spent_computing_operators { 0 };
 };
 
 }

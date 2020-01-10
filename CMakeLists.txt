@@ -111,6 +111,7 @@ include_directories(
 
 find_library(HELPER_LIB helper_functions "${Tools_ROOT}/lib")
 find_library(IOTOOLS_LIB io_tools "${Tools_ROOT}/lib")
+find_library(TOOLS_LIB tools "${Tools_ROOT}/lib")
 find_library(LINKPATH_LIB LinkPath "${LatticeTools_ROOT}/lib")
 
 find_package(OpenMP REQUIRED)
@@ -155,6 +156,7 @@ target_link_libraries(multilevel
 	SMEARING_LIB
 	"${HELPER_LIB}"
 	"${IOTOOLS_LIB}"
+	"${TOOLS_LIB}"
 	OpenMP::OpenMP_CXX
 )
 
