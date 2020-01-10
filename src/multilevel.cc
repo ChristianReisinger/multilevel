@@ -182,6 +182,9 @@ bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 		no_help_required = false;
 	}
 
+	if (generate && (config_params.beta <= 0.0 || config_params.seed <= 1))
+		throw std::invalid_argument("invalid <beta> or <seed>");
+
 	argv = argv + optind - 1;
 
 	return no_help_required;
@@ -274,9 +277,6 @@ int main(int argc, char** argv) {
 		if (!handle_GNU_options(argc, argv, show_mem, generate, config_params, level_updates, outfile_extension))
 			return 0;
 
-		if (generate && (config_params.beta <= 0.0 || config_params.seed <= 1))
-			throw invalid_argument("invalid <beta> or <seed>");
-
 		config_params.T = stoi(argv[1]);
 		config_params.L = stoi(argv[2]);
 
@@ -287,6 +287,8 @@ int main(int argc, char** argv) {
 		NAPEs = std::set<int>(NAPE_list.begin(), NAPE_list.end());
 
 		const vector<int> level_config_num = parse_unsigned_int_list(argv[5]);
+		if (level_config_num.at(0) != 1)
+			throw invalid_argument("number of configs at level 0 must be 1");
 
 		ifstream compositions_ifs(argv[6]);
 		ostringstream compstr_oss;
@@ -296,8 +298,7 @@ int main(int argc, char** argv) {
 		if (level_config_num.size() != levels.size()
 				|| (generate && level_updates.size() != levels.size()))
 			throw invalid_argument("invalid <level_config_num> or <level_updates>");
-		if (level_config_num.at(0) != 1)
-			throw invalid_argument("number of configs at level 0 must be 1");
+
 		for (size_t lv_i = 0; lv_i < levels.size(); ++lv_i) {
 			levels[lv_i].config_num(level_config_num[lv_i]);
 			if (generate)
