@@ -10,6 +10,7 @@
 
 #include <global_defs.hh>
 #include <helper_functions.hh>
+
 #if __SUN_N__ == 2
 #include <MCSU2Gaugefield.hh>
 #elif __SUN_N__ == 3
@@ -27,22 +28,23 @@ namespace de_uni_frankfurt_itp {
 namespace reisinger {
 namespace multilevel_0819 {
 
-MultilevelConfig::MultilevelConfig(const std::string& filestem, int top_level_id, int T, int L,
-		double beta, int seed, int overrelax_steps, bool write) :
-		m_filestem(filestem),
-				m_beta(beta), m_seed(seed), m_write(write), m_generate(beta > 0 && seed > 1),
-				m_tag( { top_level_id }) {
+MultilevelConfig::MultilevelConfig(ConfigParameters config_params) :
+		m_filestem(config_params.filestem), m_beta(config_params.beta), m_seed(config_params.seed),
+				m_write(config_params.write), m_generate(config_params.beta > 0 && config_params.seed > 1),
+				m_tag( { config_params.config_lv0_id }) {
 
-	if (filestem.empty() || top_level_id < 0)
+	if (m_filestem.empty() || config_params.config_lv0_id < 0)
 		throw std::invalid_argument("invalid MultilevelConfig");
 
 #if __SUN_N__ == 2
-	m_SUN_gaugefield = tools::helper::make_unique<latticetools_0719::MCSU2Gaugefield>(T, L, seed, beta, config_filepath());
+	m_SUN_gaugefield = tools::helper::make_unique<latticetools_0719::MCSU2Gaugefield>(config_params.T, config_params.L,
+			config_params.seed, config_params.beta, config_filepath());
 #elif __SUN_N__ == 3
-	m_SUN_gaugefield = tools::helper::make_unique<latticetools_0719::CL2QCDGaugefield>(T, L, seed, beta, overrelax_steps, config_filepath());
+	m_SUN_gaugefield = tools::helper::make_unique<latticetools_0719::CL2QCDGaugefield>(config_params.T, config_params.L,
+			config_params.seed, config_params.beta, config_params.overrelax_steps, config_filepath());
 #endif
 
-	latticetools_0719::Gauge_Field_Alloc(m_top_level_conf, T, L);
+	latticetools_0719::Gauge_Field_Alloc(m_top_level_conf, config_params.T, config_params.L);
 }
 
 MultilevelConfig::~MultilevelConfig() {

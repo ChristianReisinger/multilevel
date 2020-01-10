@@ -4,6 +4,7 @@
 #include <memory>
 
 #include <SUNGaugefield.hh>
+#include <ConfigParameters.hh>
 
 #include <LevelDef.hh>
 
@@ -17,8 +18,7 @@ namespace multilevel_0819 {
 class MultilevelConfig {
 public:
 
-	MultilevelConfig(const std::string& filestem, int top_level_id, int T, int L,
-			double beta = 0, int seed = 1, int overrelax_steps = 0, bool write = false);
+	MultilevelConfig(ConfigParameters config_params);
 
 	~MultilevelConfig();
 	MultilevelConfig(const MultilevelConfig&) = delete;

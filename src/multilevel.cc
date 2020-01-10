@@ -34,6 +34,7 @@
 #include <TwolinkComputer.hh>
 #include <parse_parameters.hh>
 #include <logger.hh>
+#include <ConfigParameters.hh>
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {
@@ -123,8 +124,7 @@ void print_option_help() {
 }
 
 bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
-		bool& generate, bool& write, double& beta, int& seed, std::vector<int>& level_updates, int& overrelax_steps,
-		std::string& extension) {
+		bool& generate, ConfigParameters& config_params, std::vector<int>& level_updates, std::string& extension) {
 
 	bool no_help_required = true;
 
@@ -145,35 +145,35 @@ bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 		switch (opt) {
 			case 'm':
 				show_mem = true;
-			break;
+				break;
 			case 'b':
 				generate = true;
-				beta = std::stod(optarg);
-			break;
+				config_params.beta = std::stod(optarg);
+				break;
 			case 's':
 				generate = true;
-				seed = std::stoi(optarg);
-			break;
+				config_params.seed = std::stoi(optarg);
+				break;
 			case 'u':
 				generate = true;
 				level_updates = tools::helper::parse_unsigned_int_list(optarg);
-			break;
+				break;
 			case 'r':
 				generate = true;
-				overrelax_steps = std::stoi(optarg);
-			break;
+				config_params.overrelax_steps = std::stoi(optarg);
+				break;
 			case 'w':
 				generate = true;
-				write = true;
-			break;
+				config_params.write = true;
+				break;
 			case 'e':
 				extension = optarg;
-			break;
+				break;
 			case 'h':
 				print_syntax_help(argv[0]);
 				print_option_help();
 				no_help_required = false;
-			break;
+				break;
 		}
 	}
 
@@ -262,23 +262,23 @@ int main(int argc, char** argv) {
 
 //	Parameters ****************************************************************************************************************************
 
-	int T, L, config_lv0_id, seed = 1, overrelax_steps = 0;
-	double beta = 0.0;
-	bool show_mem = false, generate = false, write = false;
+	ConfigParameters config_params;
+
+	bool show_mem = false, generate = false;
 	set<int> WL_Rs, NAPEs;
 	string outfile_extension = "";
 	vector<LevelDef> levels;
 
 	try {
 		vector<int> level_updates;
-		if (!handle_GNU_options(argc, argv, show_mem, generate, write, beta, seed, level_updates, overrelax_steps, outfile_extension))
+		if (!handle_GNU_options(argc, argv, show_mem, generate, config_params, level_updates, outfile_extension))
 			return 0;
 
-		if (generate && (beta <= 0.0 || seed <= 1))
+		if (generate && (config_params.beta <= 0.0 || config_params.seed <= 1))
 			throw invalid_argument("invalid <beta> or <seed>");
 
-		T = stoi(argv[1]);
-		L = stoi(argv[2]);
+		config_params.T = stoi(argv[1]);
+		config_params.L = stoi(argv[2]);
 
 		const vector<int> WL_R_list = parse_unsigned_int_list(argv[3]);
 		WL_Rs = std::set<int>(WL_R_list.begin(), WL_R_list.end());
@@ -291,7 +291,7 @@ int main(int argc, char** argv) {
 		ifstream compositions_ifs(argv[6]);
 		ostringstream compstr_oss;
 		compstr_oss << compositions_ifs.rdbuf();
-		levels = parse_parameters::levels(twolink_computers, compstr_oss.str(), T);
+		levels = parse_parameters::levels(twolink_computers, compstr_oss.str(), config_params.T);
 
 		if (level_config_num.size() != levels.size()
 				|| (generate && level_updates.size() != levels.size()))
@@ -304,7 +304,8 @@ int main(int argc, char** argv) {
 				levels[lv_i].update_num(level_updates[lv_i]);
 		}
 
-		config_lv0_id = std::stoi(argv[8]);
+		config_params.filestem = argv[7];
+		config_params.config_lv0_id = std::stoi(argv[8]);
 	} catch (std::exception& e) {
 		cerr << "Error: " << e.what() << "\n";
 		return 1;
@@ -312,7 +313,7 @@ int main(int argc, char** argv) {
 
 	if (show_mem) {
 		cout << "This computation uses "
-				<< memory_used(levels, T, L, WL_Rs.size()) / 1000000.0
+				<< memory_used(levels, config_params.T, config_params.L, WL_Rs.size()) / 1000000.0
 				<< " MB memory.\n";
 		return 0;
 	}
@@ -322,7 +323,7 @@ int main(int argc, char** argv) {
 	Stopwatch intermediate_watch;
 	cout << logger::timestamp() << "(I) Initializing multilevel algorithm ... \n";
 
-	MultilevelConfig multilevel_config(argv[7], config_lv0_id, T, L, beta, seed, overrelax_steps, write);
+	MultilevelConfig multilevel_config(config_params);
 	MultilevelAnalyzer multilevel(levels, multilevel_config, WL_Rs);
 
 	cout << logger::timestamp() << "(I) finished in " << intermediate_watch.reset().count() << " ms\n";
@@ -338,8 +339,8 @@ int main(int argc, char** argv) {
 
 	cout << logger::timestamp() << "(III) Computing Wilson loops ... " << std::endl;
 	double* smeared_gauge_field;
-	Gauge_Field_Alloc(smeared_gauge_field, T, L);
-	Gauge_Field_Copy(smeared_gauge_field, multilevel_config.get(), T, L);
+	Gauge_Field_Alloc(smeared_gauge_field, config_params.T, config_params.L);
+	Gauge_Field_Copy(smeared_gauge_field, multilevel_config.get(), config_params.T, config_params.L);
 
 //	***************************************************************************************************************************************
 
@@ -348,7 +349,7 @@ int main(int argc, char** argv) {
 	int smeared_steps = 0;
 	for (int NAPE : NAPEs) {
 		for (; smeared_steps < NAPE; ++smeared_steps)
-			APE_Smearing_Step(smeared_gauge_field, T, L, 0.5);
+			APE_Smearing_Step(smeared_gauge_field, config_params.T, config_params.L, 0.5);
 
 		for (const auto& op : levels[0].operators()) {
 			for (const int WL_R : WL_Rs) {
@@ -357,14 +358,14 @@ int main(int argc, char** argv) {
 
 				const auto& ts = op.defined_ts(WL_R);
 				for (int t : ts) {
-					complex WLs_at_t[L * L * L * 3];
+					complex WLs_at_t[config_params.spatial_volume() * 3];
 #pragma omp parallel for collapse(3)
-					for (int x = 0; x < L; ++x) {
-						for (int y = 0; y < L; ++y) {
-							for (int z = 0; z < L; ++z) {
+					for (int x = 0; x < config_params.L; ++x) {
+						for (int y = 0; y < config_params.L; ++y) {
+							for (int z = 0; z < config_params.L; ++z) {
 								for (int i = 1; i < 4; ++i) {
-									LinkPath S0(smeared_gauge_field, T, L, { t, x, y, z });
-									LinkPath ST(smeared_gauge_field, T, L, { t + op.t_extent(), x, y, z });
+									LinkPath S0(smeared_gauge_field, config_params.T, config_params.L, { t, x, y, z });
+									LinkPath ST(smeared_gauge_field, config_params.T, config_params.L, { t + op.t_extent(), x, y, z });
 									for (int r = 0; r < WL_R; ++r) {
 										S0(i, true);
 										ST(i, true);
@@ -373,16 +374,16 @@ int main(int argc, char** argv) {
 									double T_op[SO_elems];
 									op.at(T_op, t, x, y, z, i, WL_R);
 									close_Wilson_loop(&curr_WL, T_op, S0.path, ST.path);
-									WLs_at_t[i - 1 + 3 * (z + L * (y + L * x))] = curr_WL; //avoid critical region
+									WLs_at_t[i - 1 + 3 * (z + config_params.L * (y + config_params.L * x))] = curr_WL; //avoid critical region
 								}
 							}
 						}
 					}
-					for (int i = 0; i < L * L * L * 3; ++i)
+					for (int i = 0; i < config_params.spatial_volume() * 3; ++i)
 						co_pl_eq_co(&WL_avg, &WLs_at_t[i]);
 				}
 
-				co_di_eq_re(&WL_avg, 3.0 * L * L * L);
+				co_di_eq_re(&WL_avg, 3.0 * config_params.spatial_volume());
 				const string filename = op.name() + "." + outfile_extension;
 				const string params = to_string(NAPE) + " " + to_string(WL_R) + " " + op.descr();
 				results[filename][params].emplace_back(ts.size(), WL_avg);
