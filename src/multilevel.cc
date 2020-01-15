@@ -23,8 +23,6 @@
 #include <helper_functions.hh>
 #include <Stopwatch.hh>
 
-#include <sublattice_algebra.hh>
-#include <twolink_operator_functions.hh>
 #include <logger.hh>
 #include <algorithm/FactorInterface.hh>
 #include <algorithm/LevelDef.hh>
@@ -35,6 +33,8 @@
 #include <algorithm/TwolinkOperator.hh>
 #include <parameters/ConfigParameters.hh>
 #include <parameters/parse_parameters.hh>
+#include <physics/sublattice_algebra.hh>
+#include <physics/twolink_operator_functions.hh>
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {

@@ -130,12 +130,12 @@ add_library(mlvl
 	src/algorithm/TwolinkOperator.cc
 	src/algorithm/TwolinkComputer.cc
 	src/algorithm/T_field.cc
-	src/twolink_operator_functions.cc
+	src/physics/twolink_operator_functions.cc
 	src/logger.cc
 )
 
 add_library(sublattice_algebra SHARED
-	src/sublattice_algebra.cc
+	src/physics/sublattice_algebra.cc
 )
 
 target_compile_definitions(mlvl PUBLIC

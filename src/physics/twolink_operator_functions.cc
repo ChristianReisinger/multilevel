@@ -3,8 +3,8 @@
 #include <LinkPath.hh>
 #include <linear_algebra.hh>
 
-#include <sublattice_algebra.hh>
-#include <twolink_operator_functions.hh>
+#include <physics/sublattice_algebra.hh>
+#include <physics/twolink_operator_functions.hh>
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {

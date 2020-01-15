@@ -14,7 +14,6 @@
 #include <Stopwatch.hh>
 #include <global_defs.hh>
 
-#include <sublattice_algebra.hh>
 #include <logger.hh>
 #include <algorithm/LevelAccess.hh>
 #include <algorithm/LevelDef.hh>
@@ -22,6 +21,7 @@
 #include <algorithm/MultilevelConfig.hh>
 #include <algorithm/T_field.hh>
 #include <algorithm/TwolinkOperatorWriter.hh>
+#include <physics/sublattice_algebra.hh>
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {

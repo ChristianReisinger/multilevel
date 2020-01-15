@@ -6,10 +6,10 @@
 #include <global_defs.hh>
 #include <linear_algebra.hh>
 
-#include <sublattice_algebra.hh>
 #include <algorithm/FactorInterface.hh>
 #include <algorithm/T_field.hh>
 #include <algorithm/TwolinkOperator.hh>
+#include <physics/sublattice_algebra.hh>
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {
