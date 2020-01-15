@@ -131,7 +131,7 @@ add_library(mlvl
 	src/algorithm/TwolinkComputer.cc
 	src/algorithm/T_field.cc
 	src/physics/twolink_operator_functions.cc
-	src/logger.cc
+	src/log/logger.cc
 )
 
 add_library(sublattice_algebra SHARED

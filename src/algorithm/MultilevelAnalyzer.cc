@@ -14,13 +14,13 @@
 #include <Stopwatch.hh>
 #include <global_defs.hh>
 
-#include <logger.hh>
 #include <algorithm/LevelAccess.hh>
 #include <algorithm/LevelDef.hh>
 #include <algorithm/MultilevelAnalyzer.hh>
 #include <algorithm/MultilevelConfig.hh>
 #include <algorithm/T_field.hh>
 #include <algorithm/TwolinkOperatorWriter.hh>
+#include <log/logger.hh>
 #include <physics/sublattice_algebra.hh>
 
 namespace de_uni_frankfurt_itp {

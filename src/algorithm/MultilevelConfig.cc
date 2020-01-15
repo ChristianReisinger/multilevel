@@ -19,7 +19,7 @@
 #	error INVALID NC
 #endif
 
-#include <logger.hh>
+#include <log/logger.hh>
 #include <algorithm/LevelDef.hh>
 #include <algorithm/MultilevelConfig.hh>
 

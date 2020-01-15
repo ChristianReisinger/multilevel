@@ -23,7 +23,6 @@
 #include <helper_functions.hh>
 #include <Stopwatch.hh>
 
-#include <logger.hh>
 #include <algorithm/FactorInterface.hh>
 #include <algorithm/LevelDef.hh>
 #include <algorithm/MultilevelAnalyzer.hh>
@@ -31,6 +30,7 @@
 #include <algorithm/T_field.hh>
 #include <algorithm/TwolinkComputer.hh>
 #include <algorithm/TwolinkOperator.hh>
+#include <log/logger.hh>
 #include <parameters/ConfigParameters.hh>
 #include <parameters/parse_parameters.hh>
 #include <physics/sublattice_algebra.hh>
