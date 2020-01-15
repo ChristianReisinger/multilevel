@@ -143,7 +143,7 @@ target_compile_definitions(mlvl PUBLIC
 )
 
 add_executable(multilevel
-	src/multilevel.cc
+	src/bin/multilevel.cc
 	src/parameters/parse_parameters.cc
 )
 target_link_libraries(multilevel
