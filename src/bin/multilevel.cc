@@ -23,18 +23,18 @@
 #include <helper_functions.hh>
 #include <Stopwatch.hh>
 
-#include <sublattice_algebra.hh>
-#include <T_field.hh>
-#include <MultilevelConfig.hh>
-#include <MultilevelAnalyzer.hh>
-#include <LevelDef.hh>
-#include <twolink_operator_functions.hh>
-#include <FactorInterface.hh>
-#include <TwolinkOperator.hh>
-#include <TwolinkComputer.hh>
-#include <parse_parameters.hh>
-#include <logger.hh>
-#include <ConfigParameters.hh>
+#include <algorithm/FactorInterface.hh>
+#include <algorithm/LevelDef.hh>
+#include <algorithm/MultilevelAnalyzer.hh>
+#include <algorithm/MultilevelConfig.hh>
+#include <algorithm/T_field.hh>
+#include <algorithm/TwolinkComputer.hh>
+#include <algorithm/TwolinkOperator.hh>
+#include <log/logger.hh>
+#include <parameters/ConfigParameters.hh>
+#include <parameters/parse_parameters.hh>
+#include <physics/sublattice_algebra.hh>
+#include <physics/twolink_operator_functions.hh>
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {

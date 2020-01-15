@@ -117,7 +117,7 @@ find_library(LINKPATH_LIB LinkPath "${LatticeTools_ROOT}/lib")
 find_package(OpenMP REQUIRED)
 
 add_library(mlvl_omp
-	src/MultilevelAnalyzer.cc
+	src/algorithm/MultilevelAnalyzer.cc
 )
 
 target_link_libraries(mlvl_omp
@@ -125,17 +125,17 @@ target_link_libraries(mlvl_omp
 )
 
 add_library(mlvl
-	src/MultilevelConfig.cc
-	src/LevelDef.cc
-	src/TwolinkOperator.cc
-	src/TwolinkComputer.cc
-	src/T_field.cc
-	src/twolink_operator_functions.cc
-	src/logger.cc
+	src/algorithm/MultilevelConfig.cc
+	src/algorithm/LevelDef.cc
+	src/algorithm/TwolinkOperator.cc
+	src/algorithm/TwolinkComputer.cc
+	src/algorithm/T_field.cc
+	src/physics/twolink_operator_functions.cc
+	src/log/logger.cc
 )
 
 add_library(sublattice_algebra SHARED
-	src/sublattice_algebra.cc
+	src/physics/sublattice_algebra.cc
 )
 
 target_compile_definitions(mlvl PUBLIC
@@ -143,8 +143,8 @@ target_compile_definitions(mlvl PUBLIC
 )
 
 add_executable(multilevel
-	src/multilevel.cc
-	src/parse_parameters.cc
+	src/bin/multilevel.cc
+	src/parameters/parse_parameters.cc
 )
 target_link_libraries(multilevel
 	mlvl_omp

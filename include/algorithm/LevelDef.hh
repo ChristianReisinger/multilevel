@@ -3,7 +3,7 @@
 
 #include <global_defs.hh>
 
-#include <TwolinkOperator.hh>
+#include <algorithm/TwolinkOperator.hh>
 
 #ifndef INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_LEVELDEF_HH_
 #define INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_LEVELDEF_HH_

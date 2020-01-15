@@ -14,15 +14,14 @@
 #include <Stopwatch.hh>
 #include <global_defs.hh>
 
-#include <sublattice_algebra.hh>
-#include <T_field.hh>
-#include <LevelDef.hh>
-#include <LevelAccess.hh>
-#include <TwolinkOperatorWriter.hh>
-#include <MultilevelConfig.hh>
-#include <logger.hh>
-
-#include <MultilevelAnalyzer.hh>
+#include <algorithm/LevelAccess.hh>
+#include <algorithm/LevelDef.hh>
+#include <algorithm/MultilevelAnalyzer.hh>
+#include <algorithm/MultilevelConfig.hh>
+#include <algorithm/T_field.hh>
+#include <algorithm/TwolinkOperatorWriter.hh>
+#include <log/logger.hh>
+#include <physics/sublattice_algebra.hh>
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {

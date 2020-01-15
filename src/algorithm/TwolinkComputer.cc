@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include <string>
 
-#include <TwolinkComputer.hh>
+#include <algorithm/TwolinkComputer.hh>
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {

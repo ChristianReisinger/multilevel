@@ -1,9 +1,9 @@
 #include <set>
 #include <vector>
 
-#include <LevelDef.hh>
-#include <TwolinkOperator.hh>
-#include <MultilevelConfig.hh>
+#include <algorithm/LevelDef.hh>
+#include <algorithm/MultilevelConfig.hh>
+#include <algorithm/TwolinkOperator.hh>
 
 #ifndef INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_LEVELACCESS_HH_
 #define INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_LEVELACCESS_HH_

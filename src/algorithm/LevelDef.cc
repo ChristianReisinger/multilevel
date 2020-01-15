@@ -2,10 +2,9 @@
 #include <set>
 #include <stdexcept>
 
-#include <TwolinkOperator.hh>
-#include <TwolinkOperatorWriter.hh>
-
-#include <LevelDef.hh>
+#include <algorithm/LevelDef.hh>
+#include <algorithm/TwolinkOperator.hh>
+#include <algorithm/TwolinkOperatorWriter.hh>
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {

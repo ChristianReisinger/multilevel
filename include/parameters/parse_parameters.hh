@@ -1,8 +1,8 @@
 #include <string>
 #include <vector>
 
-#include <TwolinkComputer.hh>
-#include <LevelDef.hh>
+#include <algorithm/LevelDef.hh>
+#include <algorithm/TwolinkComputer.hh>
 
 #ifndef INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_PARSE_PARAMETERS_HH_
 #define INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_PARSE_PARAMETERS_HH_

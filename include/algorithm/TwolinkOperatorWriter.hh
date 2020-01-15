@@ -1,7 +1,7 @@
 #include <set>
 #include <vector>
 
-#include <TwolinkOperator.hh>
+#include <algorithm/TwolinkOperator.hh>
 
 #ifndef INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_TWOLINKOPERATORWRITER_HH_
 #define INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_TWOLINKOPERATORWRITER_HH_

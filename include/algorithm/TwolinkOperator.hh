@@ -4,8 +4,8 @@
 #include <set>
 #include <memory>
 
-#include <FactorInterface.hh>
-#include <T_field.hh>
+#include <algorithm/FactorInterface.hh>
+#include <algorithm/T_field.hh>
 
 #ifndef INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_TWOLINKOPERATOR_HH_
 #define INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_TWOLINKOPERATOR_HH_
