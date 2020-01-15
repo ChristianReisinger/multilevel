@@ -6,9 +6,9 @@
 
 #include <global_defs.hh>
 #include <geometry.hh>
-#include <sublattice_algebra.hh>
 
-#include <T_field.hh>
+#include <sublattice_algebra.hh>
+#include <algorithm/T_field.hh>
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {

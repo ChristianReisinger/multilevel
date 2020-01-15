@@ -2,6 +2,7 @@
 
 #include <LinkPath.hh>
 #include <linear_algebra.hh>
+
 #include <sublattice_algebra.hh>
 #include <twolink_operator_functions.hh>
 

@@ -4,9 +4,9 @@
 #include <memory>
 
 #include <SUNGaugefield.hh>
-#include <ConfigParameters.hh>
 
-#include <LevelDef.hh>
+#include <ConfigParameters.hh>
+#include <algorithm/LevelDef.hh>
 
 #ifndef INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_MULTILEVELCONFIG_HH_
 #define INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_MULTILEVELCONFIG_HH_

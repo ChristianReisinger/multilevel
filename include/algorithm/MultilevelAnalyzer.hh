@@ -4,9 +4,8 @@
 #include <string>
 #include <chrono>
 
-#include <LevelDef.hh>
-
-#include <MultilevelConfig.hh>
+#include <algorithm/LevelDef.hh>
+#include <algorithm/MultilevelConfig.hh>
 
 #ifndef INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_MULTILEVELANALYZER_HH_
 #define INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_MULTILEVELANALYZER_HH_

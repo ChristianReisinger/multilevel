@@ -19,10 +19,9 @@
 #	error INVALID NC
 #endif
 
-#include <LevelDef.hh>
 #include <logger.hh>
-
-#include <MultilevelConfig.hh>
+#include <algorithm/LevelDef.hh>
+#include <algorithm/MultilevelConfig.hh>
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {
