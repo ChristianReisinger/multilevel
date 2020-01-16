@@ -120,7 +120,8 @@ void print_option_help() {
 			"\t\tnumber of updates at each level in order from highest to lowest level; updates at level 0 are applied\n"
 			"\t\tonce to the initial config from file before computing observables.\n"
 			"\t\tSet number of overrelaxation steps with -r (default is 0), has no effect for SU(2) build.\n"
-			"\t\tWhen using also -w, generated configs are written to file with '.multilevel' appended to filenames.\n";
+			"\t\tWhen using also -w, generated configs are written to file with '.multilevel' appended to filenames.\n"
+			"\n";
 }
 
 bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
@@ -177,7 +178,7 @@ bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 		}
 	}
 
-	if (argc - optind != 8) {
+	if (no_help_required && argc - optind != 8) {
 		print_syntax_help(argv[0]);
 		no_help_required = false;
 	}

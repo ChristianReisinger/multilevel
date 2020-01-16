@@ -160,5 +160,16 @@ target_link_libraries(multilevel
 	OpenMP::OpenMP_CXX
 )
 
+add_executable(try_operator_on_timeslices
+	src/bin/try_operator_on_timeslices.cc
+)
+
+target_link_libraries(try_operator_on_timeslices
+	"${HELPER_LIB}"
+)
+
 install(TARGETS sublattice_algebra DESTINATION "${CMAKE_SOURCE_DIR}/lib")
-install(TARGETS multilevel DESTINATION "${CMAKE_SOURCE_DIR}/bin")
+install(TARGETS
+	multilevel
+	try_operator_on_timeslices
+DESTINATION "${CMAKE_SOURCE_DIR}/bin")
