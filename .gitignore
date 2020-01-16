@@ -1,9 +1,9 @@
 .cproject
 .project
 .settings
-bin/
-build/
-lib/
+/bin/
+/build/
+/lib/
 dependencies
 *.diff
-tests/su*
+/tests/su*
