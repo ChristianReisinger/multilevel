@@ -1,8 +1,8 @@
 #include <global_defs.hh>
 #include <linear_algebra.hh>
 
-#ifndef INCLUDE_SUBLATTICE_ALGEBRA_HH_
-#define INCLUDE_SUBLATTICE_ALGEBRA_HH_
+#ifndef INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_SUBLATTICE_ALGEBRA_HH_
+#define INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_SUBLATTICE_ALGEBRA_HH_
 
 namespace de_uni_frankfurt_itp {
 namespace reisinger {
