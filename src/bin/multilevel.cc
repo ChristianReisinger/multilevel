@@ -356,8 +356,11 @@ int main(int argc, char** argv) {
 
 	int smeared_steps = 0;
 	for (int NAPE : NAPEs) {
+		Stopwatch APE_watch;
+		cout << logger::timestamp() << "(IIIa) Smearing spatial links, " << NAPE << " steps ... " << std::endl;
 		for (; smeared_steps < NAPE; ++smeared_steps)
 			APE_Smearing_Step(smeared_gauge_field, config_params.T, config_params.L, 0.5);
+		cout << logger::timestamp() << "(IIIa) finished in " << APE_watch.check().count() << " ms\n";
 
 		for (const auto& op : levels[0].operators()) {
 			for (const int WL_R : WL_Rs) {
