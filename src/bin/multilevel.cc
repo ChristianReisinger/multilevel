@@ -105,7 +105,8 @@ void print_option_help() {
 			"Options\n"
 			"\n"
 			"\t--memory | -m\n"
-			"\t\tshow required memory and exit\n"
+			"\t\tshow approximate required memory and exit. Omit the parameters <config_prefix>, <config_id> when using\n"
+			"\t\tthis option.\n"
 			"\n"
 			"\t--extension -e <ext>\n"
 			"\t\tappend '.<ext>' to all output file names\n"
@@ -126,6 +127,8 @@ void print_option_help() {
 
 bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 		bool& generate, ConfigParameters& config_params, std::vector<int>& level_updates, std::string& extension) {
+
+	constexpr int REQUIRED_ARG_NUM = 8;
 
 	bool no_help_required = true;
 
@@ -178,7 +181,7 @@ bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 		}
 	}
 
-	if (no_help_required && argc - optind != 8) {
+	if (no_help_required && argc - optind != REQUIRED_ARG_NUM - show_mem ? 2 : 0) {
 		print_syntax_help(argv[0]);
 		no_help_required = false;
 	}
