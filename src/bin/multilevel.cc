@@ -181,7 +181,7 @@ bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 		}
 	}
 
-	if (no_help_required && argc - optind != REQUIRED_ARG_NUM - show_mem ? 2 : 0) {
+	if (no_help_required && argc - optind != REQUIRED_ARG_NUM - (show_mem ? 2 : 0)) {
 		print_syntax_help(argv[0]);
 		no_help_required = false;
 	}
