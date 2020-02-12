@@ -263,12 +263,6 @@ int main(int argc, char** argv) {
 	using tools::helper::make_unique;
 	using tools::Stopwatch;
 
-#pragma omp parallel
-	{	
-		if(omp_get_thread_num() == 0)
-			cout << "Using " << omp_get_num_threads() << " OMP threads\n";
-	}
-
 	Stopwatch program_watch;
 
 	const auto twolink_computers = make_twolink_computers();
@@ -330,6 +324,12 @@ int main(int argc, char** argv) {
 	}
 
 //	***************************************************************************************************************************************
+
+#pragma omp parallel
+	{
+		if(omp_get_thread_num() == 0)
+			cout << "Using " << omp_get_num_threads() << " OMP threads\n";
+	}
 
 	Stopwatch intermediate_watch;
 	cout << logger::timestamp() << "(I) Initializing multilevel algorithm ... \n";
