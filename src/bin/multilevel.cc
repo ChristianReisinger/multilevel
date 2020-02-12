@@ -130,8 +130,6 @@ bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 
 	constexpr int REQUIRED_ARG_NUM = 8;
 
-	bool no_help_required = true;
-
 	static struct option long_opts[] = {
 			{ "mem", no_argument, 0, 'm' },
 			{ "beta", required_argument, 0, 'b' },
@@ -176,14 +174,14 @@ bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 			case 'h':
 				print_syntax_help(argv[0]);
 				print_option_help();
-				no_help_required = false;
+				return false;
 				break;
 		}
 	}
 
-	if (no_help_required && argc - optind != REQUIRED_ARG_NUM - (show_mem ? 2 : 0)) {
+	if (argc - optind != REQUIRED_ARG_NUM - (show_mem ? 2 : 0)) {
 		print_syntax_help(argv[0]);
-		no_help_required = false;
+		return false;
 	}
 
 	if (generate && (config_params.beta <= 0.0 || config_params.seed <= 1))
@@ -191,7 +189,7 @@ bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 
 	argv = argv + optind - 1;
 
-	return no_help_required;
+	return true;
 }
 
 double memory_used(const std::vector<LevelDef>& levels, int T, int L, int num_R) {
