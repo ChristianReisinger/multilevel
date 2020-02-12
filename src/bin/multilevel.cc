@@ -309,8 +309,10 @@ int main(int argc, char** argv) {
 				levels[lv_i].update_num(level_updates[lv_i]);
 		}
 
-		config_params.filestem = argv[7];
-		config_params.config_lv0_id = std::stoi(argv[8]);
+		if (!show_mem) {
+			config_params.filestem = argv[7];
+			config_params.config_lv0_id = std::stoi(argv[8]);
+		}
 	} catch (std::exception& e) {
 		cerr << "Error: " << e.what() << "\n";
 		return 1;
@@ -327,7 +329,7 @@ int main(int argc, char** argv) {
 
 #pragma omp parallel
 	{
-		if(omp_get_thread_num() == 0)
+		if (omp_get_thread_num() == 0)
 			cout << "Using " << omp_get_num_threads() << " OMP threads\n";
 	}
 
