@@ -237,6 +237,17 @@ void remove_cyclic(std::map<timeslice_sizes, std::map<t_extent, std::set<t_coord
 				operator_placements.erase(eq_it);
 }
 
+void remove_reverse(std::map<timeslice_sizes, std::map<t_extent, std::set<t_coord> > >& operator_placements) {
+	for(const auto& [sizes, extents] : operator_placements) {
+		(void) extents;
+		auto reverse = sizes;
+		std::reverse(reverse.begin(), reverse.end());
+		if(reverse != sizes)
+			if(auto rev_pos = operator_placements.find(reverse); rev_pos != operator_placements.end())
+				operator_placements.erase(rev_pos);
+	}
+}
+
 void print(const std::map<timeslice_sizes, std::map<t_extent, std::set<t_coord> > >& operator_placements) {
 	using tools::io_tools::operator<<;
 
@@ -282,6 +293,7 @@ int main(int argc, char** argv) {
 			t_extents, center, total_pattern_sizes, possible_operator_placements);
 
 	remove_cyclic(possible_operator_placements);
+	remove_reverse(possible_operator_placements);
 	filter(possible_operator_placements, required_extents);
 
 	print(possible_operator_placements);
