@@ -11,7 +11,7 @@
 namespace de_uni_frankfurt_itp {
 namespace reisinger {
 namespace multilevel_0819 {
-namespace try_operator_on_timeslices {
+namespace find_sizes {
 
 using t_coord = int;
 using t_extent = int;
@@ -274,7 +274,7 @@ void print(const std::map<timeslice_sizes, std::map<t_extent, std::set<t_coord> 
 int main(int argc, char** argv) {
 	using namespace std;
 	using namespace de_uni_frankfurt_itp::reisinger;
-	using namespace multilevel_0819::try_operator_on_timeslices;
+	using namespace multilevel_0819::find_sizes;
 	using tools::helper::parse_unsigned_int_list;
 	using tools::helper::nest_for;
 
