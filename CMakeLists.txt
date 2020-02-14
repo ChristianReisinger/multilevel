@@ -161,6 +161,7 @@ target_link_libraries(multilevel
 )
 
 add_executable(find_sizes
+	src/find_sizes/main.cc
 	src/bin/find_sizes.cc
 )
 
