@@ -217,6 +217,26 @@ void filter(std::map<timeslice_sizes, std::map<t_extent, std::set<t_coord> > >& 
 	}
 }
 
+timeslice_sizes cycle_sizes(const timeslice_sizes& sizes) {
+
+	timeslice_sizes cycled_sizes(sizes);
+
+	if (sizes.size() < 2)
+		return sizes;
+
+	cycled_sizes.insert(cycled_sizes.begin(), cycled_sizes.back());
+	cycled_sizes.pop_back();
+
+	return cycled_sizes;
+}
+
+void remove_cyclic(std::map<timeslice_sizes, std::map<t_extent, std::set<t_coord> > >& operator_placements) {
+	for (auto it = operator_placements.begin(); it != operator_placements.end(); ++it)
+		for (timeslice_sizes equal_sizes = cycle_sizes(it->first); equal_sizes != it->first; equal_sizes = cycle_sizes(equal_sizes))
+			if (auto eq_it = operator_placements.find(equal_sizes); eq_it != operator_placements.end())
+				operator_placements.erase(eq_it);
+}
+
 void print(const std::map<timeslice_sizes, std::map<t_extent, std::set<t_coord> > >& operator_placements) {
 	using tools::io_tools::operator<<;
 
@@ -258,10 +278,10 @@ int main(int argc, char** argv) {
 	const vector<pair<int, int> > size_limits(tsl_num, { min_size, max_size + 1 });
 
 	map<timeslice_sizes, map<t_extent, set<t_coord> > > possible_operator_placements;
-	nest_for(size_limits,
-			scan_operator_placements, t_extents, center, total_pattern_sizes,
-			possible_operator_placements);
+	nest_for(size_limits, scan_operator_placements,
+			t_extents, center, total_pattern_sizes, possible_operator_placements);
 
+	remove_cyclic(possible_operator_placements);
 	filter(possible_operator_placements, required_extents);
 
 	print(possible_operator_placements);
