@@ -231,19 +231,21 @@ timeslice_sizes cycle_sizes(const timeslice_sizes& sizes) {
 }
 
 void remove_cyclic(std::map<timeslice_sizes, std::map<t_extent, std::set<t_coord> > >& operator_placements) {
-	for (auto it = operator_placements.begin(); it != operator_placements.end(); ++it)
-		for (timeslice_sizes equal_sizes = cycle_sizes(it->first); equal_sizes != it->first; equal_sizes = cycle_sizes(equal_sizes))
-			if (auto eq_it = operator_placements.find(equal_sizes); eq_it != operator_placements.end())
-				operator_placements.erase(eq_it);
+	for (const auto& [sizes, extents] : operator_placements) {
+		(void) extents;
+		for (timeslice_sizes equal_sizes = cycle_sizes(sizes); equal_sizes != sizes; equal_sizes = cycle_sizes(equal_sizes))
+			if (auto eq_pos = operator_placements.find(equal_sizes); eq_pos != operator_placements.end())
+				operator_placements.erase(eq_pos);
+	}
 }
 
 void remove_reverse(std::map<timeslice_sizes, std::map<t_extent, std::set<t_coord> > >& operator_placements) {
-	for(const auto& [sizes, extents] : operator_placements) {
+	for (const auto& [sizes, extents] : operator_placements) {
 		(void) extents;
 		auto reverse = sizes;
 		std::reverse(reverse.begin(), reverse.end());
-		if(reverse != sizes)
-			if(auto rev_pos = operator_placements.find(reverse); rev_pos != operator_placements.end())
+		if (reverse != sizes)
+			if (auto rev_pos = operator_placements.find(reverse); rev_pos != operator_placements.end())
 				operator_placements.erase(rev_pos);
 	}
 }
