@@ -250,6 +250,11 @@ void remove_reverse(std::map<timeslice_sizes, std::map<t_extent, std::set<t_coor
 	}
 }
 
+void remove_equal_timeslice_patterns(std::map<timeslice_sizes, std::map<t_extent, std::set<t_coord> > >& operator_placements) {
+	remove_reverse(operator_placements);
+	remove_cyclic(operator_placements);
+}
+
 void print(const std::map<timeslice_sizes, std::map<t_extent, std::set<t_coord> > >& operator_placements) {
 	using tools::io_tools::operator<<;
 
@@ -294,8 +299,7 @@ int main(int argc, char** argv) {
 	nest_for(size_limits, scan_operator_placements,
 			t_extents, center, total_pattern_sizes, possible_operator_placements);
 
-	remove_cyclic(possible_operator_placements);
-	remove_reverse(possible_operator_placements);
+	remove_equal_timeslice_patterns(possible_operator_placements);
 	filter(possible_operator_placements, required_extents);
 
 	print(possible_operator_placements);
