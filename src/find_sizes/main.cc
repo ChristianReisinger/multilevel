@@ -127,23 +127,23 @@ timeslice_sizes cycle_sizes(const timeslice_sizes& sizes) {
 	return cycled_sizes;
 }
 
-void remove_cyclic(timeslice_setups& setups) {
+void remove_equal_patterns(timeslice_setups& setups) {
 	for (const auto& [sizes, extents] : setups) {
 		(void) extents;
-		for (timeslice_sizes equal_sizes = cycle_sizes(sizes); equal_sizes != sizes; equal_sizes = cycle_sizes(equal_sizes))
-			if (auto eq_pos = setups.find(equal_sizes); eq_pos != setups.end())
-				setups.erase(eq_pos);
-	}
-}
+		timeslice_sizes cycled = sizes;
+		do {
+			timeslice_sizes reverse = cycled;
+			std::reverse(reverse.begin(), reverse.end());
+			if (reverse != sizes)
+				if (auto rev_pos = setups.find(reverse); rev_pos != setups.end())
+					setups.erase(rev_pos);
 
-void remove_reverse(timeslice_setups& setups) {
-	for (const auto& [sizes, extents] : setups) {
-		(void) extents;
-		auto reverse = sizes;
-		std::reverse(reverse.begin(), reverse.end());
-		if (reverse != sizes)
-			if (auto rev_pos = setups.find(reverse); rev_pos != setups.end())
-				setups.erase(rev_pos);
+			cycled = cycle_sizes(cycled);
+			if (cycled != sizes)
+				if (auto cyc_pos = setups.find(cycled); cyc_pos != setups.end())
+					setups.erase(cyc_pos);
+
+		} while (cycled != sizes);
 	}
 }
 
@@ -157,8 +157,7 @@ timeslice_setups find_sizes(const std::vector<std::pair<int, int> >& size_limits
 	tools::helper::nest_for(size_limits, scan_operator_placements,
 			t_extents, mode, total_pattern_sizes, setups);
 
-	remove_reverse(setups);
-	remove_cyclic(setups);
+	remove_equal_patterns(setups);
 
 	return setups;
 }
