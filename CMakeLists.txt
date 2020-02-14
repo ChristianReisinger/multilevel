@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(multilevel)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++17")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3 -std=c++17")
 
 set(NC 2 CACHE STRING "number of colors for SU(NC)")
 
