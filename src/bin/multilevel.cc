@@ -261,6 +261,10 @@ int main(int argc, char** argv) {
 	using tools::helper::make_unique;
 	using tools::Stopwatch;
 
+	for (int i = 0; i < argc; ++i)
+		cout << argv[i] << " ";
+	cout << "\n\n";
+
 	Stopwatch program_watch;
 
 	const auto twolink_computers = make_twolink_computers();
