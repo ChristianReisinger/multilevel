@@ -105,7 +105,8 @@ void print_option_help() {
 			"Options\n"
 			"\n"
 			"\t--memory | -m\n"
-			"\t\tshow required memory and exit\n"
+			"\t\tshow approximate required memory and exit. Omit the parameters <config_prefix>, <config_id> when using\n"
+			"\t\tthis option.\n"
 			"\n"
 			"\t--extension -e <ext>\n"
 			"\t\tappend '.<ext>' to all output file names\n"
@@ -127,7 +128,7 @@ void print_option_help() {
 bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 		bool& generate, ConfigParameters& config_params, std::vector<int>& level_updates, std::string& extension) {
 
-	bool no_help_required = true;
+	constexpr int REQUIRED_ARG_NUM = 8;
 
 	static struct option long_opts[] = {
 			{ "mem", no_argument, 0, 'm' },
@@ -173,14 +174,14 @@ bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 			case 'h':
 				print_syntax_help(argv[0]);
 				print_option_help();
-				no_help_required = false;
+				return false;
 				break;
 		}
 	}
 
-	if (no_help_required && argc - optind != 8) {
+	if (argc - optind != REQUIRED_ARG_NUM - (show_mem ? 2 : 0)) {
 		print_syntax_help(argv[0]);
-		no_help_required = false;
+		return false;
 	}
 
 	if (generate && (config_params.beta <= 0.0 || config_params.seed <= 1))
@@ -188,7 +189,7 @@ bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
 
 	argv = argv + optind - 1;
 
-	return no_help_required;
+	return true;
 }
 
 double memory_used(const std::vector<LevelDef>& levels, int T, int L, int num_R) {
@@ -260,6 +261,10 @@ int main(int argc, char** argv) {
 	using tools::helper::make_unique;
 	using tools::Stopwatch;
 
+	for (int i = 0; i < argc; ++i)
+		cout << argv[i] << " ";
+	cout << "\n\n";
+
 	Stopwatch program_watch;
 
 	const auto twolink_computers = make_twolink_computers();
@@ -306,8 +311,10 @@ int main(int argc, char** argv) {
 				levels[lv_i].update_num(level_updates[lv_i]);
 		}
 
-		config_params.filestem = argv[7];
-		config_params.config_lv0_id = std::stoi(argv[8]);
+		if (!show_mem) {
+			config_params.filestem = argv[7];
+			config_params.config_lv0_id = std::stoi(argv[8]);
+		}
 	} catch (std::exception& e) {
 		cerr << "Error: " << e.what() << "\n";
 		return 1;
@@ -321,6 +328,12 @@ int main(int argc, char** argv) {
 	}
 
 //	***************************************************************************************************************************************
+
+#pragma omp parallel
+	{
+		if (omp_get_thread_num() == 0)
+			cout << "Using " << omp_get_num_threads() << " OMP threads\n";
+	}
 
 	Stopwatch intermediate_watch;
 	cout << logger::timestamp() << "(I) Initializing multilevel algorithm ... \n";
@@ -350,8 +363,11 @@ int main(int argc, char** argv) {
 
 	int smeared_steps = 0;
 	for (int NAPE : NAPEs) {
+		Stopwatch APE_watch;
+		cout << logger::timestamp() << "(IIIa) Smearing spatial links, " << NAPE << " steps ... " << std::endl;
 		for (; smeared_steps < NAPE; ++smeared_steps)
 			APE_Smearing_Step(smeared_gauge_field, config_params.T, config_params.L, 0.5);
+		cout << logger::timestamp() << "(IIIa) finished in " << APE_watch.check().count() << " ms\n";
 
 		for (const auto& op : levels[0].operators()) {
 			for (const int WL_R : WL_Rs) {

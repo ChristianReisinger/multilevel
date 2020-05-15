@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(multilevel)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3 -std=c++17")
 
 set(NC 2 CACHE STRING "number of colors for SU(NC)")
 
@@ -160,16 +160,17 @@ target_link_libraries(multilevel
 	OpenMP::OpenMP_CXX
 )
 
-add_executable(try_operator_on_timeslices
-	src/bin/try_operator_on_timeslices.cc
+add_executable(find_sizes
+	src/find_sizes/main.cc
+	src/bin/find_sizes.cc
 )
 
-target_link_libraries(try_operator_on_timeslices
+target_link_libraries(find_sizes
 	"${HELPER_LIB}"
 )
 
 install(TARGETS sublattice_algebra DESTINATION "${CMAKE_SOURCE_DIR}/lib")
 install(TARGETS
 	multilevel
-	try_operator_on_timeslices
+	find_sizes
 DESTINATION "${CMAKE_SOURCE_DIR}/bin")

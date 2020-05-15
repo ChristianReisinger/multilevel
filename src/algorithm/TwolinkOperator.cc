@@ -52,14 +52,6 @@ void TwolinkOperator::at(double* result, int t, int x, int y, int z, int dir, in
 	so_eq_so(result, m_r_fields.at(rsep).T_at(t, x, y, z, dir));
 }
 
-int TwolinkOperator::timeslice_num() const {
-	int tsl_num = 0;
-	for (bool b : m_timeslice_isdefined)
-		if (b)
-			++tsl_num;
-	return tsl_num;
-}
-
 std::set<int> TwolinkOperator::defined_ts(int WL_R) const {
 	return m_r_fields.at(WL_R).defined_ts();
 }
