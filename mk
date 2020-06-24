@@ -17,6 +17,8 @@ else
 	exit
 fi
 
+mkdir -p build
+
 (cd build
 
 if [ "${1,,}" == su2 ]; then
