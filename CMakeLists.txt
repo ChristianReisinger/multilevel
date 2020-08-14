@@ -9,41 +9,11 @@ add_definitions(-D__SUN_N__=${NC})
 
 if(NC EQUAL 2)
 	find_library(SUN_INTERFACE_LIB MCSU2Gaugefield "${LatticeTools_ROOT}/lib")
-	add_library(SU2_LIB 
-		"${SU2_ROOT}/io.o"
-		"${SU2_ROOT}/heatbath.o"
-		"${SU2_ROOT}/ranlxs.o"
-		"${SU2_ROOT}/ranlxd.o"
-		"${SU2_ROOT}/ranlux.o"
-	)
-	set_target_properties(SU2_LIB PROPERTIES LINKER_LANGUAGE CXX)
-	set(SUN_LIB SU2_LIB)
 	set(SUN_ROOT "${SU2_ROOT}")
 	
 elseif(NC EQUAL 3)
 	find_library(SUN_INTERFACE_LIB CL2QCDGaugefield "${LatticeTools_ROOT}/lib")
 	
-	find_library(PHYSICS_ALGORITHMS algorithms "${CL2QCD_ROOT}/build/physics/algorithms")
-	find_library(PHYSICS_GAUGEFIELD gaugefield "${CL2QCD_ROOT}/build/physics/lattices")
-	find_library(PHYSICS_PRNG prng "${CL2QCD_ROOT}/build/physics")
-	find_library(META meta "${CL2QCD_ROOT}/build/meta")
-	find_library(HARDWARE hardware "${CL2QCD_ROOT}/build/hardware")
-	find_library(EXCEPTIONS exceptions "${CL2QCD_ROOT}/build/executables")
-	find_library(HARDWARE_LATTICES hardware_lattices "${CL2QCD_ROOT}/build/hardware/lattices")
-	find_library(ILDG_IO ildg_io "${CL2QCD_ROOT}/build/ildg_io")
-	find_library(CONTRACTIONCODE_IO contractioncode_io "${CL2QCD_ROOT}/build/contractioncode_io")
-	find_library(LOGGER logger "${CL2QCD_ROOT}/build/host_functionality")
-	find_library(EINHARD einhard "${CL2QCD_ROOT}/build/einhard")
-	find_library(HOST_FUNCTIONALITY host_functionality "${CL2QCD_ROOT}/build/host_functionality")
-	find_library(GEOMETRY geometry "${CL2QCD_ROOT}/build/geometry")
-	find_library(HARDWARE_CODE code "${CL2QCD_ROOT}/build/hardware/code")
-	find_library(HARDWARE_TRANSFER transfer "${CL2QCD_ROOT}/build/hardware/transfer")
-	find_library(HARDWARE_BUFFERS buffers "${CL2QCD_ROOT}/build/hardware/buffers")
-	find_library(RANLUX ranlux "${CL2QCD_ROOT}/build/ranlux")
-	find_library(CRYPTO crypto "${CL2QCD_ROOT}/build/crypto" NO_DEFAULT_PATH)
-	find_library(ILDG_IO_LIME lime "${CL2QCD_ROOT}/build/ildg_io/lime" NO_DEFAULT_PATH)
-	find_library(ILDG_IO_SOURCEFILEPARAMETERS sourcefileParameters "${CL2QCD_ROOT}/build/ildg_io/sourcefileParameters")
-
 	find_package(Boost 1.59.0 REQUIRED COMPONENTS regex filesystem system program_options unit_test_framework)
 	find_package(OpenCL REQUIRED)
 	find_package(LibXml2 REQUIRED)
@@ -62,27 +32,6 @@ elseif(NC EQUAL 3)
 	)
 
 	set(SUN_LIB
-		"${PHYSICS_ALGORITHMS}"
-		"${PHYSICS_GAUGEFIELD}"
-		"${PHYSICS_PRNG}"
-		"${META}"
-		"${HARDWARE}"
-		"${EXCEPTIONS}"
-		"${HARDWARE_LATTICES}"
-		"${ILDG_IO}"
-		"${CONTRACTIONCODE_IO}"
-		"${LOGGER}"
-		"${EINHARD}"
-		"${HOST_FUNCTIONALITY}"
-		"${GEOMETRY}"
-		"${HARDWARE_CODE}"
-		"${HARDWARE_TRANSFER}"
-		"${HARDWARE_BUFFERS}"
-		"${RANLUX}"
-		"${CRYPTO}"
-		"${ILDG_IO_LIME}"
-		"${ILDG_IO_SOURCEFILEPARAMETERS}"
-#
 		"${SU3_ROOT}/fields.o"
 		"${Boost_LIBRARIES}"
 		"${OPENCL_LIBRARIES}"
