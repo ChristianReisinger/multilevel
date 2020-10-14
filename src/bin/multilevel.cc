@@ -44,85 +44,85 @@ using latticetools_0719::SUN_elems;
 
 void print_syntax_help(char* argv0) {
 	std::cout << "\nUsage: " << argv0 << ""
-			"\t[--help] [--mem] [--extension <ext>]\n"
-			"\t[--beta <beta> --seed <seed> --updates <level_updates> [--overrelax <overrelax_steps>] [--write]]\n"
-			"\t<T> <L> <WL_Rs> <NAPEs> <level_config_num> <composition_file> <config_prefix> <config_id>\n\n";
+		"\t[--help] [--mem] [--extension <ext>]\n"
+		"\t[--beta <beta> --seed <seed> --updates <level_updates> [--overrelax <overrelax_steps>] [--write]]\n"
+		"\t<T> <L> <WL_Rs> <NAPEs> <level_config_num> <composition_file> <config_prefix> <config_id>\n\n";
 }
 
 void print_option_help() {
 	std::cout << "\n"
-			"Parameters\n"
-			"\n"
-			"\t<T> <L>\n"
-			"\t\tlattice dimensions\n"
-			"\n"
-			"\t<WL_Rs>\n"
-			"\t\tspatial Wilson loop sizes\n"
-			"\n"
-			"\t<NAPEs>\n"
-			"\t\tlist of number of APE smearing steps. Spatial Wilson lines are smeared after computing temporal lines on\n"
-			"\t\tunsmeared gauge field with multilevel\n"
-			"\n"
-			"\t<level_config_num>\n"
-			"\t\tComma separated list of the number of configs at each level\n"
-			"\n"
-			"\t<composition_file>\n"
-			"\t\tFile containing operator composition definitions at each level, format:\n"
-			"\t\t\t(sizes <sz>\n"
-			"\t\t\t(<name>:<timeslice_def>: <factor> ...\n"
-			"\t\t\t)...\n"
-			"\t\t\t)...\n"
-			"\t\t\tsizes T\n"
-			"\t\t\t(<file>:<timeslice_def>:<line_prefix>:<T>: <factors> ...\n"
-			"\t\t\t)...\n"
-			"\t\twhere levels are defined in order from lowest to highest and the top level is indicated by <sz> = 'T'\n"
-			"\t\t('sizes T').\n"
-			"\t\t<sz> is a comma separated list of timeslice sizes. If the total sizes does not fill the\n"
-			"\t\t\tlattice, the pattern is repeated periodically. Each level must define a partition of each timeslice\n"
-			"\t\t\tdefined at the next-lowest level.\n"
-			"\t\t<timeslice_def> is a string of '.' or 'x', with length equal to the number of entries in <sz>, where the\n"
-			"\t\t\tn-th character 'x' / '.' indicates that the operator is / is not defined at the n-th timeslice. At top\n"
-			"\t\tlevel (level 0), <timeslice_def> corresponds to entries in <sz> at level 1 instead.\n"
-			"\t\tOperators named <name> are defined as product of <factor>'s on the same line, where <factor> is one of\n"
-			"\t\t\tthe <name>'s defined at the next-lowest level.\n"
-			"\t\tAt top level, '<file>.<ext>' (or '<file>' if <ext> is empty) is the output file into which final results\n"
-			"\t\t\tare written.\n"
-			"\t\t<T> is the temporal size of the Wilson loop for each operator.\n"
-			"\t\t<line_prefix> (can be empty): output files have columns '<NAPE> <WL_R> <line_prefix> <re> <im>'.\n"
-			"\t\tResults for entries with equal <file> and <line_prefix> are averaged over.\n"
-			"\t\tPossible <name>'s at the lowest level are\n"
-			"\t\t\tU_x_U, UU_x_UU, Ex_x_I, ex_x_I, Ey_x_I, ..., Bx_x_I, ..., I_x_Ex, ... .\n"
-			"\n"
-			"\t<config_prefix>\n"
-			"\t\tGauge config filename without id extension (.1, .1.1, etc.)\n"
-			"\n"
-			"\t<config_id>\n"
-			"\t\tID of the top-level config\n"
-			"\n"
-			"\t<outfile>\n"
-			"\t\tOutput filename\n"
-			"\n"
-			"Options\n"
-			"\n"
-			"\t--memory | -m\n"
-			"\t\tshow approximate required memory and exit. Omit the parameters <config_prefix>, <config_id> when using\n"
-			"\t\tthis option.\n"
-			"\n"
-			"\t--extension -e <ext>\n"
-			"\t\tappend '.<ext>' to all output file names\n"
-			"\n"
-			"\t--beta <beta>, -b <beta>\n"
-			"\t--seed <seed>, -s <seed>\n"
-			"\t--updates <level_updates>, -u <level_updates>\n"
-			"\t[--write, -w]\n"
-			"\t[--overrelax, -r <overrelax_steps>]\n"
-			"\t\tThese options must be used together. When used, configs are generated during the multilevel algorithm\n"
-			"\t\tvia heatbath with <beta>, <seed> and <level_updates>. <level_updates> is a comma separated list of the\n"
-			"\t\tnumber of updates at each level in order from highest to lowest level; updates at level 0 are applied\n"
-			"\t\tonce to the initial config from file before computing observables.\n"
-			"\t\tSet number of overrelaxation steps with -r (default is 0), has no effect for SU(2) build.\n"
-			"\t\tWhen using also -w, generated configs are written to file with '.multilevel' appended to filenames.\n"
-			"\n";
+		"Parameters\n"
+		"\n"
+		"\t<T> <L>\n"
+		"\t\tlattice dimensions\n"
+		"\n"
+		"\t<WL_Rs>\n"
+		"\t\tspatial Wilson loop sizes\n"
+		"\n"
+		"\t<NAPEs>\n"
+		"\t\tlist of number of APE smearing steps. Spatial Wilson lines are smeared after computing temporal lines on\n"
+		"\t\tunsmeared gauge field with multilevel\n"
+		"\n"
+		"\t<level_config_num>\n"
+		"\t\tComma separated list of the number of configs at each level\n"
+		"\n"
+		"\t<composition_file>\n"
+		"\t\tFile containing operator composition definitions at each level, format:\n"
+		"\t\t\t(sizes <sz>\n"
+		"\t\t\t(<name>:<timeslice_def>: <factor> ...\n"
+		"\t\t\t)...\n"
+		"\t\t\t)...\n"
+		"\t\t\tsizes T\n"
+		"\t\t\t(<file>:<timeslice_def>:<line_prefix>:<T>: <factors> ...\n"
+		"\t\t\t)...\n"
+		"\t\twhere levels are defined in order from lowest to highest and the top level is indicated by <sz> = 'T'\n"
+		"\t\t('sizes T').\n"
+		"\t\t<sz> is a comma separated list of timeslice sizes. If the total sizes does not fill the\n"
+		"\t\t\tlattice, the pattern is repeated periodically. Each level must define a partition of each timeslice\n"
+		"\t\t\tdefined at the next-lowest level.\n"
+		"\t\t<timeslice_def> is a string of '.' or 'x', with length equal to the number of entries in <sz>, where the\n"
+		"\t\t\tn-th character 'x' / '.' indicates that the operator is / is not defined at the n-th timeslice. At top\n"
+		"\t\tlevel (level 0), <timeslice_def> corresponds to entries in <sz> at level 1 instead.\n"
+		"\t\tOperators named <name> are defined as product of <factor>'s on the same line, where <factor> is one of\n"
+		"\t\t\tthe <name>'s defined at the next-lowest level.\n"
+		"\t\tAt top level, '<file>.<ext>' (or '<file>' if <ext> is empty) is the output file into which final results\n"
+		"\t\t\tare written.\n"
+		"\t\t<T> is the temporal size of the Wilson loop for each operator.\n"
+		"\t\t<line_prefix> (can be empty): output files have columns '<NAPE> <WL_R> <line_prefix> <re> <im>'.\n"
+		"\t\tResults for entries with equal <file> and <line_prefix> are averaged over.\n"
+		"\t\tPossible <name>'s at the lowest level are\n"
+		"\t\t\tU_x_U, UU_x_UU, Ex_x_I, ex_x_I, Ey_x_I, ..., Bx_x_I, ..., I_x_Ex, ... .\n"
+		"\n"
+		"\t<config_prefix>\n"
+		"\t\tGauge config filename without id extension (.1, .1.1, etc.)\n"
+		"\n"
+		"\t<config_id>\n"
+		"\t\tID of the top-level config\n"
+		"\n"
+		"\t<outfile>\n"
+		"\t\tOutput filename\n"
+		"\n"
+		"Options\n"
+		"\n"
+		"\t--memory | -m\n"
+		"\t\tshow approximate required memory and exit. Omit the parameters <config_prefix>, <config_id> when using\n"
+		"\t\tthis option.\n"
+		"\n"
+		"\t--extension -e <ext>\n"
+		"\t\tappend '.<ext>' to all output file names\n"
+		"\n"
+		"\t--beta <beta>, -b <beta>\n"
+		"\t--seed <seed>, -s <seed>\n"
+		"\t--updates <level_updates>, -u <level_updates>\n"
+		"\t[--write, -w]\n"
+		"\t[--overrelax, -r <overrelax_steps>]\n"
+		"\t\tThese options must be used together. When used, configs are generated during the multilevel algorithm\n"
+		"\t\tvia heatbath with <beta>, <seed> and <level_updates>. <level_updates> is a comma separated list of the\n"
+		"\t\tnumber of updates at each level in order from highest to lowest level; updates at level 0 are applied\n"
+		"\t\tonce to the initial config from file before computing observables.\n"
+		"\t\tSet number of overrelaxation steps with -r (default is 0), has no effect for SU(2) build.\n"
+		"\t\tWhen using also -w, generated configs are written to file with '.multilevel' appended to filenames.\n"
+		"\n";
 }
 
 bool handle_GNU_options(int argc, char**& argv, bool& show_mem,
@@ -302,7 +302,7 @@ int main(int argc, char** argv) {
 		levels = parse_parameters::levels(twolink_computers, compstr_oss.str(), config_params.T);
 
 		if (level_config_num.size() != levels.size()
-				|| (generate && level_updates.size() != levels.size()))
+			|| (generate && level_updates.size() != levels.size()))
 			throw invalid_argument("invalid <level_config_num> or <level_updates>");
 
 		for (size_t lv_i = 0; lv_i < levels.size(); ++lv_i) {
@@ -322,8 +322,8 @@ int main(int argc, char** argv) {
 
 	if (show_mem) {
 		cout << "This computation uses "
-				<< memory_used(levels, config_params.T, config_params.L, WL_Rs.size()) / 1000000.0
-				<< " MB memory.\n";
+			<< memory_used(levels, config_params.T, config_params.L, WL_Rs.size()) / 1000000.0
+			<< " MB memory.\n";
 		return 0;
 	}
 
@@ -444,9 +444,9 @@ int main(int argc, char** argv) {
 	Gauge_Field_Free(smeared_gauge_field);
 
 	cout << logger::timestamp() << "\nComputation time\n"
-			"\tfull program : " << program_watch.check().count() << " ms\n"
-			"\tupdating configs : " << multilevel_config.milliseconds_spent_updating() << " ms\n"
-			"\tcomputing observables : " << multilevel.milliseconds_spent_computing() << " ms\n";
+		"\tfull program : " << program_watch.check().count() << " ms\n"
+		"\tupdating configs : " << multilevel_config.milliseconds_spent_updating() << " ms\n"
+		"\tcomputing observables : " << multilevel.milliseconds_spent_computing() << " ms\n";
 
 	return 0;
 }
