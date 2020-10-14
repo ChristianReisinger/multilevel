@@ -13,7 +13,7 @@ struct ConfigParameters {
 	bool write = false;
 	std::string filestem = "conf";
 
-	inline int spatial_volume() {
+	inline int spatial_volume() const {
 		return L * L * L;
 	}
 };
