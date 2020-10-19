@@ -1,4 +1,5 @@
 #include <string>
+#include <set>
 
 #ifndef INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_CONFIGPARAMETERS_HH_
 #define INCLUDE_DE_UNI_FRANKFURT_ITP_REISINGER_MULTILEVEL_0819_CONFIGPARAMETERS_HH_
@@ -16,6 +17,12 @@ struct ConfigParameters {
 	inline int spatial_volume() const {
 		return L * L * L;
 	}
+};
+
+struct Settings {
+	bool show_mem = false, generate = false;
+	std::set<int> WL_Rs, NAPEs;
+	std::string outfile_extension = "";
 };
 
 }

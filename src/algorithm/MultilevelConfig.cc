@@ -29,8 +29,8 @@ namespace multilevel_0819 {
 
 MultilevelConfig::MultilevelConfig(ConfigParameters config_params) :
 		m_filestem(config_params.filestem), m_beta(config_params.beta), m_seed(config_params.seed),
-				m_write(config_params.write), m_generate(config_params.beta > 0 && config_params.seed > 1),
-				m_tag( { config_params.config_lv0_id }) {
+		m_write(config_params.write), m_generate(config_params.beta > 0 && config_params.seed > 1),
+		m_tag( { config_params.config_lv0_id }) {
 
 	if (m_filestem.empty() || config_params.config_lv0_id < 0)
 		throw std::invalid_argument("invalid MultilevelConfig");
