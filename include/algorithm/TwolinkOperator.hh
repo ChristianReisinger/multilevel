@@ -41,7 +41,7 @@ private:
 	std::string m_descr = "";
 	std::map<int, T_field> m_r_fields { };
 
-	bool valid_timeslice_def();
+	bool valid_timeslice_def() const;
 
 	friend class TwolinkOperatorWriter;
 };

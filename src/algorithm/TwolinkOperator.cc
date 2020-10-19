@@ -28,7 +28,9 @@ TwolinkOperator::TwolinkOperator(std::string name, std::vector<bool> timeslice_i
 }
 
 int TwolinkOperator::timeslice_num_per_cycle() const {
-	return std::count_if(m_timeslice_isdefined.begin(), m_timeslice_isdefined.end(), [](bool b) {return b;});
+	return std::count_if(m_timeslice_isdefined.begin(), m_timeslice_isdefined.end(), [](bool b) {
+		return b;
+	});
 }
 
 std::string TwolinkOperator::descr() const {
@@ -75,14 +77,8 @@ void TwolinkOperator::free_T_fields() {
 	m_r_fields.clear();
 }
 
-bool TwolinkOperator::valid_timeslice_def() {
-	bool valid = false;
-	for (bool b : m_timeslice_isdefined)
-		if (b) {
-			valid = true;
-			break;
-		}
-	return valid;
+bool TwolinkOperator::valid_timeslice_def() const {
+	return std::find(m_timeslice_isdefined.begin(), m_timeslice_isdefined.end(), true) != m_timeslice_isdefined.end();
 }
 
 }
